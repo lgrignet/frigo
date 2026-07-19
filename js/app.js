@@ -136,6 +136,14 @@ const App = (() => {
   return { boot, showLogin, showMain, onLoginSuccess, navigateTo, applyLanguage, updateBadges };
 })();
 
+// ── Affichage d'erreur de boot ──────────────────────────────
+function showBootError(msg) {
+  const div = document.createElement('div');
+  div.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#c0392b;color:#fff;padding:16px;font-size:13px;font-family:monospace;z-index:99999;white-space:pre-wrap;word-break:break-all;max-height:50vh;overflow:auto';
+  div.textContent = '⚠️ BOOT ERROR:\n' + msg;
+  document.body.appendChild(div);
+}
+
 // ── Main event listeners ────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
   // Nav tabs
@@ -153,12 +161,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     const prefs = await PrefsModel.get(userId);
     ItemForm.open(null, prefs.defaultStorageId, async () => {
       await App.updateBadges();
-      // Re-render current view
       if (document.getElementById('view-expiring').classList.contains('active')) ExpiringView.render();
       if (document.getElementById('view-all').classList.contains('active')) AllItemsView.render();
     });
   });
 
-  // Boot app
-  await App.boot();
+  // Boot app avec gestion d'erreur visible
+  try {
+    await App.boot();
+  } catch (err) {
+    showBootError(err?.stack || err?.message || String(err));
+  }
 });
