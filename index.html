@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#090e1a">
+  <meta name="description" content="MyStockManager — Gérez votre frigo, vos stocks et vos courses intelligemment.">
+  <title>MyStockManager</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+</head>
+<body>
+<div id="app">
+
+<!-- ══════════════════════════════════════════════════════════
+     SCREEN: LOGIN
+═══════════════════════════════════════════════════════════ -->
+<div id="screen-login" class="screen">
+  <div class="login-screen">
+    <div class="login-logo">🧊</div>
+    <h1 class="login-title" id="login-title">MyStockManager</h1>
+    <p class="login-subtitle" id="login-tagline">Gérez votre stock intelligemment</p>
+
+    <div class="login-card">
+      <!-- Tabs -->
+      <div class="login-tabs">
+        <div class="login-tab active" id="login-tab-login">Connexion</div>
+        <div class="login-tab" id="login-tab-register">Créer un compte</div>
+      </div>
+
+      <!-- Error -->
+      <div id="login-error" style="color:var(--danger);font-size:13px;font-weight:500;margin-bottom:12px;display:none"></div>
+
+      <!-- ── Login form ── -->
+      <div class="login-form-section active" id="section-login">
+        <div class="form-group">
+          <label class="form-label" id="label-login-email" for="login-email">Email</label>
+          <input type="email" id="login-email" class="form-control" autocomplete="email" inputmode="email">
+        </div>
+        <div class="form-group">
+          <label class="form-label" id="label-login-pass" for="login-pass">Mot de passe</label>
+          <input type="password" id="login-pass" class="form-control" autocomplete="current-password">
+        </div>
+        <button class="btn btn-primary" id="btn-login" style="width:100%;margin-bottom:12px">Se connecter</button>
+        <a class="login-link" id="link-forgot">Mot de passe oublié ?</a>
+      </div>
+
+      <!-- ── Register form ── -->
+      <div class="login-form-section" id="section-register">
+        <div class="form-group">
+          <label class="form-label" id="label-reg-email" for="reg-email">Email</label>
+          <input type="email" id="reg-email" class="form-control" autocomplete="email" inputmode="email">
+        </div>
+        <div class="form-group">
+          <label class="form-label" id="label-reg-pass" for="reg-pass">Mot de passe</label>
+          <input type="password" id="reg-pass" class="form-control" autocomplete="new-password">
+        </div>
+        <div class="form-group">
+          <label class="form-label" id="label-reg-pass2" for="reg-pass2">Confirmer</label>
+          <input type="password" id="reg-pass2" class="form-control" autocomplete="new-password">
+        </div>
+        <button class="btn btn-primary" id="btn-register" style="width:100%">Créer mon compte</button>
+      </div>
+
+      <!-- ── Recover form ── -->
+      <div class="login-form-section" id="section-recover">
+        <a class="login-link" id="link-back-login" style="text-align:left;margin-bottom:16px">← Retour</a>
+        <div class="form-group">
+          <label class="form-label" id="label-rec-email" for="rec-email">Email</label>
+          <input type="email" id="rec-email" class="form-control">
+        </div>
+        <div class="form-group">
+          <label class="form-label" id="label-rec-code" for="rec-code">Code de récupération</label>
+          <input type="text" id="rec-code" class="form-control" placeholder="XXXXX-XXXXX-XXXXX-XXXXX"
+                 autocomplete="off" style="letter-spacing:2px;font-family:monospace">
+        </div>
+        <div class="form-group">
+          <label class="form-label" id="label-rec-newpass" for="rec-newpass">Nouveau mot de passe</label>
+          <input type="password" id="rec-newpass" class="form-control">
+        </div>
+        <button class="btn btn-primary" id="btn-recover" style="width:100%">Récupérer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SCREEN: MAIN APP
+═══════════════════════════════════════════════════════════ -->
+<div id="screen-main" class="screen">
+
+  <!-- Header -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="header-logo-icon">🧊</div>
+      <div>
+        <div class="header-title" id="header-app-title">MyStockManager</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <button class="header-btn" id="btn-open-recipes" title="Recettes">🍳</button>
+      <button class="header-btn" id="btn-open-prefs" title="Préférences">⚙️</button>
+    </div>
+  </header>
+
+  <!-- Content -->
+  <main class="app-content">
+
+    <!-- ── View: Bientôt périmé ── -->
+    <section id="view-expiring" class="view">
+      <div class="section-header" style="padding-top:20px">
+        <div class="section-title" id="expiring-title">Bientôt périmé</div>
+        <div style="font-size:12px;color:var(--text-muted)">
+          <span id="expiring-days-value">7</span>
+          <span id="expiring-days-label"> jours</span>
+        </div>
+      </div>
+      <div class="item-list" id="expiring-list"></div>
+      <div class="empty-state" id="expiring-empty" style="display:none">
+        <div class="empty-icon">✅</div>
+        <div class="empty-title" id="expiring-empty-title">Tout est frais !</div>
+        <p class="empty-sub" id="expiring-empty-sub">Aucun produit ne périme bientôt.</p>
+      </div>
+    </section>
+
+    <!-- ── View: Tous les produits ── -->
+    <section id="view-all" class="view">
+      <div class="section-header" style="padding-top:20px">
+        <div class="section-title" id="all-title">Tous les produits</div>
+      </div>
+      <div class="search-container">
+        <span class="search-icon">🔍</span>
+        <input type="search" id="all-search" class="search-input" autocomplete="off">
+      </div>
+      <div class="sort-bar">
+        <span class="sort-label" id="all-sort-label">Trier par</span>
+        <select id="all-sort-select" class="sort-select"></select>
+      </div>
+      <div class="filter-bar" id="all-filters"></div>
+      <div class="item-list" id="all-list" style="padding-bottom:8px"></div>
+      <div class="empty-state" id="all-empty" style="display:none">
+        <div class="empty-icon">📦</div>
+        <div class="empty-title" id="all-empty-title">Aucun produit</div>
+        <p class="empty-sub" id="all-empty-sub">Ajoutez votre premier produit.</p>
+      </div>
+    </section>
+
+    <!-- ── View: Courses ── -->
+    <section id="view-shopping" class="view">
+      <div class="section-header" style="padding-top:20px">
+        <div class="section-title" id="shopping-view-title">Liste de courses</div>
+      </div>
+      <div style="padding:0 16px 12px;display:flex;gap:8px">
+        <input type="text" id="shopping-input" class="form-control" style="flex:1;font-size:14px;padding:10px 14px">
+        <button class="btn btn-primary btn-sm" id="btn-shopping-add" style="flex:0 0 auto;padding:10px 14px">Ajouter</button>
+      </div>
+      <div style="padding:0 16px 12px;display:flex;gap:8px">
+        <button class="shopping-toolbar-btn filter-chip" id="btn-shopping-copy">📋 Copier</button>
+        <button class="shopping-toolbar-btn filter-chip" id="btn-shopping-clear">✓ Effacer</button>
+      </div>
+      <div style="padding:0 16px 8px">
+        <div class="section-title" id="shopping-auto-title">Réassort auto</div>
+        <div id="shopping-auto-list" style="display:flex;flex-direction:column;gap:6px;margin-top:8px"></div>
+      </div>
+      <div style="padding:0 16px 8px">
+        <div class="section-title" id="shopping-manual-title">Articles manuels</div>
+        <div id="shopping-manual-list" style="display:flex;flex-direction:column;gap:6px;margin-top:8px"></div>
+      </div>
+      <div id="shopping-recipe-section" style="padding:0 16px 8px;display:none">
+        <div class="section-title" id="shopping-recipe-title">Depuis une recette</div>
+        <div id="shopping-recipe-list" style="display:flex;flex-direction:column;gap:6px;margin-top:8px"></div>
+      </div>
+      <div class="empty-state" id="shopping-empty" style="display:none">
+        <div class="empty-icon">🛒</div>
+        <div class="empty-title" id="shopping-empty-title">Liste vide</div>
+        <p class="empty-sub" id="shopping-empty-sub">Les produits à réassortir apparaissent ici.</p>
+      </div>
+    </section>
+
+    <!-- ── View: Rangements ── -->
+    <section id="view-storages" class="view">
+      <div class="section-header" style="padding-top:20px">
+        <div class="section-title" id="storages-view-title">Rangements</div>
+        <button class="btn btn-primary btn-sm" id="btn-add-storage">+ Ajouter</button>
+      </div>
+      <div class="storages-grid" id="storages-grid" style="margin-top:8px"></div>
+      <div class="empty-state" id="storages-empty" style="display:none">
+        <div class="empty-icon">🚪</div>
+        <div class="empty-title">Aucun rangement</div>
+      </div>
+    </section>
+
+  </main><!-- /.app-content -->
+
+  <!-- FAB -->
+  <button class="fab" id="fab-main" aria-label="Ajouter un produit">＋</button>
+
+  <!-- Ad banner placeholder -->
+  <div id="ad-banner" class="ad-banner" style="display:none"></div>
+
+  <!-- Bottom Nav -->
+  <nav class="app-nav">
+    <button class="nav-tab active" data-view="expiring" id="nav-tab-expiring">
+      <span class="nav-icon">⏰</span>
+      <span id="nav-label-expiring">Péremption</span>
+      <span class="nav-badge" id="nav-expiring-badge" style="display:none"></span>
+    </button>
+    <button class="nav-tab" data-view="all" id="nav-tab-all">
+      <span class="nav-icon">📦</span>
+      <span id="nav-label-all">Produits</span>
+    </button>
+    <button class="nav-tab" data-view="shopping" id="nav-tab-shopping">
+      <span class="nav-icon">🛒</span>
+      <span id="nav-label-shopping">Courses</span>
+      <span class="nav-badge" id="nav-shopping-badge" style="display:none;background:var(--accent);color:#000"></span>
+    </button>
+    <button class="nav-tab" data-view="storages" id="nav-tab-storages">
+      <span class="nav-icon">🧊</span>
+      <span id="nav-label-storages">Rangements</span>
+    </button>
+  </nav>
+
+</div><!-- /#screen-main -->
+</div><!-- /#app -->
+
+<!-- ══════════════════════════════════════════════════════════
+     MODALS
+═══════════════════════════════════════════════════════════ -->
+
+<!-- ── Modal: Recovery code (register) ── -->
+<div id="modal-recovery-code" class="modal">
+  <div class="modal-backdrop"></div>
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <span class="modal-title">🔑 Code de récupération</span>
+    </div>
+    <div class="modal-body">
+      <div class="recovery-code-box">
+        <div class="recovery-code" id="recovery-code-display"></div>
+        <div class="recovery-code-warn" id="recovery-warn-text"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" id="btn-noted-code">J'ai noté mon code →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal: Add/Edit item ── -->
+<div id="modal-item-form" class="modal">
+  <div class="modal-backdrop"></div>
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <span class="modal-title" id="form-title">Nouveau produit</span>
+      <button class="modal-close" onclick="Modal.close('modal-item-form')">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="item-form" novalidate>
+        <div class="form-group">
+          <label class="form-label" id="label-name" for="field-name">Nom</label>
+          <input type="text" id="field-name" class="form-control" autocomplete="off" autofocus>
+        </div>
+        <div class="form-row" style="margin-bottom:18px">
+          <div class="form-group" style="flex:2">
+            <label class="form-label" id="label-qty" for="field-qty">Quantité</label>
+            <input type="number" id="field-qty" class="form-control" value="1" min="0" step="any">
+          </div>
+          <div class="form-group" style="flex:3">
+            <label class="form-label" id="label-unit" for="field-unit">Unité</label>
+            <select id="field-unit" class="form-control"></select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" id="label-storage" for="field-storage">Rangement</label>
+          <select id="field-storage" class="form-control"></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" id="label-expiry" for="field-expiry">
+            Péremption <span class="label-optional">optionnel</span>
+          </label>
+          <input type="date" id="field-expiry" class="form-control">
+        </div>
+        <div class="form-group">
+          <label class="form-label" id="label-restock" for="field-restock">Seuil de réassort</label>
+          <input type="number" id="field-restock" class="form-control" value="0" min="0" step="1">
+          <div class="form-hint" id="label-restock-help">0 = désactivé</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" id="label-notes" for="field-notes">
+            Notes <span class="label-optional">optionnel</span>
+          </label>
+          <input type="text" id="field-notes" class="form-control">
+        </div>
+        <div class="form-group">
+          <label class="form-label" id="label-photo">Photo <span class="label-optional">optionnel</span></label>
+          <div class="photo-picker">
+            <div class="photo-preview" id="photo-preview">📷</div>
+            <div class="photo-actions">
+              <button type="button" class="btn-photo" id="btn-take-photo">📷 Photo</button>
+              <button type="button" class="btn-photo" id="btn-choose-photo">🖼️ Galerie</button>
+              <button type="button" class="btn-photo btn-photo-danger" id="btn-remove-photo" style="display:none">🗑️ Supprimer</button>
+            </div>
+          </div>
+          <input type="file" id="photo-input" accept="image/*" style="display:none">
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger btn-sm" id="btn-form-delete" style="display:none;flex:0 0 auto">🗑</button>
+      <button class="btn btn-secondary" id="btn-form-cancel">Annuler</button>
+      <button class="btn btn-primary" id="btn-form-save">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal: Item actions ── -->
+<div id="modal-item-actions" class="modal">
+  <div class="modal-backdrop"></div>
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <span class="modal-title" id="action-item-name"></span>
+      <button class="modal-close" onclick="Modal.close('modal-item-actions')">✕</button>
+    </div>
+    <div class="modal-body" style="padding:8px 0">
+      <button id="btn-action-edit"      class="prefs-item" style="width:100%;text-align:left;border:none;border-bottom:1px solid var(--border)">✏️ Modifier</button>
+      <button id="btn-action-duplicate" class="prefs-item" style="width:100%;text-align:left;border:none;border-bottom:1px solid var(--border)">📋 Dupliquer</button>
+      <button id="btn-action-move"      class="prefs-item" style="width:100%;text-align:left;border:none;border-bottom:1px solid var(--border)">🔄 Déplacer vers…</button>
+      <button id="btn-action-delete"    class="prefs-item" style="width:100%;text-align:left;border:none;color:var(--danger)">🗑️ Supprimer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal: Move/Add to storage ── -->
+<div id="modal-move" class="modal">
+  <div class="modal-backdrop"></div>
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <span class="modal-title" id="modal-move-title">Déplacer vers…</span>
+      <button class="modal-close" onclick="Modal.close('modal-move')">✕</button>
+    </div>
+    <div class="modal-body" style="padding:8px 0">
+      <div id="move-storage-list" class="prefs-row"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal: Confirm ── -->
+<div id="modal-confirm" class="modal">
+  <div class="modal-backdrop"></div>
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-body" style="padding:28px 24px 12px;text-align:center">
+      <div style="font-size:40px;margin-bottom:12px">⚠️</div>
+      <div style="font-size:17px;font-weight:700;margin-bottom:6px" id="confirm-title"></div>
+      <div style="font-size:13px;color:var(--text-secondary)" id="confirm-sub"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="btn-confirm-no">Annuler</button>
+      <button class="btn btn-danger" id="btn-confirm-yes">Supprimer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal: Storage form ── -->
+<div id="modal-storage-form" class="modal">
+  <div class="modal-backdrop"></div>
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <span class="modal-title" id="storage-form-title">Nouveau rangement</span>
+      <button class="modal-close" onclick="Modal.close('modal-storage-form')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label" id="label-storage-name">Nom</label>
+        <input type="text" id="storage-name-input" class="form-control" placeholder="Ex: Congélateur">
+      </div>
+      <div class="form-group">
+        <label class="form-label" id="label-storage-icon">Icône</label>
+        <select id="storage-icon-select" class="form-control">
+          <option value="🧊">🧊 Frigo</option>
+          <option value="❄️">❄️ Congélateur</option>
+          <option value="🚪">🚪 Armoire</option>
+          <option value="🏚️">🏚️ Cave</option>
+          <option value="📦">📦 Caisse</option>
+          <option value="🍶">🍶 Garde-manger</option>
+          <option value="🥩">🥩 Boucherie</option>
+          <option value="🥬">🥬 Légumier</option>
+          <option value="🍷">🍷 Cave à vins</option>
+          <option value="🧁">🧁 Pâtisserie</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label" id="label-storage-type">Type</label>
+        <select id="storage-type-select" class="form-control"></select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="btn-storage-form-cancel">Annuler</button>
+      <button class="btn btn-primary" id="btn-storage-form-save">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal: Storage detail ── -->
+<div id="modal-storage-detail" class="modal">
+  <div class="modal-backdrop"></div>
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <span class="modal-title" id="storage-detail-title"></span>
+      <button class="modal-close" onclick="Modal.close('modal-storage-detail')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="storage-detail-items"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger btn-sm" id="btn-storage-delete" style="flex:0 0 auto">🗑</button>
+      <button class="btn btn-secondary" id="btn-storage-edit">✏️ Modifier</button>
+      <button class="btn btn-primary" onclick="Modal.close('modal-storage-detail')">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     FULLSCREEN: Recettes
+═══════════════════════════════════════════════════════════ -->
+<div id="modal-recipes" class="modal-fullscreen" style="display:none">
+  <div class="fullscreen-header">
+    <button class="fullscreen-back" id="btn-recipes-close">←</button>
+    <div class="fullscreen-title" id="recipes-modal-title">Recettes</div>
+  </div>
+  <div class="fullscreen-content">
+    <p class="recipes-note" id="recipes-note-text" style="margin:12px 16px;padding:10px 14px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-md);font-size:12px;color:var(--text-secondary)"></p>
+    <div class="chips-container" id="recipes-chips"></div>
+    <div style="padding:0 16px 16px">
+      <button class="btn btn-primary" id="btn-recipes-search" style="width:100%" disabled></button>
+    </div>
+    <div id="recipes-results" style="padding:0 16px 16px;display:none"></div>
+  </div>
+</div>
+
+<!-- ── Modal: Recipe detail ── -->
+<div id="modal-recipe-detail" class="modal">
+  <div class="modal-backdrop"></div>
+  <div class="modal-sheet" style="max-height:95dvh">
+    <div id="rd-thumb" style="height:180px;background-size:cover;background-position:center;background-color:var(--bg-elevated);flex-shrink:0"></div>
+    <div class="modal-header">
+      <div>
+        <span class="modal-title" id="rd-name"></span>
+        <div style="font-size:12px;color:var(--text-secondary)" id="rd-meta"></div>
+      </div>
+      <button class="modal-close" id="btn-rd-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px" id="rd-ing-title">Ingrédients</div>
+      <div id="rd-ingredients" style="margin-bottom:16px"></div>
+      <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px" id="rd-inst-title">Préparation</div>
+      <div id="rd-instructions" style="margin-bottom:12px"></div>
+      <a id="rd-source" href="#" target="_blank" rel="noopener"
+         style="display:none;align-items:center;gap:6px;padding:8px 14px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-md);font-size:13px;color:var(--text-secondary);text-decoration:none">
+        🔗 Voir la recette complète
+      </a>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" id="btn-rd-shopping" style="display:none">🛒</button>
+      <button class="btn btn-secondary" onclick="Modal.close('modal-recipe-detail')">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     FULLSCREEN: Préférences
+═══════════════════════════════════════════════════════════ -->
+<div id="modal-prefs" class="modal-fullscreen" style="display:none">
+  <div class="fullscreen-header">
+    <button class="fullscreen-back" id="btn-prefs-close">←</button>
+    <div class="fullscreen-title">⚙️ <span id="prefs-fullscreen-title">Préférences</span></div>
+  </div>
+  <div class="fullscreen-content">
+    <!-- Général -->
+    <div class="prefs-section">
+      <div class="prefs-section-title" id="pref-section-general">Général</div>
+      <div class="prefs-row">
+        <!-- Expiry days -->
+        <div class="prefs-item" style="flex-direction:column;align-items:flex-start;gap:10px">
+          <div class="prefs-item-label" id="pref-expiry-label">Jours d'alerte avant péremption</div>
+          <div class="slider-row" style="width:100%">
+            <input type="range" class="slider" id="pref-expiry-slider" min="1" max="30" value="7">
+            <span class="slider-value" id="pref-expiry-value">7 jours</span>
+          </div>
+        </div>
+      </div>
+      <div class="prefs-row">
+        <!-- Theme -->
+        <div class="prefs-item">
+          <span class="prefs-item-icon">🎨</span>
+          <div class="prefs-item-info">
+            <div class="prefs-item-label" id="pref-theme-label">Thème</div>
+          </div>
+          <button class="btn btn-secondary btn-sm" id="btn-pref-theme">Mode clair</button>
+        </div>
+      </div>
+      <div class="prefs-row">
+        <!-- Language -->
+        <div class="prefs-item" style="flex-direction:column;align-items:flex-start;gap:8px">
+          <div class="prefs-item-label" id="pref-lang-label">Langue</div>
+          <div style="display:flex;gap:8px;width:100%">
+            <button class="lang-btn active" id="btn-lang-fr" style="flex:1;padding:10px;border-radius:10px;background:var(--bg-elevated);border:1px solid var(--border);font-size:13px;font-weight:600;color:var(--text-secondary);transition:var(--transition)">🇫🇷 Français</button>
+            <button class="lang-btn" id="btn-lang-en" style="flex:1;padding:10px;border-radius:10px;background:var(--bg-elevated);border:1px solid var(--border);font-size:13px;font-weight:600;color:var(--text-secondary);transition:var(--transition)">🇬🇧 English</button>
+          </div>
+        </div>
+      </div>
+      <div class="prefs-row">
+        <!-- Default unit -->
+        <div class="prefs-item">
+          <span class="prefs-item-icon">📏</span>
+          <div class="prefs-item-info">
+            <div class="prefs-item-label" id="pref-unit-label">Unité par défaut</div>
+          </div>
+          <select id="pref-unit-select" class="sort-select" style="max-width:130px"></select>
+        </div>
+      </div>
+      <div class="prefs-row">
+        <!-- Default storage -->
+        <div class="prefs-item">
+          <span class="prefs-item-icon">🧊</span>
+          <div class="prefs-item-info">
+            <div class="prefs-item-label" id="pref-storage-label">Rangement par défaut</div>
+          </div>
+          <select id="pref-storage-select" class="sort-select" style="max-width:130px"></select>
+        </div>
+      </div>
+      <div class="prefs-row">
+        <!-- Notifications -->
+        <div class="prefs-item" style="flex-direction:column;align-items:flex-start;gap:8px">
+          <div style="display:flex;align-items:center;justify-content:space-between;width:100%">
+            <div>
+              <div class="prefs-item-label" id="pref-notif-label">Notifications</div>
+            </div>
+            <div class="toggle-switch" id="pref-notif-toggle"></div>
+          </div>
+          <div id="pref-notif-time-row" style="display:none;width:100%;align-items:center;gap:8px">
+            <span class="prefs-item-sub" id="pref-notif-sub">Heure :</span>
+            <input type="time" id="pref-notif-time" class="form-control" style="flex:1;padding:8px 12px;font-size:14px">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Account -->
+    <div class="prefs-section">
+      <div class="prefs-section-title" id="pref-section-account">Compte</div>
+      <div class="prefs-row">
+        <div class="prefs-item">
+          <span class="prefs-item-icon">👤</span>
+          <div class="prefs-item-info">
+            <div class="prefs-item-label" id="pref-account-label">Mon compte</div>
+            <div class="prefs-item-sub" id="pref-email-display"></div>
+          </div>
+        </div>
+        <div class="prefs-item" style="border-top:1px solid var(--border)">
+          <span class="prefs-item-icon">🚪</span>
+          <div class="prefs-item-info">
+            <button class="prefs-item-label" id="pref-logout-btn" style="background:none;border:none;color:var(--danger);font-size:14px;font-weight:600;cursor:pointer">Se déconnecter</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Premium -->
+    <div class="prefs-section">
+      <div class="prefs-section-title" id="pref-section-premium">Premium</div>
+      <div id="premium-section"></div>
+    </div>
+
+    <!-- Data -->
+    <div class="prefs-section">
+      <div class="prefs-section-title" id="pref-section-data">Données</div>
+      <div class="prefs-row">
+        <div class="prefs-item" style="cursor:pointer" id="btn-pref-export">
+          <span class="prefs-item-icon">📤</span>
+          <div class="prefs-item-info">
+            <div class="prefs-item-label">Exporter mes données</div>
+            <div class="prefs-item-sub">JSON local</div>
+          </div>
+          <span class="prefs-item-right">›</span>
+        </div>
+        <div class="prefs-item" style="cursor:pointer;border-top:1px solid var(--border)" id="btn-pref-reset">
+          <span class="prefs-item-icon">🔄</span>
+          <div class="prefs-item-info">
+            <div class="prefs-item-label" style="color:var(--danger)">Réinitialiser l'application</div>
+          </div>
+          <span class="prefs-item-right" style="color:var(--danger)">›</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- About -->
+    <div class="prefs-section">
+      <div class="prefs-section-title">À propos</div>
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-md);padding:16px;font-size:12px;color:var(--text-secondary);line-height:1.7">
+        <p>📱 <strong>MyStockManager v1.0</strong> — PWA</p>
+        <p>🔒 Données stockées localement, chiffrées avec AES-256-GCM</p>
+        <p>🍽️ Recettes via <a href="https://www.themealdb.com" target="_blank" rel="noopener" style="color:var(--accent)">TheMealDB</a></p>
+        <p>🔑 Mot de passe haché PBKDF2 (150 000 itérations)</p>
+      </div>
+    </div>
+
+    <div style="height:40px"></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" role="status" aria-live="polite"></div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SCRIPTS (ordre de chargement important)
+═══════════════════════════════════════════════════════════ -->
+<!-- Core -->
+<script src="js/i18n.js"></script>
+<script src="js/core/crypto.js"></script>
+<script src="js/core/db.js"></script>
+<script src="js/core/auth.js"></script>
+<!-- Models -->
+<script src="js/models/item.model.js"></script>
+<script src="js/models/storage.model.js"></script>
+<script src="js/models/shopping.model.js"></script>
+<script src="js/models/prefs.model.js"></script>
+<!-- Components -->
+<script src="js/components/modal.js"></script>
+<script src="js/components/toast.js"></script>
+<script src="js/components/item-card.js"></script>
+<script src="js/components/item-form.js"></script>
+<script src="js/components/ad-banner.js"></script>
+<!-- Views -->
+<script src="js/views/login.view.js"></script>
+<script src="js/views/expiring.view.js"></script>
+<script src="js/views/all-items.view.js"></script>
+<script src="js/views/shopping.view.js"></script>
+<script src="js/views/storages.view.js"></script>
+<script src="js/views/recipes.view.js"></script>
+<script src="js/views/prefs.view.js"></script>
+<!-- App controller -->
+<script src="js/app.js"></script>
+
+</body>
+</html>
