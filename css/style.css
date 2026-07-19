@@ -18,6 +18,7 @@
   --transition-slow: 0.35s cubic-bezier(0.32,0.72,0,1);
   --nav-height:    68px;
   --header-height: 58px;
+  --ad-height:     0px;
 }
 
 /* ── Reset ──────────────────────────────────────────────── */
@@ -105,21 +106,25 @@ a { color: var(--accent); text-decoration: none; }
   background: var(--bg-surface); border-color: var(--accent);
 }
 
+/* ── Ad active: shift layout up ─────────────────────────── */
+#app.ad-active { --ad-height: 50px; }
+
 /* ── Main scroll area ────────────────────────────────────── */
 .app-content {
   flex: 1; overflow-y: auto; overflow-x: hidden;
-  padding-bottom: calc(var(--nav-height) + 8px);
+  padding-bottom: calc(var(--nav-height) + var(--ad-height) + 8px);
 }
 
 /* ── Bottom nav ──────────────────────────────────────────── */
 .app-nav {
-  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+  position: fixed; bottom: var(--ad-height); left: 50%; transform: translateX(-50%);
   width: 100%; max-width: 480px;
   height: var(--nav-height);
   background: var(--bg-nav);
   backdrop-filter: blur(24px);
   border-top: 1px solid var(--border);
   display: flex; z-index: 300;
+  transition: bottom 0.2s ease;
 }
 @media (min-width: 480px) {
   .app-nav { border-left: 1px solid var(--border); border-right: 1px solid var(--border); }
@@ -150,14 +155,14 @@ a { color: var(--accent); text-decoration: none; }
 
 /* ── FAB ─────────────────────────────────────────────────── */
 .fab {
-  position: fixed; bottom: calc(var(--nav-height) + 14px);
+  position: fixed; bottom: calc(var(--nav-height) + var(--ad-height) + 14px);
   right: max(16px, calc(50vw - 224px));
   width: 54px; height: 54px; border-radius: 50%;
   background: linear-gradient(135deg, var(--accent), #0066cc);
   color: white; font-size: 24px;
   display: flex; align-items: center; justify-content: center;
   box-shadow: var(--shadow-fab); z-index: 200;
-  transition: var(--transition); border: none;
+  transition: bottom 0.2s ease, transform var(--transition); border: none;
 }
 .fab:hover, .fab:active { transform: scale(1.1) rotate(45deg); }
 
@@ -738,13 +743,13 @@ a { color: var(--accent); text-decoration: none; }
   display: flex; align-items: center; justify-content: center;
   font-size: 11px; color: var(--text-muted);
   letter-spacing: 0.5px; flex-shrink: 0;
-  position: fixed; bottom: var(--nav-height); left: 50%; transform: translateX(-50%);
+  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
   width: 100%; max-width: 480px; z-index: 290;
 }
 
 /* ── Toast ───────────────────────────────────────────────── */
 #toast {
-  position: fixed; bottom: calc(var(--nav-height) + 60px);
+  position: fixed; bottom: calc(var(--nav-height) + var(--ad-height) + 60px);
   left: 50%; transform: translateX(-50%) translateY(10px);
   background: var(--bg-elevated); border: 1px solid var(--border);
   color: var(--text-primary); padding: 10px 20px;
