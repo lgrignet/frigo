@@ -32,6 +32,7 @@ const App = (() => {
     // Init components
     Modal.init();
     ItemForm.init();
+    LoginView.init();
 
     // Check session
     if (Auth.isLoggedIn()) {
@@ -40,9 +41,9 @@ const App = (() => {
       showLogin();
     }
 
-    // Service worker
+    // Service worker (chemin relatif pour GitHub Pages)
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(() => {});
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
     }
   }
 
@@ -82,7 +83,6 @@ const App = (() => {
     StoragesView.init();
     RecipesView.init();
     PrefsView.init();
-    LoginView.init();
 
     // Navigate to expiring view
     navigateTo('expiring');
