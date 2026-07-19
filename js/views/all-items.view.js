@@ -57,7 +57,10 @@ const AllItemsView = (() => {
     } else {
       empty.style.display = 'none';
       list.innerHTML = items.map(item => ItemCard.render(item, storages)).join('');
-      ItemCard.bindEvents(list, id => openItemActions(id, storages));
+      ItemCard.bindEvents(list, id => openItemActions(id, storages), async (id, action) => {
+        await ItemCard.changeQuantity(id, action);
+        render();
+      });
     }
   }
 

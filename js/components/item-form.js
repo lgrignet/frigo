@@ -6,11 +6,13 @@ const ItemForm = (() => {
   let editingId = null;
   let capturedPhoto = null;
   let onSaveCallback = null;
+  let addToShoppingList = false;
 
-  function open(id = null, defaultStorageId = null, callback = null) {
+  function open(id = null, defaultStorageId = null, callback = null, forShopping = false) {
     editingId = id;
     capturedPhoto = null;
     onSaveCallback = callback;
+    addToShoppingList = forShopping;
     const item = id ? null : null; // will fetch async
     populateForm(id, defaultStorageId);
     Modal.open('modal-item-form');
@@ -125,11 +127,13 @@ const ItemForm = (() => {
     }
     document.getElementById('field-name').classList.remove('error');
 
+    const expiryRaw = document.getElementById('field-expiry').value || null;
+    const prefs = await PrefsModel.get(userId);
     const data = {
       name,
       quantity: parseFloat(document.getElementById('field-qty').value) || 0,
       unit: document.getElementById('field-unit').value,
-      expiryDate: document.getElementById('field-expiry').value || null,
+      expiryDate: expiryRaw ? parseExpiryDate(expiryRaw, prefs.dateFormat || 'european') : null,
       storageId: document.getElementById('field-storage').value,
       restockThreshold: parseInt(document.getElementById('field-restock').value) || 0,
       notes: document.getElementById('field-notes').value.trim(),
@@ -138,12 +142,19 @@ const ItemForm = (() => {
 
     if (editingId) {
       await ItemModel.update(editingId, data);
+    } else if (addToShoppingList) {
+      await ShoppingModel.add(userId, { name, quantity: data.quantity, unit: data.unit, source: 'manual' });
     } else {
       await ItemModel.create(userId, data);
     }
 
     // Sync shopping list
-    await ShoppingModel.syncAutoRestock(userId);
+    if (!addToShoppingList) {
+      await ShoppingModel.syncAutoRestock(userId);
+    }
+    if (typeof App !== 'undefined' && typeof App.updateBadges === 'function') {
+      await App.updateBadges();
+    }
 
     Toast.success(i18n.t('item_saved'));
     Modal.close('modal-item-form');
@@ -161,6 +172,9 @@ const ItemForm = (() => {
     document.getElementById('btn-confirm-yes').onclick = async () => {
       await ItemModel.remove(editingId);
       await ShoppingModel.syncAutoRestock(Auth.getCurrentUserId());
+      if (typeof App !== 'undefined' && typeof App.updateBadges === 'function') {
+        await App.updateBadges();
+      }
       Modal.close('modal-confirm');
       Toast.success(i18n.t('item_deleted'));
       if (onSaveCallback) onSaveCallback();

@@ -166,6 +166,7 @@ a { color: var(--accent); text-decoration: none; }
 }
 .fab:hover, .fab:active { transform: scale(1.1) rotate(45deg); }
 
+
 /* ── Cards ───────────────────────────────────────────────── */
 .card {
   background: var(--bg-card);
@@ -228,8 +229,28 @@ a { color: var(--accent); text-decoration: none; }
 .item-card-meta {
   display: flex; align-items: center; gap: 8px;
   font-size: 11px; color: var(--text-secondary);
+  flex-wrap: wrap;
 }
 .item-qty { font-weight: 600; color: var(--text-primary); font-size: 12px; }
+.item-qty-controls {
+  display: flex; align-items: center; gap: 4px;
+  margin-left: auto;
+}
+.item-qty-btn {
+  width: 28px; height: 28px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  font-size: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+}
+.item-qty-btn:hover {
+  background: var(--bg-surface);
+}
 .item-storage-tag {
   font-size: 10px; padding: 2px 7px;
   background: var(--bg-elevated);
@@ -320,6 +341,13 @@ a { color: var(--accent); text-decoration: none; }
 }
 .filter-chip:hover:not(.active) {
   background: var(--bg-surface); color: var(--text-primary);
+}
+
+.lang-btn {
+  cursor: pointer;
+}
+.lang-btn.active {
+  background: var(--accent-glow); border-color: var(--accent); color: var(--accent);
 }
 
 /* ── Sort bar ────────────────────────────────────────────── */
@@ -573,7 +601,30 @@ a { color: var(--accent); text-decoration: none; }
   flex: 1; font-size: 14px; font-weight: 500;
 }
 .shopping-item-name.line-through { text-decoration: line-through; }
-.shopping-item-qty { font-size: 12px; color: var(--text-secondary); white-space: nowrap; }
+.shopping-qty-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+}
+.shopping-item-qty {
+  font-size: 12px; color: var(--text-secondary); white-space: nowrap;
+}
+.shopping-qty-btn {
+  width: 28px; height: 28px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+}
+.shopping-qty-btn:hover {
+  background: var(--bg-surface);
+}
 .shopping-btn-remove {
   color: var(--text-muted); font-size: 12px;
   padding: 3px 6px; border-radius: 4px; transition: var(--transition);

@@ -24,11 +24,18 @@ const ExpiringView = (() => {
       empty.style.display = 'flex';
       document.getElementById('expiring-empty-title').textContent = i18n.t('expiring_empty');
       document.getElementById('expiring-empty-sub').textContent = i18n.t('expiring_empty_sub');
-      return;
+    } else {
+      empty.style.display = 'none';
+      list.innerHTML = items.map(item => ItemCard.render(item, storages)).join('');
+      ItemCard.bindEvents(list, id => ItemForm.open(id, null, () => render()), async (id, action) => {
+        await ItemCard.changeQuantity(id, action);
+        render();
+      });
     }
-    empty.style.display = 'none';
-    list.innerHTML = items.map(item => ItemCard.render(item, storages)).join('');
-    ItemCard.bindEvents(list, id => ItemForm.open(id, null, () => render()));
+
+    if (typeof App !== 'undefined' && typeof App.updateBadges === 'function') {
+      await App.updateBadges();
+    }
   }
 
   function init() {

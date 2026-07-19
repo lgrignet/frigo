@@ -155,8 +155,7 @@
         <div class="section-title" id="shopping-view-title">Liste de courses</div>
       </div>
       <div style="padding:0 16px 12px;display:flex;gap:8px">
-        <input type="text" id="shopping-input" class="form-control" style="flex:1;font-size:14px;padding:10px 14px">
-        <button class="btn btn-primary btn-sm" id="btn-shopping-add" style="flex:0 0 auto;padding:10px 14px">Ajouter</button>
+        <input type="text" id="shopping-input" class="form-control" style="flex:1;font-size:14px;padding:10px 14px" placeholder="" aria-label="Filtrer la liste de courses">
       </div>
       <div style="padding:0 16px 12px;display:flex;gap:8px">
         <button class="shopping-toolbar-btn filter-chip" id="btn-shopping-copy">📋 Copier</button>
@@ -516,6 +515,16 @@
           <div style="display:flex;gap:8px;width:100%">
             <button class="lang-btn active" id="btn-lang-fr" style="flex:1;padding:10px;border-radius:10px;background:var(--bg-elevated);border:1px solid var(--border);font-size:13px;font-weight:600;color:var(--text-secondary);transition:var(--transition)">🇫🇷 Français</button>
             <button class="lang-btn" id="btn-lang-en" style="flex:1;padding:10px;border-radius:10px;background:var(--bg-elevated);border:1px solid var(--border);font-size:13px;font-weight:600;color:var(--text-secondary);transition:var(--transition)">🇬🇧 English</button>
+          </div>
+        </div>
+      </div>
+      <div class="prefs-row">
+        <!-- Date format -->
+        <div class="prefs-item" style="flex-direction:column;align-items:flex-start;gap:8px">
+          <div class="prefs-item-label" id="pref-date-format-label">Format de date</div>
+          <div style="display:flex;gap:8px;width:100%">
+            <button class="lang-btn" id="btn-pref-date-european" style="flex:1;padding:10px;border-radius:10px;background:var(--bg-elevated);border:1px solid var(--border);font-size:13px;font-weight:600;color:var(--text-secondary);transition:var(--transition)">JJ/MM/AAAA</button>
+            <button class="lang-btn" id="btn-pref-date-american" style="flex:1;padding:10px;border-radius:10px;background:var(--bg-elevated);border:1px solid var(--border);font-size:13px;font-weight:600;color:var(--text-secondary);transition:var(--transition)">MM/JJ/AAAA</button>
           </div>
         </div>
       </div>

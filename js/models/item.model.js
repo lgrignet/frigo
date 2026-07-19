@@ -27,10 +27,19 @@ const ItemModel = (() => {
     return all
       .filter(i => i.expiryDate)
       .filter(i => {
-        const d = new Date(i.expiryDate); d.setHours(0,0,0,0);
+        const d = parseDateString(i.expiryDate, App?.dateFormat || 'european');
+        if (!d) return false;
+        d.setHours(0,0,0,0);
         return d <= limit;
       })
-      .sort((a, b) => new Date(a.expiryDate) - new Date(b.expiryDate));
+      .sort((a, b) => {
+        const da = parseDateString(a.expiryDate, App?.dateFormat || 'european');
+        const db = parseDateString(b.expiryDate, App?.dateFormat || 'european');
+        if (!da && !db) return 0;
+        if (!da) return 1;
+        if (!db) return -1;
+        return da - db;
+      });
   }
 
   async function getLowStock(userId) {
@@ -108,7 +117,9 @@ const ItemModel = (() => {
   function getDiffDays(expiryDate) {
     if (!expiryDate) return null;
     const today = new Date(); today.setHours(0,0,0,0);
-    const exp = new Date(expiryDate); exp.setHours(0,0,0,0);
+    const exp = parseDateString(expiryDate, App?.dateFormat || 'european');
+    if (!exp) return null;
+    exp.setHours(0,0,0,0);
     return Math.round((exp - today) / 86400000);
   }
 
@@ -134,7 +145,12 @@ const ItemModel = (() => {
           if (!a.expiryDate && !b.expiryDate) return 0;
           if (!a.expiryDate) return 1;
           if (!b.expiryDate) return -1;
-          return new Date(a.expiryDate) - new Date(b.expiryDate);
+          const da = parseDateString(a.expiryDate, App?.dateFormat || 'european');
+          const db = parseDateString(b.expiryDate, App?.dateFormat || 'european');
+          if (!da && !db) return 0;
+          if (!da) return 1;
+          if (!db) return -1;
+          return da - db;
         }
         case 'name':       return a.name.localeCompare(b.name);
         case 'quantity':   return a.quantity - b.quantity;

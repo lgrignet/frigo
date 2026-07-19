@@ -3,6 +3,7 @@
 // ============================================================
 
 const ShoppingView = (() => {
+  let searchQuery = '';
 
   async function render() {
     const userId = Auth.getCurrentUserId();
@@ -12,17 +13,22 @@ const ShoppingView = (() => {
 
     const list = await ShoppingModel.getAll(userId);
     const storages = await StorageModel.getAll(userId);
+    const query = searchQuery.trim().toLowerCase();
+    const filtered = query
+      ? list.filter(i => i.name?.toLowerCase().includes(query))
+      : list;
 
     // Header labels
     document.getElementById('shopping-view-title').textContent = i18n.t('shopping_title');
-    document.getElementById('shopping-input').placeholder = i18n.t('shopping_placeholder');
-    document.getElementById('btn-shopping-add').textContent = i18n.t('shopping_add_manual');
+    const shoppingInput = document.getElementById('shopping-input');
+    shoppingInput.placeholder = i18n.t('shopping_placeholder');
+    shoppingInput.value = searchQuery;
     document.getElementById('btn-shopping-copy').textContent = i18n.t('shopping_copy');
     document.getElementById('btn-shopping-clear').textContent = i18n.t('shopping_clear_checked');
 
-    const autoItems   = list.filter(i => i.source === 'auto');
-    const manualItems = list.filter(i => i.source === 'manual');
-    const recipeItems = list.filter(i => i.source === 'recipe');
+    const autoItems   = filtered.filter(i => i.source === 'auto');
+    const manualItems = filtered.filter(i => i.source === 'manual');
+    const recipeItems = filtered.filter(i => i.source === 'recipe');
 
     // Sections
     renderSection('shopping-auto-list',   'shopping-auto-title',   autoItems,   i18n.t('shopping_section_auto'),   storages, userId);
@@ -46,14 +52,22 @@ const ShoppingView = (() => {
     const container = document.getElementById(listId);
     if (items.length === 0) { container.innerHTML = ''; return; }
 
-    container.innerHTML = items.map(item => `
+    container.innerHTML = items.map(item => {
+      const quantityLabel = item.quantity !== '' && item.quantity !== null
+        ? `<div class="shopping-item-qty">${item.quantity} ${item.unit || ''}</div>`
+        : `<div class="shopping-item-qty">0 ${item.unit || ''}</div>`;
+      return `
       <div class="shopping-item ${item.checked ? 'checked' : ''}" data-id="${item.id}">
         <div class="shopping-check ${item.checked ? 'checked' : ''}" data-id="${item.id}">
           ${item.checked ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
         </div>
         <div style="flex:1;min-width:0">
           <div class="shopping-item-name ${item.checked ? 'line-through' : ''}">${escHtml(item.name)}</div>
-          ${item.quantity ? `<div class="shopping-item-qty">${item.quantity} ${item.unit || ''}</div>` : ''}
+          <div class="shopping-qty-controls">
+            <button class="shopping-qty-btn" type="button" data-id="${item.id}" data-action="decrement">−</button>
+            ${quantityLabel}
+            <button class="shopping-qty-btn" type="button" data-id="${item.id}" data-action="increment">+</button>
+          </div>
         </div>
         ${item.checked ? `
           <button class="btn-sm btn-secondary shopping-to-storage" data-id="${item.id}" style="font-size:11px;padding:5px 8px">
@@ -61,12 +75,21 @@ const ShoppingView = (() => {
           </button>` : ''}
         <button class="shopping-btn-remove" data-id="${item.id}">✕</button>
       </div>
-    `).join('');
+    `;
+    }).join('');
 
     // Events
     container.querySelectorAll('.shopping-check').forEach(btn => {
       btn.addEventListener('click', async () => {
         await ShoppingModel.toggle(btn.dataset.id);
+        render();
+      });
+    });
+    container.querySelectorAll('.shopping-qty-btn').forEach(btn => {
+      btn.addEventListener('click', async event => {
+        event.stopPropagation();
+        const delta = btn.dataset.action === 'increment' ? 1 : -1;
+        await ShoppingModel.changeQuantity(btn.dataset.id, delta);
         render();
       });
     });
@@ -121,9 +144,20 @@ const ShoppingView = (() => {
     render();
   }
 
+  let initialized = false;
+
   function init() {
-    document.getElementById('shopping-input').addEventListener('keydown', e => { if (e.key === 'Enter') addManual(); });
-    document.getElementById('btn-shopping-add').addEventListener('click', addManual);
+    if (initialized) return;
+    initialized = true;
+
+    const shoppingInput = document.getElementById('shopping-input');
+    shoppingInput.addEventListener('input', e => {
+      searchQuery = e.target.value || '';
+      render();
+    });
+    shoppingInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') e.preventDefault();
+    });
     document.getElementById('btn-shopping-copy').addEventListener('click', async () => {
       const ok = await ShoppingModel.copyToClipboard(Auth.getCurrentUserId());
       Toast.success(ok ? i18n.t('shopping_copied') : (i18n.lang === 'fr' ? 'Liste vide' : 'Empty list'));
@@ -135,5 +169,5 @@ const ShoppingView = (() => {
     render();
   }
 
-  return { init, render };
+  return { init, render, addManual };
 })();

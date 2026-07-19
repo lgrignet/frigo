@@ -8,17 +8,49 @@ function escHtml(str) {
     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+function pad(num) {
+  return String(num).padStart(2, '0');
+}
+
+function parseDateString(dateStr, format = 'european') {
+  if (!dateStr) return null;
+  const raw = String(dateStr).trim();
+
+  let date = null;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+    date = new Date(raw);
+  } else if (/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/.test(raw)) {
+    const parts = raw.split(/[\/\-]/);
+    const year = parts[2];
+    const day = format === 'american' ? parts[1] : parts[0];
+    const month = format === 'american' ? parts[0] : parts[1];
+    date = new Date(`${year}-${pad(month)}-${pad(day)}`);
+  } else {
+    date = new Date(raw);
+  }
+
+  return Number.isNaN(date?.getTime()) ? null : date;
+}
+
 function formatDate(dateStr) {
   if (!dateStr) return '';
-  const d = new Date(dateStr);
-  return d.toLocaleDateString(i18n.lang === 'fr' ? 'fr-BE' : 'en-GB', {
-    day: '2-digit', month: 'short', year: 'numeric'
-  });
+  const date = parseDateString(dateStr, App?.dateFormat || 'european');
+  if (!date) return '';
+  if (App?.dateFormat === 'american') {
+    return `${pad(date.getMonth() + 1)}/${pad(date.getDate())}/${date.getFullYear()}`;
+  }
+  return `${pad(date.getDate())}/${pad(date.getMonth() + 1)}/${date.getFullYear()}`;
+}
+
+function parseExpiryDate(value, format = 'european') {
+  const date = parseDateString(value, format);
+  return date ? date.toISOString().slice(0, 10) : null;
 }
 
 const App = (() => {
   const VIEWS = ['expiring', 'all', 'shopping', 'storages'];
   let currentView = 'expiring';
+  let dateFormat = 'european';
 
   // ── Boot ────────────────────────────────────────────────────
   async function boot() {
@@ -68,6 +100,7 @@ const App = (() => {
     if (prefs.lang && prefs.lang !== i18n.lang) {
       i18n.setLang(prefs.lang);
     }
+    dateFormat = prefs.dateFormat || 'european';
     await PrefsModel.applyTheme(prefs.theme || 'dark');
 
     // Ad banner
@@ -102,7 +135,7 @@ const App = (() => {
 
     // Show/hide FAB
     document.getElementById('fab-main').style.display =
-      (view === 'expiring' || view === 'all') ? 'flex' : 'none';
+      (view === 'expiring' || view === 'all' || view === 'shopping') ? 'flex' : 'none';
 
     // Re-render
     if (view === 'expiring') ExpiringView.render();
@@ -133,7 +166,7 @@ const App = (() => {
     badge.style.display = expiring.length > 0 ? 'flex' : 'none';
   }
 
-  return { boot, showLogin, showMain, onLoginSuccess, navigateTo, applyLanguage, updateBadges };
+  return { boot, showLogin, showMain, onLoginSuccess, navigateTo, applyLanguage, updateBadges, get dateFormat() { return dateFormat; }, set dateFormat(value) { dateFormat = value; } };
 })();
 
 // ── Affichage d'erreur de boot ──────────────────────────────
@@ -159,11 +192,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('fab-main').addEventListener('click', async () => {
     const userId = Auth.getCurrentUserId();
     const prefs = await PrefsModel.get(userId);
+    const activeView = document.querySelector('.nav-tab.active')?.dataset.view;
+    const forShopping = activeView === 'shopping';
     ItemForm.open(null, prefs.defaultStorageId, async () => {
       await App.updateBadges();
       if (document.getElementById('view-expiring').classList.contains('active')) ExpiringView.render();
       if (document.getElementById('view-all').classList.contains('active')) AllItemsView.render();
-    });
+      if (document.getElementById('view-shopping').classList.contains('active')) await ShoppingView.render();
+    }, forShopping);
   });
 
   // Boot app avec gestion d'erreur visible

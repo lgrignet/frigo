@@ -34,7 +34,18 @@ const ShoppingModel = (() => {
     await DB.put('shopping_list', item);
     return item;
   }
-
+ 
+  async function changeQuantity(id, delta) {
+    const item = await DB.getOne('shopping_list', id);
+    if (!item) return;
+    const current = parseFloat(item.quantity) || 0;
+    const next = Math.max(0, current + delta);
+    if (next === current) return item;
+    item.quantity = next;
+    await DB.put('shopping_list', item);
+    return item;
+  }
+ 
   async function setTargetStorage(id, storageId) {
     const item = await DB.getOne('shopping_list', id);
     if (!item) return;
@@ -124,7 +135,7 @@ const ShoppingModel = (() => {
   }
 
   return {
-    getAll, add, toggle, setTargetStorage, remove,
+    getAll, add, toggle, changeQuantity, setTargetStorage, remove,
     clearChecked, clearAll, syncAutoRestock,
     markAsBought, copyToClipboard,
   };

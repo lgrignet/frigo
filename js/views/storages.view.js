@@ -70,6 +70,10 @@ const StoragesView = (() => {
       ItemCard.bindEvents(itemsList, itemId => {
         Modal.close('modal-storage-detail');
         ItemForm.open(itemId, null, () => { render(); Modal.open('modal-storage-detail'); });
+      }, async (itemId, action) => {
+        await ItemCard.changeQuantity(itemId, action);
+        await render();
+        await openStorageDetail(id, storages);
       });
     }
     Modal.open('modal-storage-detail');

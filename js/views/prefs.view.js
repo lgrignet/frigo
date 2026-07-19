@@ -35,6 +35,12 @@ const PrefsView = (() => {
     document.getElementById('btn-lang-fr').textContent = i18n.t('pref_lang_fr');
     document.getElementById('btn-lang-en').textContent = i18n.t('pref_lang_en');
 
+    document.getElementById('pref-date-format-label').textContent = i18n.t('pref_date_format');
+    document.getElementById('btn-pref-date-european').classList.toggle('active', prefs.dateFormat === 'european');
+    document.getElementById('btn-pref-date-american').classList.toggle('active', prefs.dateFormat === 'american');
+    document.getElementById('btn-pref-date-european').textContent = i18n.t('pref_date_format_european');
+    document.getElementById('btn-pref-date-american').textContent = i18n.t('pref_date_format_american');
+
     // Default unit
     document.getElementById('pref-unit-label').textContent = i18n.t('pref_default_unit');
     const unitSel = document.getElementById('pref-unit-select');
@@ -148,6 +154,23 @@ const PrefsView = (() => {
       await PrefsModel.set(Auth.getCurrentUserId(), { lang: 'en' });
       App.applyLanguage();
       render();
+    });
+
+    document.getElementById('btn-pref-date-european').addEventListener('click', async () => {
+      const userId = Auth.getCurrentUserId();
+      await PrefsModel.set(userId, { dateFormat: 'european' });
+      App.dateFormat = 'european';
+      render();
+      if (document.getElementById('view-expiring').classList.contains('active')) await ExpiringView.render();
+      if (document.getElementById('view-all').classList.contains('active')) await AllItemsView.render();
+    });
+    document.getElementById('btn-pref-date-american').addEventListener('click', async () => {
+      const userId = Auth.getCurrentUserId();
+      await PrefsModel.set(userId, { dateFormat: 'american' });
+      App.dateFormat = 'american';
+      render();
+      if (document.getElementById('view-expiring').classList.contains('active')) await ExpiringView.render();
+      if (document.getElementById('view-all').classList.contains('active')) await AllItemsView.render();
     });
 
     // Unit

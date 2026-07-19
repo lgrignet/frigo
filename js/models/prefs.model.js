@@ -11,6 +11,7 @@ const PrefsModel = (() => {
     defaultUnit: 'pièce(s)',
     defaultStorageId: null,
     theme: 'dark',
+    dateFormat: 'european',
     adsEnabled: true,
     isPremium: false,
     lang: 'fr',
