@@ -186,18 +186,18 @@ const Auth = (() => {
         createdAt: new Date().toISOString(),
       });
     }
+  }
 
-    async function createDefaultShops(userId) {
-      const defaults = ['Carrefour', 'Colruyt', 'Lidl', 'Delhaize'];
-      for (const name of defaults) {
-        await DB.put('shops', {
-          id: crypto.randomUUID(),
-          userId,
-          name,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        });
-      }
+  async function createDefaultShops(userId) {
+    const defaults = ['Carrefour', 'Colruyt', 'Lidl', 'Delhaize'];
+    for (const name of defaults) {
+      await DB.put('shops', {
+        id: crypto.randomUUID(),
+        userId,
+        name,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
     }
   }
 

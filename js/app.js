@@ -65,6 +65,20 @@ function parseExpiryDate(value, format = 'european') {
   return date ? date.toISOString().slice(0, 10) : null;
 }
 
+function isAndroidNativeRuntime() {
+  return !!window.AndroidAdsBridge;
+}
+
+async function disableServiceWorkerForAndroidRuntime() {
+  if (!('serviceWorker' in navigator)) return;
+  const registrations = await navigator.serviceWorker.getRegistrations();
+  await Promise.all(registrations.map(reg => reg.unregister()));
+  if ('caches' in window) {
+    const keys = await caches.keys();
+    await Promise.all(keys.map(key => caches.delete(key)));
+  }
+}
+
 const App = (() => {
   const VIEWS = ['expiring', 'all', 'shopping', 'storages'];
   let currentView = 'expiring';
@@ -91,8 +105,12 @@ const App = (() => {
       showLogin();
     }
 
-    // Service worker (chemin relatif pour GitHub Pages)
-    if ('serviceWorker' in navigator) {
+    // Service worker:
+    // - enabled for web/PWA
+    // - disabled in Android native runtime (WebView wrapper) to avoid stale cache
+    if (isAndroidNativeRuntime()) {
+      disableServiceWorkerForAndroidRuntime().catch(() => {});
+    } else if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('./sw.js').catch(() => {});
     }
   }
@@ -102,6 +120,9 @@ const App = (() => {
     document.getElementById('screen-login').classList.add('active');
     document.getElementById('screen-main').classList.remove('active');
     LoginView.render();
+    if (typeof AdBanner !== 'undefined' && AdBanner.update) {
+      AdBanner.update();
+    }
   }
 
   async function onLoginSuccess() {

@@ -2,7 +2,7 @@
 //  sw.js — Service Worker (cache-first pour PWA offline)
 // ============================================================
 
-const CACHE_NAME = 'frigo-v1';
+const CACHE_NAME = 'frigo-v2';
 const PRECACHE = [
   './',
   './index.html',

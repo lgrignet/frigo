@@ -4,6 +4,9 @@ import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.View;
+import android.webkit.JavascriptInterface;
+import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
@@ -16,11 +19,17 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.webkit.WebViewAssetLoader;
 import androidx.webkit.WebViewClientCompat;
 
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.MobileAds;
+
 public class MainActivity extends AppCompatActivity {
 
     private static final String APP_ASSETS_HOST = "appassets.androidplatform.net";
     private static final String START_URL = "https://appassets.androidplatform.net/index.html";
+    private static final String JS_ADS_BRIDGE_NAME = "AndroidAdsBridge";
     private WebView webView;
+    private AdView adView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,7 +37,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         webView = findViewById(R.id.webview);
+        adView = findViewById(R.id.adView);
         configureWebView(webView);
+        configureAds();
 
         if (savedInstanceState != null) {
             webView.restoreState(savedInstanceState);
@@ -58,6 +69,7 @@ public class MainActivity extends AppCompatActivity {
         settings.setAllowContentAccess(false);
         settings.setJavaScriptCanOpenWindowsAutomatically(false);
         settings.setSupportMultipleWindows(false);
+        view.addJavascriptInterface(new AndroidAdsBridge(), JS_ADS_BRIDGE_NAME);
 
         boolean isDebuggable = (getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0;
         WebView.setWebContentsDebuggingEnabled(isDebuggable);
@@ -93,12 +105,80 @@ public class MainActivity extends AppCompatActivity {
 
                 return super.shouldOverrideUrlLoading(webView, request);
             }
+
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                super.onPageFinished(view, url);
+                hideWebPlaceholderAd(view);
+            }
         });
+    }
+
+    private void configureAds() {
+        MobileAds.initialize(this, initializationStatus -> {});
+        updateNativeAdVisibility(false);
+    }
+
+    private void updateNativeAdVisibility(boolean enabled) {
+        runOnUiThread(() -> {
+            if (adView == null) return;
+            if (enabled) {
+                adView.setVisibility(View.VISIBLE);
+                adView.resume();
+                adView.loadAd(new AdRequest.Builder().build());
+            } else {
+                adView.pause();
+                adView.setVisibility(View.GONE);
+            }
+        });
+    }
+
+    private void hideWebPlaceholderAd(@NonNull WebView view) {
+        String script =
+                "(() => {" +
+                "  const applyHide = () => {" +
+                "    const banner = document.getElementById('ad-banner');" +
+                "    if (banner) banner.style.setProperty('display', 'none', 'important');" +
+                "    const app = document.getElementById('app');" +
+                "    if (app) app.classList.remove('ad-active');" +
+                "  };" +
+                "  applyHide();" +
+                "  if (!window.__msmNativeAdObserver) {" +
+                "    window.__msmNativeAdObserver = new MutationObserver(() => applyHide());" +
+                "    window.__msmNativeAdObserver.observe(document.documentElement || document.body, { attributes: true, childList: true, subtree: true });" +
+                "  }" +
+                "})();";
+        view.evaluateJavascript(script, (ValueCallback<String>) null);
     }
 
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         webView.saveState(outState);
+    }
+
+    @Override
+    protected void onPause() {
+        if (adView != null) adView.pause();
+        super.onPause();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (adView != null) adView.resume();
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (adView != null) adView.destroy();
+        super.onDestroy();
+    }
+
+    private class AndroidAdsBridge {
+        @JavascriptInterface
+        public void setAdsEnabled(boolean enabled) {
+            updateNativeAdVisibility(enabled);
+        }
     }
 }
