@@ -1,0 +1,98 @@
+plugins {
+    id 'com.android.application'
+}
+
+def localProps = new Properties()
+def localPropsFile = rootProject.file('local.properties')
+if (localPropsFile.exists()) {
+    localPropsFile.withInputStream { localProps.load(it) }
+}
+
+def keystoreProps = new Properties()
+def keystorePropsFile = rootProject.file('keystore.properties')
+if (keystorePropsFile.exists()) {
+    keystorePropsFile.withInputStream { keystoreProps.load(it) }
+}
+
+def signingStoreFile = keystoreProps.getProperty('storeFile', localProps.getProperty('msm.release.storeFile'))
+def signingStorePassword = keystoreProps.getProperty('storePassword', localProps.getProperty('msm.release.storePassword'))
+def signingKeyAlias = keystoreProps.getProperty('keyAlias', localProps.getProperty('msm.release.keyAlias'))
+def signingKeyPassword = keystoreProps.getProperty('keyPassword', localProps.getProperty('msm.release.keyPassword'))
+
+android {
+    namespace 'com.mystockmanager.app'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'com.mystockmanager.app'
+        minSdk 26
+        targetSdk 34
+        versionCode 1
+        versionName '1.0.0'
+    }
+
+    signingConfigs {
+        release {
+            if (signingStoreFile && signingStorePassword && signingKeyAlias && signingKeyPassword) {
+                storeFile file(signingStoreFile)
+                storePassword signingStorePassword
+                keyAlias signingKeyAlias
+                keyPassword signingKeyPassword
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            if (signingStoreFile && signingStorePassword && signingKeyAlias && signingKeyPassword) {
+                signingConfig signingConfigs.release
+            }
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    splits {
+        abi {
+            enable true
+            reset()
+            include 'armeabi-v7a', 'arm64-v8a', 'x86_64'
+            universalApk true
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    sourceSets {
+        main {
+            assets.srcDirs += ["$buildDir/generated/www"]
+        }
+    }
+}
+
+def webRoot = rootDir.parentFile
+
+tasks.register('copyWebAssets', Copy) {
+    from(webRoot) {
+        include 'index.html'
+        include 'manifest.json'
+        include 'sw.js'
+        include 'css/**'
+        include 'js/**'
+        include 'icons/**'
+    }
+    into("$buildDir/generated/www")
+}
+
+tasks.named('preBuild').configure {
+    dependsOn('copyWebAssets')
+}
+
+dependencies {
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'androidx.webkit:webkit:1.11.0'
+    implementation 'com.google.android.material:material:1.12.0'
+}
