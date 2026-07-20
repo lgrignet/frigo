@@ -19,8 +19,11 @@ const ShoppingModel = (() => {
       unit: data.unit || '',
       source: data.source || 'manual', // 'auto', 'manual', 'recipe'
       itemId: data.itemId || null,      // linked fridge item if auto
+      shopId: data.shopId || null,
       checked: false,
       targetStorageId: data.targetStorageId || null,
+      expiryDate: data.expiryDate || null,
+      notes: data.notes || '',
       addedAt: new Date().toISOString(),
     };
     await DB.put('shopping_list', entry);
@@ -77,16 +80,26 @@ const ShoppingModel = (() => {
     const existingAuto = existing.filter(i => i.source === 'auto');
 
     for (const item of lowStock) {
-      const alreadyInList = existingAuto.some(s => s.itemId === item.id);
-      if (!alreadyInList) {
-        const needed = Math.max(1, item.restockThreshold - item.quantity + 1);
+      const needed = Math.max(1, parseFloat(item.restockBuyQuantity) || 1);
+      const existingEntry = existingAuto.find(s => s.itemId === item.id);
+      if (!existingEntry) {
         await add(userId, {
           name: item.name,
           quantity: needed,
           unit: item.unit,
           source: 'auto',
           itemId: item.id,
+          shopId: item.shopId || null,
         });
+      } else {
+        const updatedEntry = {
+          ...existingEntry,
+          name: item.name,
+          quantity: needed,
+          unit: item.unit,
+          shopId: item.shopId || null,
+        };
+        await DB.put('shopping_list', updatedEntry);
       }
     }
 
@@ -99,10 +112,11 @@ const ShoppingModel = (() => {
     }
   }
 
-  // When a shopping item is checked as bought → update or create fridge item
-  async function markAsBought(shoppingId, userId, storageId) {
+  // When a shopping item is added to storage → update or create fridge item
+  async function markAsBought(shoppingId, userId, storageId = null) {
     const entry = await DB.getOne('shopping_list', shoppingId);
     if (!entry) return;
+    const targetStorageId = entry.targetStorageId || storageId || null;
 
     if (entry.itemId) {
       // Update existing item quantity
@@ -111,32 +125,70 @@ const ShoppingModel = (() => {
         const added = parseFloat(entry.quantity) || 1;
         await ItemModel.update(entry.itemId, { quantity: fridgeItem.quantity + added });
       }
-    } else if (storageId) {
+    } else if (targetStorageId) {
       // Create new fridge item
       await ItemModel.create(userId, {
         name: entry.name,
         quantity: parseFloat(entry.quantity) || 1,
         unit: entry.unit,
-        storageId,
+        storageId: targetStorageId,
+        shopId: entry.shopId || null,
+        expiryDate: entry.expiryDate || null,
+        notes: entry.notes || '',
       });
     }
 
-    await toggle(shoppingId);
+    await DB.del('shopping_list', shoppingId);
+    return true;
+  }
+
+  async function markManyAsBought(shoppingIds, userId, storageId = null) {
+    for (const shoppingId of shoppingIds) {
+      await markAsBought(shoppingId, userId, storageId);
+    }
   }
 
   async function copyToClipboard(userId) {
-    const all = await getAll(userId);
-    const lines = all
+    const [all, shops] = await Promise.all([
+      getAll(userId),
+      ShopModel.getAll(userId),
+    ]);
+    const shopNames = new Map(shops.map(shop => [shop.id, shop.name]));
+    const grouped = {};
+    all
       .filter(i => !i.checked)
-      .map(i => `• ${i.name}${i.quantity ? ` (${i.quantity}${i.unit ? ' ' + i.unit : ''})` : ''}`);
+      .forEach(item => {
+        const key = item.shopId || ShopModel.UNDEFINED_KEY;
+        if (!grouped[key]) grouped[key] = [];
+        grouped[key].push(item);
+      });
+
+    const sortedKeys = Object.keys(grouped).sort((a, b) => {
+      if (a === ShopModel.UNDEFINED_KEY) return 1;
+      if (b === ShopModel.UNDEFINED_KEY) return -1;
+      return String(shopNames.get(a) || '').localeCompare(String(shopNames.get(b) || ''), i18n.lang || 'fr', { sensitivity: 'base' });
+    });
+
+    const lines = [];
+    for (const key of sortedKeys) {
+      const label = key === ShopModel.UNDEFINED_KEY
+        ? i18n.t('shopping_store_undefined')
+        : (shopNames.get(key) || i18n.t('shopping_store_undefined'));
+      lines.push(`=== ${label} ===`);
+      grouped[key].forEach(item => {
+        lines.push(`• ${item.name}${item.quantity ? ` (${item.quantity}${item.unit ? ' ' + item.unit : ''})` : ''}`);
+      });
+      lines.push('');
+    }
+
     if (lines.length === 0) return false;
-    await navigator.clipboard.writeText(lines.join('\n'));
+    await navigator.clipboard.writeText(lines.join('\n').trim());
     return true;
   }
 
   return {
     getAll, add, toggle, changeQuantity, setTargetStorage, remove,
     clearChecked, clearAll, syncAutoRestock,
-    markAsBought, copyToClipboard,
+    markAsBought, markManyAsBought, copyToClipboard,
   };
 })();

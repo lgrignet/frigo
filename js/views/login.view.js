@@ -56,8 +56,8 @@ const LoginView = (() => {
   // ── Login ────────────────────────────────────────────────────
   async function doLogin() {
     clearError();
-    const email = document.getElementById('login-email').value.trim();
-    const pass  = document.getElementById('login-pass').value;
+    const email = sanitizeInputValue(document.getElementById('login-email').value).trim();
+    const pass  = sanitizeInputValue(document.getElementById('login-pass').value);
     if (!email || !pass) { showError(i18n.t('err_missing_fields')); return; }
 
     const btn = document.getElementById('btn-login');
@@ -77,9 +77,9 @@ const LoginView = (() => {
   // ── Register ─────────────────────────────────────────────────
   async function doRegister() {
     clearError();
-    const email = document.getElementById('reg-email').value.trim();
-    const pass  = document.getElementById('reg-pass').value;
-    const pass2 = document.getElementById('reg-pass2').value;
+    const email = sanitizeInputValue(document.getElementById('reg-email').value).trim();
+    const pass  = sanitizeInputValue(document.getElementById('reg-pass').value);
+    const pass2 = sanitizeInputValue(document.getElementById('reg-pass2').value);
 
     if (!email || !pass || !pass2) { showError(i18n.t('err_missing_fields')); return; }
     if (pass !== pass2) { showError(i18n.t('err_password_mismatch')); return; }
@@ -110,9 +110,9 @@ const LoginView = (() => {
   // ── Recover ──────────────────────────────────────────────────
   async function doRecover() {
     clearError();
-    const email   = document.getElementById('rec-email').value.trim();
-    const code    = document.getElementById('rec-code').value.trim().toUpperCase();
-    const newPass = document.getElementById('rec-newpass').value;
+    const email   = sanitizeInputValue(document.getElementById('rec-email').value).trim();
+    const code    = sanitizeInputValue(document.getElementById('rec-code').value).trim().toUpperCase();
+    const newPass = sanitizeInputValue(document.getElementById('rec-newpass').value);
 
     if (!email || !code || !newPass) { showError(i18n.t('err_missing_fields')); return; }
 

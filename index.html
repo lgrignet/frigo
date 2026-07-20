@@ -157,17 +157,14 @@
       <div style="padding:0 16px 12px;display:flex;gap:8px">
         <input type="text" id="shopping-input" class="form-control" style="flex:1;font-size:14px;padding:10px 14px" placeholder="" aria-label="Filtrer la liste de courses">
       </div>
+      <div class="filter-bar" id="shopping-store-filters"></div>
       <div style="padding:0 16px 12px;display:flex;gap:8px">
         <button class="shopping-toolbar-btn filter-chip" id="btn-shopping-copy">📋 Copier</button>
         <button class="shopping-toolbar-btn filter-chip" id="btn-shopping-clear">✓ Effacer</button>
       </div>
       <div style="padding:0 16px 8px">
-        <div class="section-title" id="shopping-auto-title">Réassort auto</div>
+        <div class="section-title" id="shopping-auto-title">Réassort</div>
         <div id="shopping-auto-list" style="display:flex;flex-direction:column;gap:6px;margin-top:8px"></div>
-      </div>
-      <div style="padding:0 16px 8px">
-        <div class="section-title" id="shopping-manual-title">Articles manuels</div>
-        <div id="shopping-manual-list" style="display:flex;flex-direction:column;gap:6px;margin-top:8px"></div>
       </div>
       <div id="shopping-recipe-section" style="padding:0 16px 8px;display:none">
         <div class="section-title" id="shopping-recipe-title">Depuis une recette</div>
@@ -190,6 +187,16 @@
       <div class="empty-state" id="storages-empty" style="display:none">
         <div class="empty-icon">🚪</div>
         <div class="empty-title">Aucun rangement</div>
+      </div>
+
+      <div class="section-header" style="padding-top:18px">
+        <div class="section-title" id="shops-view-title">Magasins</div>
+        <button class="btn btn-primary btn-sm" id="btn-add-shop">+ Ajouter</button>
+      </div>
+      <div class="storages-grid" id="shops-grid" style="margin-top:8px"></div>
+      <div class="empty-state" id="shops-empty" style="display:none">
+        <div class="empty-icon">🏬</div>
+        <div class="empty-title" id="shops-empty-title">Aucun magasin</div>
       </div>
     </section>
 
@@ -280,15 +287,25 @@
           <select id="field-storage" class="form-control"></select>
         </div>
         <div class="form-group">
+          <label class="form-label" id="label-shop" for="field-shop">Magasin</label>
+          <select id="field-shop" class="form-control"></select>
+          <div class="form-hint" id="label-shop-help">Obligatoire (ou “magasin non défini”)</div>
+        </div>
+        <div class="form-group">
           <label class="form-label" id="label-expiry" for="field-expiry">
             Péremption <span class="label-optional">optionnel</span>
           </label>
-          <input type="date" id="field-expiry" class="form-control">
+          <input type="text" id="field-expiry" class="form-control" inputmode="numeric" placeholder="DD/MM/YYYY">
         </div>
         <div class="form-group">
           <label class="form-label" id="label-restock" for="field-restock">Seuil de réassort</label>
           <input type="number" id="field-restock" class="form-control" value="0" min="0" step="1">
           <div class="form-hint" id="label-restock-help">0 = désactivé</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" id="label-restock-buy-qty" for="field-restock-buy-qty">Quantité à racheter</label>
+          <input type="number" id="field-restock-buy-qty" class="form-control" value="1" min="0" step="any">
+          <div class="form-hint" id="label-restock-buy-qty-help">Utilisée quand le seuil de réassort est atteint (défaut: 1)</div>
         </div>
         <div class="form-group">
           <label class="form-label" id="label-notes" for="field-notes">
@@ -429,6 +446,48 @@
   </div>
 </div>
 
+<!-- ── Modal: Shop form ── -->
+<div id="modal-shop-form" class="modal">
+  <div class="modal-backdrop"></div>
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <span class="modal-title" id="shop-form-title">Nouveau magasin</span>
+      <button class="modal-close" onclick="Modal.close('modal-shop-form')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label" id="label-shop-name">Nom</label>
+        <input type="text" id="shop-name-input" class="form-control" placeholder="Ex: Carrefour">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="btn-shop-form-cancel">Annuler</button>
+      <button class="btn btn-primary" id="btn-shop-form-save">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal: Shop detail ── -->
+<div id="modal-shop-detail" class="modal">
+  <div class="modal-backdrop"></div>
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <span class="modal-title" id="shop-detail-title"></span>
+      <button class="modal-close" onclick="Modal.close('modal-shop-detail')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="shop-detail-items"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger btn-sm" id="btn-shop-delete" style="flex:0 0 auto">🗑</button>
+      <button class="btn btn-secondary" id="btn-shop-edit">✏️ Modifier</button>
+      <button class="btn btn-primary" onclick="Modal.close('modal-shop-detail')">Fermer</button>
+    </div>
+  </div>
+</div>
+
 <!-- ══════════════════════════════════════════════════════════
      FULLSCREEN: Recettes
 ═══════════════════════════════════════════════════════════ -->
@@ -513,8 +572,8 @@
         <div class="prefs-item" style="flex-direction:column;align-items:flex-start;gap:8px">
           <div class="prefs-item-label" id="pref-lang-label">Langue</div>
           <div style="display:flex;gap:8px;width:100%">
-            <button class="lang-btn active" id="btn-lang-fr" style="flex:1;padding:10px;border-radius:10px;background:var(--bg-elevated);border:1px solid var(--border);font-size:13px;font-weight:600;color:var(--text-secondary);transition:var(--transition)">🇫🇷 Français</button>
-            <button class="lang-btn" id="btn-lang-en" style="flex:1;padding:10px;border-radius:10px;background:var(--bg-elevated);border:1px solid var(--border);font-size:13px;font-weight:600;color:var(--text-secondary);transition:var(--transition)">🇬🇧 English</button>
+            <button class="lang-btn active" id="btn-lang-fr" style="flex:1">🇫🇷 Français</button>
+            <button class="lang-btn" id="btn-lang-en" style="flex:1">🇬🇧 English</button>
           </div>
         </div>
       </div>
@@ -523,8 +582,8 @@
         <div class="prefs-item" style="flex-direction:column;align-items:flex-start;gap:8px">
           <div class="prefs-item-label" id="pref-date-format-label">Format de date</div>
           <div style="display:flex;gap:8px;width:100%">
-            <button class="lang-btn" id="btn-pref-date-european" style="flex:1;padding:10px;border-radius:10px;background:var(--bg-elevated);border:1px solid var(--border);font-size:13px;font-weight:600;color:var(--text-secondary);transition:var(--transition)">JJ/MM/AAAA</button>
-            <button class="lang-btn" id="btn-pref-date-american" style="flex:1;padding:10px;border-radius:10px;background:var(--bg-elevated);border:1px solid var(--border);font-size:13px;font-weight:600;color:var(--text-secondary);transition:var(--transition)">MM/JJ/AAAA</button>
+            <button class="lang-btn" id="btn-pref-date-european" style="flex:1">JJ/MM/AAAA</button>
+            <button class="lang-btn" id="btn-pref-date-american" style="flex:1">MM/JJ/AAAA</button>
           </div>
         </div>
       </div>
@@ -640,6 +699,7 @@
 <script src="js/core/db.js"></script>
 <script src="js/core/auth.js"></script>
 <!-- Models -->
+<script src="js/models/shop.model.js"></script>
 <script src="js/models/item.model.js"></script>
 <script src="js/models/storage.model.js"></script>
 <script src="js/models/shopping.model.js"></script>

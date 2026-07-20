@@ -8,6 +8,24 @@ function escHtml(str) {
     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+const BLOCKED_INPUT_CHARS = /[<>"'`]/g;
+
+function sanitizeInputValue(value) {
+  return String(value || '')
+    .replace(BLOCKED_INPUT_CHARS, '')
+    .replace(/[\u0000-\u001F\u007F]/g, '');
+}
+
+function bindInputSecurityGuards() {
+  const selector = 'input[type="text"], input[type="email"], input[type="password"], textarea';
+  document.querySelectorAll(selector).forEach(input => {
+    input.addEventListener('input', () => {
+      const clean = sanitizeInputValue(input.value);
+      if (clean !== input.value) input.value = clean;
+    });
+  });
+}
+
 function pad(num) {
   return String(num).padStart(2, '0');
 }
@@ -179,6 +197,8 @@ function showBootError(msg) {
 
 // ── Main event listeners ────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
+  bindInputSecurityGuards();
+
   // Nav tabs
   document.querySelectorAll('.nav-tab').forEach(tab => {
     tab.addEventListener('click', () => App.navigateTo(tab.dataset.view));

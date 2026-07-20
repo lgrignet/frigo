@@ -4,7 +4,7 @@
 
 const DB = (() => {
   const DB_NAME = 'mystockmanager';
-  const DB_VERSION = 1;
+  const DB_VERSION = 2;
   let _db = null;
 
   // ── Open / migrate ─────────────────────────────────────────
@@ -28,18 +28,38 @@ const DB = (() => {
           storages.createIndex('userId', 'userId', { unique: false });
         }
 
+        // shops (magasins)
+        if (!db.objectStoreNames.contains('shops')) {
+          const shops = db.createObjectStore('shops', { keyPath: 'id' });
+          shops.createIndex('userId', 'userId', { unique: false });
+        }
+
         // items
         if (!db.objectStoreNames.contains('items')) {
           const items = db.createObjectStore('items', { keyPath: 'id' });
           items.createIndex('userId', 'userId', { unique: false });
           items.createIndex('storageId', 'storageId', { unique: false });
+          items.createIndex('shopId', 'shopId', { unique: false });
           items.createIndex('expiryDate', 'expiryDate', { unique: false });
+        } else {
+          const tx = event.target.transaction;
+          const items = tx.objectStore('items');
+          if (!items.indexNames.contains('shopId')) {
+            items.createIndex('shopId', 'shopId', { unique: false });
+          }
         }
 
         // shopping_list
         if (!db.objectStoreNames.contains('shopping_list')) {
           const shopping = db.createObjectStore('shopping_list', { keyPath: 'id' });
           shopping.createIndex('userId', 'userId', { unique: false });
+          shopping.createIndex('shopId', 'shopId', { unique: false });
+        } else {
+          const tx = event.target.transaction;
+          const shopping = tx.objectStore('shopping_list');
+          if (!shopping.indexNames.contains('shopId')) {
+            shopping.createIndex('shopId', 'shopId', { unique: false });
+          }
         }
 
         // preferences
@@ -127,19 +147,24 @@ const DB = (() => {
     return getAll('shopping_list', 'userId', userId);
   }
 
+  async function getUserShops(userId) {
+    return getAll('shops', 'userId', userId);
+  }
+
   async function getUserPrefs(userId) {
     return getOne('preferences', userId);
   }
 
   // ── Export / Import ────────────────────────────────────────
   async function exportUserData(userId) {
-    const [items, storages, shopping, prefs] = await Promise.all([
+    const [items, storages, shops, shopping, prefs] = await Promise.all([
       getUserItems(userId),
       getUserStorages(userId),
+      getUserShops(userId),
       getUserShoppingList(userId),
       getUserPrefs(userId),
     ]);
-    return { exportedAt: new Date().toISOString(), items, storages, shopping, prefs };
+    return { exportedAt: new Date().toISOString(), items, storages, shops, shopping, prefs };
   }
 
   async function importUserData(userId, data) {
@@ -147,6 +172,10 @@ const DB = (() => {
     for (const s of (data.storages || [])) {
       s.userId = userId;
       await put('storages', s);
+    }
+    for (const s of (data.shops || [])) {
+      s.userId = userId;
+      await put('shops', s);
     }
     for (const item of (data.items || [])) {
       item.userId = userId;
@@ -164,7 +193,7 @@ const DB = (() => {
 
   // ── Reset user data ────────────────────────────────────────
   async function deleteAllUserData(userId) {
-    const stores = ['items', 'storages', 'shopping_list'];
+    const stores = ['items', 'storages', 'shops', 'shopping_list'];
     for (const storeName of stores) {
       const items = await getAll(storeName, 'userId', userId);
       for (const item of items) await del(storeName, item.id);
@@ -175,7 +204,7 @@ const DB = (() => {
   return {
     open, getAll, getOne, put, del,
     getByIndex, countByIndex,
-    getUserItems, getUserStorages, getUserShoppingList, getUserPrefs,
+    getUserItems, getUserStorages, getUserShops, getUserShoppingList, getUserPrefs,
     exportUserData, importUserData, deleteAllUserData,
   };
 })();

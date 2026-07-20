@@ -11,7 +11,10 @@ const AllItemsView = (() => {
   async function render() {
     const userId = Auth.getCurrentUserId();
     let items = await ItemModel.getAll(userId);
-    const storages = await StorageModel.getAll(userId);
+    const [storages, shops] = await Promise.all([
+      StorageModel.getAll(userId),
+      ShopModel.getAll(userId),
+    ]);
 
     // Update filter chips with storages
     renderFilters(storages);
@@ -56,7 +59,7 @@ const AllItemsView = (() => {
       document.getElementById('all-empty-sub').textContent = i18n.t('all_empty_sub');
     } else {
       empty.style.display = 'none';
-      list.innerHTML = items.map(item => ItemCard.render(item, storages)).join('');
+      list.innerHTML = items.map(item => ItemCard.render(item, storages, shops)).join('');
       ItemCard.bindEvents(list, id => openItemActions(id, storages), async (id, action) => {
         await ItemCard.changeQuantity(id, action);
         render();
@@ -67,7 +70,14 @@ const AllItemsView = (() => {
   function renderFilters(storages) {
     const bar = document.getElementById('all-filters');
     const allChip = `<button class="filter-chip ${currentFilter === 'all' ? 'active' : ''}" data-filter="all">${i18n.t('filter_all')}</button>`;
-    const storageChips = storages.map(s =>
+    const sortedStorages = [...storages].sort((a, b) => {
+      const aIsToStore = String(a.name || '').trim().toLowerCase() === 'a ranger';
+      const bIsToStore = String(b.name || '').trim().toLowerCase() === 'a ranger';
+      if (aIsToStore && !bIsToStore) return -1;
+      if (!aIsToStore && bIsToStore) return 1;
+      return String(a.name || '').localeCompare(String(b.name || ''), i18n.lang || 'fr', { sensitivity: 'base' });
+    });
+    const storageChips = sortedStorages.map(s =>
       `<button class="filter-chip ${currentFilter === s.id ? 'active' : ''}" data-filter="${s.id}">${s.icon} ${escHtml(s.name)}</button>`
     ).join('');
     bar.innerHTML = allChip + storageChips;

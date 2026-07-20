@@ -5,11 +5,12 @@
 const ItemCard = {
 
   // Renders an item card HTML string
-  render(item, storages = [], options = {}) {
+  render(item, storages = [], shops = [], options = {}) {
     const status = ItemModel.getExpiryStatus(item.expiryDate);
     const diffDays = ItemModel.getDiffDays(item.expiryDate);
     const lowStock = ItemModel.isLowStock(item);
     const storage = storages.find(s => s.id === item.storageId);
+    const shop = shops.find(s => s.id === item.shopId);
 
     // Status badge
     let badge = '';
@@ -47,6 +48,7 @@ const ItemCard = {
     const storageTag = storage
       ? `<span class="item-storage-tag">${storage.icon} ${escHtml(storage.name)}</span>`
       : '';
+    const shopTag = `<span class="item-storage-tag">🏬 ${escHtml(shop?.name || i18n.t('shopping_store_undefined'))}</span>`;
 
     return `
       <div class="card item-card" data-id="${item.id}" style="margin-bottom:8px">
@@ -57,14 +59,15 @@ const ItemCard = {
             <span class="item-card-name">${escHtml(item.name)}</span>
             <div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end;flex-shrink:0">${badge}</div>
           </div>
-          <div class="item-card-meta">
-            <span class="item-qty">${item.quantity} ${escHtml(item.unit || '')}</span>
-            <div class="item-qty-controls">
-              <button class="item-qty-btn" type="button" data-action="decrement">−</button>
-              <button class="item-qty-btn" type="button" data-action="increment">+</button>
+          <div class="item-card-qty-row">
+            <div class="item-qty-controls shopping-qty-controls">
+              <button class="item-qty-btn shopping-qty-btn" type="button" data-action="decrement">−</button>
+              <div class="shopping-item-qty item-qty">${item.quantity} ${escHtml(item.unit || '')}</div>
+              <button class="item-qty-btn shopping-qty-btn" type="button" data-action="increment">+</button>
             </div>
             <span>${expiryText}</span>
             ${storageTag}
+            ${shopTag}
           </div>
           ${item.notes ? `<div class="item-notes">📝 ${escHtml(item.notes)}</div>` : ''}
         </div>

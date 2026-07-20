@@ -9,7 +9,10 @@ const ExpiringView = (() => {
     const prefs = await PrefsModel.get(userId);
     const days = prefs.expiryWarningDays || 7;
     const items = await ItemModel.getExpiring(userId, days);
-    const storages = await StorageModel.getAll(userId);
+    const [storages, shops] = await Promise.all([
+      StorageModel.getAll(userId),
+      ShopModel.getAll(userId),
+    ]);
 
     // Header
     document.getElementById('expiring-title').textContent = i18n.t('expiring_title');
@@ -26,7 +29,7 @@ const ExpiringView = (() => {
       document.getElementById('expiring-empty-sub').textContent = i18n.t('expiring_empty_sub');
     } else {
       empty.style.display = 'none';
-      list.innerHTML = items.map(item => ItemCard.render(item, storages)).join('');
+      list.innerHTML = items.map(item => ItemCard.render(item, storages, shops)).join('');
       ItemCard.bindEvents(list, id => ItemForm.open(id, null, () => render()), async (id, action) => {
         await ItemCard.changeQuantity(id, action);
         render();

@@ -69,6 +69,7 @@ const Auth = (() => {
 
     // Create default storages
     await createDefaultStorages(userId);
+    await createDefaultShops(userId);
 
     // Create default preferences
     await DB.put('preferences', {
@@ -184,6 +185,19 @@ const Auth = (() => {
         ...s,
         createdAt: new Date().toISOString(),
       });
+    }
+
+    async function createDefaultShops(userId) {
+      const defaults = ['Carrefour', 'Colruyt', 'Lidl', 'Delhaize'];
+      for (const name of defaults) {
+        await DB.put('shops', {
+          id: crypto.randomUUID(),
+          userId,
+          name,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        });
+      }
     }
   }
 

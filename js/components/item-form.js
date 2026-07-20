@@ -8,6 +8,19 @@ const ItemForm = (() => {
   let onSaveCallback = null;
   let addToShoppingList = false;
 
+  function formatExpiryForInput(expiryDate, dateFormat) {
+    if (!expiryDate) return '';
+    const raw = String(expiryDate).trim();
+    const match = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!match) return raw;
+    const year = match[1];
+    const month = match[2];
+    const day = match[3];
+    return dateFormat === 'american'
+      ? `${month}/${day}/${year}`
+      : `${day}/${month}/${year}`;
+  }
+
   function open(id = null, defaultStorageId = null, callback = null, forShopping = false) {
     editingId = id;
     capturedPhoto = null;
@@ -21,7 +34,10 @@ const ItemForm = (() => {
   async function populateForm(id, defaultStorageId) {
     const userId = Auth.getCurrentUserId();
     const item = id ? await ItemModel.getById(id) : null;
-    const storages = await StorageModel.getAll(userId);
+    const [storages, shops] = await Promise.all([
+      StorageModel.getAll(userId),
+      ShopModel.getAll(userId),
+    ]);
     const prefs = await PrefsModel.get(userId);
 
     // Title
@@ -31,8 +47,11 @@ const ItemForm = (() => {
     document.getElementById('field-name').value = item?.name || '';
     document.getElementById('field-qty').value = item?.quantity ?? 1;
     document.getElementById('field-notes').value = item?.notes || '';
-    document.getElementById('field-expiry').value = item?.expiryDate || '';
+    const expiryInput = document.getElementById('field-expiry');
+    expiryInput.value = formatExpiryForInput(item?.expiryDate || '', prefs.dateFormat || 'european');
+    expiryInput.placeholder = (prefs.dateFormat === 'american') ? 'MM/DD/YYYY' : 'DD/MM/YYYY';
     document.getElementById('field-restock').value = item?.restockThreshold ?? 0;
+    document.getElementById('field-restock-buy-qty').value = item?.restockBuyQuantity ?? 1;
 
     // Photo
     capturedPhoto = item?.photo || null;
@@ -47,10 +66,30 @@ const ItemForm = (() => {
 
     // Storage select
     const storageSel = document.getElementById('field-storage');
-    const defaultSId = item?.storageId || defaultStorageId || prefs.defaultStorageId || storages[0]?.id;
-    storageSel.innerHTML = storages.map(s =>
-      `<option value="${s.id}" ${defaultSId === s.id ? 'selected' : ''}>${s.icon} ${s.name}</option>`
+    const isShoppingCreate = addToShoppingList && !id;
+    const defaultSId = isShoppingCreate
+      ? ''
+      : (item?.storageId || defaultStorageId || prefs.defaultStorageId || storages[0]?.id || '');
+    const storageOptions = storages.map(s =>
+      `<option value="${s.id}">${s.icon} ${s.name}</option>`
     ).join('');
+    if (isShoppingCreate) {
+      storageSel.innerHTML = `<option value="">${i18n.t('item_storage_unset')}</option>${storageOptions}`;
+      storageSel.value = '';
+    } else {
+      storageSel.innerHTML = storageOptions;
+      storageSel.value = defaultSId;
+    }
+
+    // Shop select
+    const shopSel = document.getElementById('field-shop');
+    const undefinedOption = `<option value="${ShopModel.UNDEFINED_KEY}">${i18n.t('shop_store_undefined')}</option>`;
+    const shopOptions = shops
+      .sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), i18n.lang || 'fr', { sensitivity: 'base' }))
+      .map(shop => `<option value="${shop.id}">${escHtml(shop.name)}</option>`)
+      .join('');
+    shopSel.innerHTML = `${undefinedOption}${shopOptions}`;
+    shopSel.value = item?.shopId || ShopModel.UNDEFINED_KEY;
 
     // Labels
     document.getElementById('form-title').textContent = i18n.t(id ? 'item_edit' : 'item_add');
@@ -59,7 +98,9 @@ const ItemForm = (() => {
     document.getElementById('label-unit').textContent = i18n.t('item_unit');
     document.getElementById('label-expiry').textContent = i18n.t('item_expiry');
     document.getElementById('label-storage').textContent = i18n.t('item_storage');
+    document.getElementById('label-shop').textContent = i18n.t('item_shop');
     document.getElementById('label-restock').textContent = i18n.t('item_restock');
+    document.getElementById('label-restock-buy-qty').textContent = i18n.t('item_restock_buy_qty');
     document.getElementById('label-notes').textContent = i18n.t('item_notes');
     document.getElementById('label-photo').textContent = i18n.t('item_photo');
     document.getElementById('field-notes').placeholder = i18n.t('item_notes_placeholder');
@@ -69,6 +110,8 @@ const ItemForm = (() => {
     document.getElementById('btn-choose-photo').textContent = i18n.t('choose_photo');
     document.getElementById('btn-remove-photo').textContent = i18n.t('remove_photo');
     document.getElementById('label-restock-help').textContent = i18n.t('item_restock_help');
+    document.getElementById('label-restock-buy-qty-help').textContent = i18n.t('item_restock_buy_qty_help');
+    document.getElementById('label-shop-help').textContent = i18n.t('item_shop_help');
 
     // Delete button
     const btnDelete = document.getElementById('btn-form-delete');
@@ -118,7 +161,7 @@ const ItemForm = (() => {
 
   async function save() {
     const userId = Auth.getCurrentUserId();
-    const name = document.getElementById('field-name').value.trim();
+    const name = sanitizeInputValue(document.getElementById('field-name').value).trim();
     if (!name) {
       document.getElementById('field-name').classList.add('error');
       document.getElementById('field-name').focus();
@@ -127,7 +170,7 @@ const ItemForm = (() => {
     }
     document.getElementById('field-name').classList.remove('error');
 
-    const expiryRaw = document.getElementById('field-expiry').value || null;
+    const expiryRaw = sanitizeInputValue(document.getElementById('field-expiry').value).trim() || null;
     const prefs = await PrefsModel.get(userId);
     const data = {
       name,
@@ -135,15 +178,26 @@ const ItemForm = (() => {
       unit: document.getElementById('field-unit').value,
       expiryDate: expiryRaw ? parseExpiryDate(expiryRaw, prefs.dateFormat || 'european') : null,
       storageId: document.getElementById('field-storage').value,
+      shopId: ShopModel.normalizeShopId(document.getElementById('field-shop').value),
       restockThreshold: parseInt(document.getElementById('field-restock').value) || 0,
-      notes: document.getElementById('field-notes').value.trim(),
+      restockBuyQuantity: parseFloat(document.getElementById('field-restock-buy-qty').value) || 1,
+      notes: sanitizeInputValue(document.getElementById('field-notes').value).trim(),
       photo: capturedPhoto,
     };
 
     if (editingId) {
       await ItemModel.update(editingId, data);
     } else if (addToShoppingList) {
-      await ShoppingModel.add(userId, { name, quantity: data.quantity, unit: data.unit, source: 'manual' });
+      await ShoppingModel.add(userId, {
+        name,
+        quantity: data.quantity,
+        unit: data.unit,
+        source: 'manual',
+        shopId: data.shopId,
+        expiryDate: data.expiryDate,
+        targetStorageId: data.storageId || null,
+        notes: data.notes,
+      });
     } else {
       await ItemModel.create(userId, data);
     }

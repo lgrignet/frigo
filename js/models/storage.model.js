@@ -14,6 +14,12 @@ const StorageModel = (() => {
     return DB.getOne('storages', id);
   }
 
+  async function getByName(userId, name) {
+    const all = await getAll(userId);
+    const normalized = String(name || '').trim().toLowerCase();
+    return all.find(s => String(s.name || '').trim().toLowerCase() === normalized) || null;
+  }
+
   async function create(userId, data) {
     const storage = {
       id: uid(),
@@ -57,7 +63,7 @@ const StorageModel = (() => {
   function typeIcon(type) { return TYPE_ICONS[type] || '📦'; }
 
   return {
-    getAll, getById, create, update, remove,
+    getAll, getById, getByName, create, update, remove,
     getItemCount, getDefaultStorage, typeIcon,
   };
 })();

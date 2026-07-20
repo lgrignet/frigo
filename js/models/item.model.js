@@ -20,6 +20,12 @@ const ItemModel = (() => {
     return all.filter(i => i.storageId === storageId);
   }
 
+  async function getByShop(userId, shopId) {
+    const all = await DB.getUserItems(userId);
+    if (!shopId) return all.filter(i => !i.shopId);
+    return all.filter(i => i.shopId === shopId);
+  }
+
   async function getExpiring(userId, days) {
     const all = await DB.getUserItems(userId);
     const today = new Date(); today.setHours(0,0,0,0);
@@ -57,8 +63,10 @@ const ItemModel = (() => {
       unit: data.unit || 'pièce(s)',
       expiryDate: data.expiryDate || null,
       storageId: data.storageId,
+      shopId: data.shopId || null,
       photo: data.photo || null,
       restockThreshold: parseInt(data.restockThreshold) || 0,
+      restockBuyQuantity: parseFloat(data.restockBuyQuantity) || 1,
       notes: data.notes?.trim() || '',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -162,7 +170,7 @@ const ItemModel = (() => {
   }
 
   return {
-    getAll, getById, getByStorage, getExpiring, getLowStock,
+    getAll, getById, getByStorage, getByShop, getExpiring, getLowStock,
     create, update, remove, duplicate, moveToStorage,
     getDiffDays, getExpiryStatus, isLowStock, sort,
   };
