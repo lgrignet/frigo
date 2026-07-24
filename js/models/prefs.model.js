@@ -13,7 +13,6 @@ const PrefsModel = (() => {
     theme: 'dark',
     dateFormat: 'european',
     adsEnabled: true,
-    isPremium: false,
     lang: 'fr',
   };
 

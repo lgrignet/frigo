@@ -27,8 +27,6 @@
   --success-dim:   rgba(46, 213, 115, 0.12);
   --info:          #70a1ff;
   --info-dim:      rgba(112, 161, 255, 0.15);
-  --premium:       #f9ca24;
-  --premium-dim:   rgba(249, 202, 36, 0.15);
 
   --text-primary:  #f0f4ff;
   --text-secondary:#8899bb;
@@ -70,8 +68,6 @@
   --success-dim:   rgba(26, 138, 58, 0.1);
   --info:          #3a5bbb;
   --info-dim:      rgba(58, 91, 187, 0.1);
-  --premium:       #c8860a;
-  --premium-dim:   rgba(200, 134, 10, 0.1);
 
   --text-primary:  #0d1b2a;
   --text-secondary:#4a6080;

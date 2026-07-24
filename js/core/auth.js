@@ -61,7 +61,6 @@ const Auth = (() => {
       salt,
       recoveryHash,
       recoverySalt,
-      isPremium: false,
       createdAt: new Date().toISOString(),
     };
 
@@ -81,7 +80,6 @@ const Auth = (() => {
       defaultStorageId: null,
       theme: 'dark',
       adsEnabled: true,
-      isPremium: false,
       lang: 'fr',
     });
 
@@ -145,21 +143,6 @@ const Auth = (() => {
     clearSession();
   }
 
-  // ── Premium ────────────────────────────────────────────────
-  async function activatePremium(userId) {
-    const user = await DB.getOne('users', userId);
-    if (!user) return;
-    user.isPremium = true;
-    await DB.put('users', user);
-    // Update prefs too
-    const prefs = await DB.getUserPrefs(userId);
-    if (prefs) {
-      prefs.isPremium = true;
-      prefs.adsEnabled = false;
-      await DB.put('preferences', prefs);
-    }
-  }
-
   // ── Helpers ────────────────────────────────────────────────
   async function findUserByEmail(email) {
     const db = await DB.open();
@@ -206,7 +189,7 @@ const Auth = (() => {
   }
 
   return {
-    register, login, recoverWithCode, logout, activatePremium,
+    register, login, recoverWithCode, logout,
     getSession, isLoggedIn, getCurrentUserId, getCurrentEmail,
     findUserByEmail, listLocalAccounts,
   };

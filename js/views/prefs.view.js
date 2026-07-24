@@ -69,47 +69,10 @@ const PrefsView = (() => {
     document.getElementById('pref-logout-btn').textContent = i18n.t('logout');
     document.getElementById('pref-account-label').textContent = i18n.t('account');
 
-    // ── Premium ──
-    document.getElementById('pref-section-premium').textContent = i18n.t('pref_section_premium');
-    renderPremium(prefs);
-
     // ── Data ──
     document.getElementById('pref-section-data').textContent = i18n.t('pref_section_data');
     document.getElementById('btn-pref-export').textContent = i18n.t('pref_export');
     document.getElementById('btn-pref-reset').textContent = i18n.t('pref_reset');
-  }
-
-  function renderPremium(prefs) {
-    const section = document.getElementById('premium-section');
-    section.innerHTML = `
-      <div class="premium-banner">
-        <div class="premium-banner-icon">🌟</div>
-        <div class="premium-banner-text">
-          <div class="premium-banner-title">${i18n.t('premium_title')}</div>
-          <div class="premium-banner-sub">${i18n.t('premium_sub')}</div>
-        </div>
-      </div>
-      <div style="padding:0 16px 12px">
-        ${['premium_feature_1','premium_feature_2','premium_feature_3','premium_feature_4','premium_feature_5']
-          .map(k => `<div style="font-size:13px;color:var(--text-secondary);padding:4px 0">${i18n.t(k)}</div>`).join('')}
-      </div>
-      <div style="padding:0 16px 16px">
-        ${prefs.isPremium
-          ? `<div class="btn btn-secondary" style="cursor:default">${i18n.t('premium_already')}</div>`
-          : `<button class="btn btn-premium" id="btn-activate-premium">${i18n.t('premium_activate')}</button>`
-        }
-      </div>`;
-
-    if (!prefs.isPremium) {
-      document.getElementById('btn-activate-premium').addEventListener('click', async () => {
-        const userId = Auth.getCurrentUserId();
-        await Auth.activatePremium(userId);
-        await PrefsModel.applyTheme(prefs.theme);
-        Toast.success('🌟 ' + (i18n.lang === 'fr' ? 'Premium activé !' : 'Premium activated!'));
-        await AdBanner.update();
-        render();
-      });
-    }
   }
 
   function open() {

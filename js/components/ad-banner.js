@@ -21,6 +21,6 @@ const AdBanner = {
     }
 
     const prefs = await PrefsModel.get(userId);
-    AdBanner.notifyNativeAdVisibility(!(prefs.isPremium || !prefs.adsEnabled));
+    AdBanner.notifyNativeAdVisibility(Boolean(prefs.adsEnabled));
   }
 };
