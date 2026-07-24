@@ -4,7 +4,7 @@
 
 const DB = (() => {
   const DB_NAME = 'mystockmanager';
-  const DB_VERSION = 2;
+  const DB_VERSION = 3;
   let _db = null;
 
   // ── Open / migrate ─────────────────────────────────────────
@@ -15,6 +15,7 @@ const DB = (() => {
 
       req.onupgradeneeded = (event) => {
         const db = event.target.result;
+        const tx = event.target.transaction;
 
         // users
         if (!db.objectStoreNames.contains('users')) {
@@ -42,7 +43,6 @@ const DB = (() => {
           items.createIndex('shopId', 'shopId', { unique: false });
           items.createIndex('expiryDate', 'expiryDate', { unique: false });
         } else {
-          const tx = event.target.transaction;
           const items = tx.objectStore('items');
           if (!items.indexNames.contains('shopId')) {
             items.createIndex('shopId', 'shopId', { unique: false });
@@ -55,7 +55,6 @@ const DB = (() => {
           shopping.createIndex('userId', 'userId', { unique: false });
           shopping.createIndex('shopId', 'shopId', { unique: false });
         } else {
-          const tx = event.target.transaction;
           const shopping = tx.objectStore('shopping_list');
           if (!shopping.indexNames.contains('shopId')) {
             shopping.createIndex('shopId', 'shopId', { unique: false });
@@ -65,6 +64,47 @@ const DB = (() => {
         // preferences
         if (!db.objectStoreNames.contains('preferences')) {
           db.createObjectStore('preferences', { keyPath: 'userId' });
+        }
+
+        // v3: remove premium flags and re-enable ads for existing users
+        if (event.oldVersion < 3) {
+          if (db.objectStoreNames.contains('preferences')) {
+            const prefsStore = tx.objectStore('preferences');
+            const prefsCursorReq = prefsStore.openCursor();
+            prefsCursorReq.onsuccess = (cursorEvent) => {
+              const cursor = cursorEvent.target.result;
+              if (!cursor) return;
+              const prefs = cursor.value || {};
+              let changed = false;
+
+              if (prefs.adsEnabled !== true) {
+                prefs.adsEnabled = true;
+                changed = true;
+              }
+              if ('isPremium' in prefs) {
+                delete prefs.isPremium;
+                changed = true;
+              }
+
+              if (changed) cursor.update(prefs);
+              cursor.continue();
+            };
+          }
+
+          if (db.objectStoreNames.contains('users')) {
+            const usersStore = tx.objectStore('users');
+            const usersCursorReq = usersStore.openCursor();
+            usersCursorReq.onsuccess = (cursorEvent) => {
+              const cursor = cursorEvent.target.result;
+              if (!cursor) return;
+              const user = cursor.value || {};
+              if ('isPremium' in user) {
+                delete user.isPremium;
+                cursor.update(user);
+              }
+              cursor.continue();
+            };
+          }
         }
       };
 
