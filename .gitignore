@@ -1,0 +1,12 @@
+# Android local secrets
+/android/app/src/main/res/values/strings.xml
+/android/app/src/main/res/values/*.xml
+
+# Local Android signing/config files
+/android/local.properties
+/android/keystore.properties
+/android/app/release/
+/android/app/debug/
+
+# Gradle local caches
+/.gradle/
