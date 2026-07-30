@@ -3,7 +3,30 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- Empêche l'installation sur Android TV -->
+    <uses-feature android:name="android.software.leanback"
+                  android:required="false" />
 
+    <!-- Empêche l'installation sur Wear OS -->
+    <uses-feature android:name="android.hardware.type.watch"
+                  android:required="false" />
+
+    <!-- Empêche l'installation sur Android Auto -->
+    <uses-feature android:name="android.hardware.type.automotive"
+                  android:required="false" />
+
+    <!-- Empêche l'installation sur ChromeOS si tu veux -->
+    <uses-feature android:name="android.hardware.type.pc"
+                  android:required="false" />
+				  
+	<!-- Déclare que l'app supporte uniquement les écrans mobiles/tablettes -->
+    <supports-screens
+        android:smallScreens="true"
+        android:normalScreens="true"
+        android:largeScreens="true"
+        android:xlargeScreens="true"
+        android:anyDensity="true" />
+				  
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
