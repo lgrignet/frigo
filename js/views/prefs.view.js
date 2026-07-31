@@ -30,10 +30,7 @@ const PrefsView = (() => {
 
     // Language
     document.getElementById('pref-lang-label').textContent = i18n.t('pref_lang');
-    document.getElementById('btn-lang-fr').classList.toggle('active', i18n.lang === 'fr');
-    document.getElementById('btn-lang-en').classList.toggle('active', i18n.lang === 'en');
-    document.getElementById('btn-lang-fr').textContent = i18n.t('pref_lang_fr');
-    document.getElementById('btn-lang-en').textContent = i18n.t('pref_lang_en');
+    document.getElementById('pref-lang-select').value = i18n.lang;
 
     document.getElementById('pref-date-format-label').textContent = i18n.t('pref_date_format');
     document.getElementById('btn-pref-date-european').classList.toggle('active', prefs.dateFormat === 'european');
@@ -106,15 +103,10 @@ const PrefsView = (() => {
     });
 
     // Language
-    document.getElementById('btn-lang-fr').addEventListener('click', async () => {
-      i18n.setLang('fr');
-      await PrefsModel.set(Auth.getCurrentUserId(), { lang: 'fr' });
-      App.applyLanguage();
-      render();
-    });
-    document.getElementById('btn-lang-en').addEventListener('click', async () => {
-      i18n.setLang('en');
-      await PrefsModel.set(Auth.getCurrentUserId(), { lang: 'en' });
+    document.getElementById('pref-lang-select').addEventListener('change', async e => {
+      const lang = e.target.value;
+      i18n.setLang(lang);
+      await PrefsModel.set(Auth.getCurrentUserId(), { lang });
       App.applyLanguage();
       render();
     });
