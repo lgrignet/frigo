@@ -21,14 +21,14 @@ def signingKeyPassword = keystoreProps.getProperty('keyPassword', localProps.get
 
 android {
     namespace 'com.mystockmanager.app'
-    compileSdk 35
+    compileSdk 36
 
     defaultConfig {
         applicationId 'com.mystockmanager.app'
         minSdk 26
-        targetSdk 35
-        versionCode 4
-        versionName '1.0.3'
+        targetSdk 36
+        versionCode 5
+        versionName '1.04'
     }
 
     signingConfigs {
