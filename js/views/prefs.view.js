@@ -226,10 +226,23 @@ const PrefsView = (() => {
       if (!guid) return;
 
       Modal.open('modal-qr-display');
-      const canvas = document.getElementById('qr-canvas');
-      QRCode.toCanvas(canvas, guid, { width: 256, margin: 1 }, error => {
-        if (error) console.error(error);
-      });
+      const container = document.getElementById('qr-container');
+      container.innerHTML = '';
+
+      try {
+        new QRCode(container, {
+          text: guid,
+          width: 256,
+          height: 256,
+          colorDark : "#000000",
+          colorLight : "#ffffff",
+          correctLevel : QRCode.CorrectLevel.H
+        });
+      } catch (e) {
+        console.error("QR Error:", e);
+        container.innerHTML = `<p style="color:red">Erreur QR: ${e.message}</p>`;
+      }
+
       document.getElementById('qr-guid-text').textContent = guid;
     });
 
