@@ -70,6 +70,12 @@ const PrefsView = (() => {
     document.getElementById('pref-section-data').textContent = i18n.t('pref_section_data');
     document.getElementById('btn-pref-export').textContent = i18n.t('pref_export');
     document.getElementById('btn-pref-reset').textContent = i18n.t('pref_reset');
+
+    // Sync GUID
+    const guidInput = document.getElementById('pref-sync-guid');
+    if (guidInput) {
+      guidInput.value = Auth.getCurrentSyncChannel() || '';
+    }
   }
 
   function open() {
@@ -181,16 +187,42 @@ const PrefsView = (() => {
       document.getElementById('confirm-sub').textContent = i18n.t('pref_reset_confirm');
       document.getElementById('btn-confirm-yes').textContent = i18n.t('yes_delete');
       document.getElementById('btn-confirm-no').textContent = i18n.t('cancel');
+
       document.getElementById('btn-confirm-yes').onclick = async () => {
-        await DB.deleteAllUserData(Auth.getCurrentUserId());
-        Modal.close('modal-confirm');
-        close();
-        Toast.success(i18n.t('pref_reset_done'));
-        App.showLogin();
-        Auth.logout();
+        const userId = Auth.getCurrentUserId();
+        if (userId) {
+          await DB.deleteAllUserData(userId);
+          Modal.close('modal-confirm');
+          close();
+          Toast.success(i18n.t('pref_reset_done'));
+          Auth.logout();
+          App.showLogin();
+        }
       };
       document.getElementById('btn-confirm-no').onclick = () => Modal.close('modal-confirm');
       Modal.open('modal-confirm');
+    });
+
+    // Copy GUID
+    document.getElementById('btn-copy-guid')?.addEventListener('click', () => {
+      const guid = document.getElementById('pref-sync-guid').value;
+      if (guid) {
+        navigator.clipboard.writeText(guid);
+        Toast.success(i18n.t('shopping_copied'));
+      }
+    });
+
+    // Join Channel
+    document.getElementById('btn-join-channel')?.addEventListener('click', () => {
+      const newGuid = prompt(i18n.lang === 'fr' ? 'Entrez le GUID du canal à rejoindre :' : 'Enter the channel GUID to join:');
+      if (newGuid && newGuid.trim().length > 30) {
+        if (confirm(i18n.lang === 'fr' ? 'Rejoindre ce canal synchronisera vos données avec ses membres. Continuer ?' : 'Joining this channel will sync your data with its members. Continue?')) {
+          Auth.updateSyncChannel(Auth.getCurrentUserId(), newGuid.trim()).then(() => {
+            Toast.success(i18n.lang === 'fr' ? 'Canal mis à jour. Redémarrage...' : 'Channel updated. Restarting...');
+            setTimeout(() => location.reload(), 1500);
+          });
+        }
+      }
     });
   }
 

@@ -72,6 +72,13 @@ const ItemModel = (() => {
       updatedAt: new Date().toISOString(),
     };
     await DB.put('items', item);
+
+    // Propagation P2P via Yjs
+    try {
+      const itemsMap = SyncConnector.getCollection('items');
+      itemsMap.set(item.id, item);
+    } catch (e) { console.warn('Sync: non disponible au moment de la création'); }
+
     return item;
   }
 
@@ -86,12 +93,26 @@ const ItemModel = (() => {
       updatedAt: new Date().toISOString(),
     };
     await DB.put('items', updated);
+
+    // Propagation P2P via Yjs
+    try {
+      const itemsMap = SyncConnector.getCollection('items');
+      itemsMap.set(id, updated);
+    } catch (e) { console.warn('Sync: non disponible au moment de la mise à jour'); }
+
     return updated;
   }
 
   // ── Delete ─────────────────────────────────────────────────
   async function remove(id) {
     await DB.del('items', id);
+
+    // Propagation P2P via Yjs (suppression)
+    try {
+      const itemsMap = SyncConnector.getCollection('items');
+      itemsMap.delete(id);
+    } catch (e) { console.warn('Sync: non disponible au moment de la suppression'); }
+
     // Also remove related shopping entries (auto)
     const session = Auth.getSession();
     if (session) {

@@ -239,6 +239,8 @@ const DB = (() => {
       for (const item of items) await del(storeName, item.id);
     }
     await del('preferences', userId);
+    // On supprime aussi l'utilisateur de la table 'users'
+    await del('users', userId);
   }
 
   return {

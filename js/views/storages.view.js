@@ -12,8 +12,10 @@ const StoragesView = (() => {
     ]);
 
     document.getElementById('storages-view-title').textContent = i18n.t('storages_title');
+    document.getElementById('btn-add-storage').innerHTML = `+ ${i18n.t('add')}`;
     document.getElementById('btn-add-storage').title = i18n.t('storages_add');
     document.getElementById('shops-view-title').textContent = i18n.t('shops_title');
+    document.getElementById('btn-add-shop').innerHTML = `+ ${i18n.t('add')}`;
     document.getElementById('btn-add-shop').title = i18n.t('shops_add');
     document.getElementById('shops-empty-title').textContent = i18n.t('shops_empty');
 
@@ -41,7 +43,7 @@ const StoragesView = (() => {
       <div class="storage-card card" data-id="${storage.id}">
         <div class="storage-icon">${storage.icon}</div>
         <div class="storage-name">${escHtml(storage.name)}</div>
-        <div class="storage-count">${counts[storage.id]} ${i18n.t('items_count') || 'produit(s)'}</div>
+        <div class="storage-count">${counts[storage.id]} ${i18n.t('items_count')}</div>
         <div class="storage-type-badge">${i18n.storageTypes().find(t => t.id === storage.type)?.label || storage.type}</div>
       </div>`).join('');
 
@@ -74,7 +76,7 @@ const StoragesView = (() => {
       <div class="storage-card card" data-shop-id="${shop.id}">
         <div class="storage-icon">🏬</div>
         <div class="storage-name">${escHtml(shop.name)}</div>
-        <div class="storage-count">${counts[shop.id]} ${i18n.t('items_count') || 'produit(s)'}</div>
+        <div class="storage-count">${counts[shop.id]} ${i18n.t('items_count')}</div>
       </div>`).join('');
 
     grid.querySelectorAll('.storage-card[data-shop-id]').forEach(card => {
@@ -93,6 +95,8 @@ const StoragesView = (() => {
     ]);
 
     document.getElementById('storage-detail-title').textContent = `${storage.icon} ${storage.name}`;
+    document.getElementById('btn-storage-edit').innerHTML = `✏️ ${i18n.t('edit')}`;
+    document.getElementById('btn-storage-close').textContent = i18n.t('close');
     document.getElementById('btn-storage-edit').onclick = () => {
       Modal.close('modal-storage-detail');
       openStorageForm(id);
@@ -102,7 +106,7 @@ const StoragesView = (() => {
         await StorageModel.remove(id, userId);
         Modal.close('modal-storage-detail');
         await render();
-        Toast.success(i18n.lang === 'fr' ? 'Rangement supprimé' : 'Storage deleted');
+        Toast.success(i18n.t('storage_deleted'));
       } catch (e) {
         if (e.message === 'STORAGE_NOT_EMPTY') Toast.error(i18n.t('storage_delete_error'));
       }
@@ -110,7 +114,7 @@ const StoragesView = (() => {
 
     const itemsList = document.getElementById('storage-detail-items');
     if (items.length === 0) {
-      itemsList.innerHTML = `<div class="shopping-empty-section" style="padding:20px;text-align:center;color:var(--text-muted)">${i18n.lang === 'fr' ? 'Aucun produit' : 'No items'}</div>`;
+      itemsList.innerHTML = `<div class="shopping-empty-section" style="padding:20px;text-align:center;color:var(--text-muted)">${i18n.t('all_empty')}</div>`;
     } else {
       itemsList.innerHTML = items.map(item => ItemCard.render(item, storages, shops)).join('');
       ItemCard.bindEvents(itemsList, itemId => {
@@ -136,6 +140,8 @@ const StoragesView = (() => {
     ]);
 
     document.getElementById('shop-detail-title').textContent = `🏬 ${shop.name}`;
+    document.getElementById('btn-shop-edit').innerHTML = `✏️ ${i18n.t('edit')}`;
+    document.getElementById('btn-shop-close').textContent = i18n.t('close');
     document.getElementById('btn-shop-edit').onclick = () => {
       Modal.close('modal-shop-detail');
       openShopForm(id);
@@ -151,7 +157,7 @@ const StoragesView = (() => {
 
     const itemsList = document.getElementById('shop-detail-items');
     if (items.length === 0) {
-      itemsList.innerHTML = `<div class="shopping-empty-section" style="padding:20px;text-align:center;color:var(--text-muted)">${i18n.lang === 'fr' ? 'Aucun produit' : 'No items'}</div>`;
+      itemsList.innerHTML = `<div class="shopping-empty-section" style="padding:20px;text-align:center;color:var(--text-muted)">${i18n.t('all_empty')}</div>`;
     } else {
       itemsList.innerHTML = items.map(item => ItemCard.render(item, storages, shops)).join('');
       ItemCard.bindEvents(itemsList, itemId => {
@@ -188,9 +194,11 @@ const StoragesView = (() => {
       });
     }
 
+    document.getElementById('btn-storage-form-save').textContent = i18n.t('save');
+    document.getElementById('btn-storage-form-cancel').textContent = i18n.t('cancel');
     document.getElementById('btn-storage-form-save').onclick = async () => {
       const name = sanitizeInputValue(document.getElementById('storage-name-input').value).trim();
-      if (!name) { Toast.error(i18n.lang === 'fr' ? 'Nom requis' : 'Name required'); return; }
+      if (!name) { Toast.error(i18n.t('name_required')); return; }
 
       const data = {
         name,
@@ -203,7 +211,7 @@ const StoragesView = (() => {
 
       Modal.close('modal-storage-form');
       await render();
-      Toast.success(i18n.lang === 'fr' ? 'Rangement enregistré' : 'Storage saved');
+      Toast.success(i18n.t('storage_saved'));
     };
 
     document.getElementById('btn-storage-form-cancel').onclick = () => Modal.close('modal-storage-form');
@@ -222,6 +230,8 @@ const StoragesView = (() => {
       });
     }
 
+    document.getElementById('btn-shop-form-save').textContent = i18n.t('save');
+    document.getElementById('btn-shop-form-cancel').textContent = i18n.t('cancel');
     document.getElementById('btn-shop-form-save').onclick = async () => {
       const name = sanitizeInputValue(document.getElementById('shop-name-input').value).trim();
       if (!name) {

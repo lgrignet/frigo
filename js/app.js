@@ -135,6 +135,13 @@ const App = (() => {
 
     // Load prefs for language
     const userId = Auth.getCurrentUserId();
+    const syncChannel = Auth.getCurrentSyncChannel();
+
+    // Initialisation de la synchronisation P2P
+    if (syncChannel) {
+      SyncConnector.init(syncChannel).catch(err => console.error('Sync Init Error:', err));
+    }
+
     const prefs = await PrefsModel.get(userId);
     if (prefs.lang && prefs.lang !== i18n.lang) {
       i18n.setLang(prefs.lang);

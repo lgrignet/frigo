@@ -14,8 +14,8 @@ const Auth = (() => {
     } catch { return null; }
   }
 
-  function setSession(userId, email) {
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify({ userId, email, loginAt: Date.now() }));
+  function setSession(userId, email, syncChannelGuid) {
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify({ userId, email, syncChannelGuid, loginAt: Date.now() }));
   }
 
   function clearSession() {
@@ -61,6 +61,7 @@ const Auth = (() => {
       salt,
       recoveryHash,
       recoverySalt,
+      syncChannelGuid: crypto.randomUUID(), // Le canal de synchro par défaut
       createdAt: new Date().toISOString(),
     };
 
@@ -85,7 +86,7 @@ const Auth = (() => {
 
     // Setup session key
     await Crypto.setSessionKey(password, salt);
-    setSession(userId, normalized);
+    setSession(userId, normalized, user.syncChannelGuid);
 
     return { userId, recoveryCode };
   }
@@ -99,9 +100,28 @@ const Auth = (() => {
     const hash = await Crypto.hashPassword(password, user.salt);
     if (hash !== user.passwordHash) throw new Error('INVALID_CREDENTIALS');
 
+    // Assurer qu'un vieux compte a un GUID
+    if (!user.syncChannelGuid) {
+      user.syncChannelGuid = crypto.randomUUID();
+      await DB.put('users', user);
+    }
+
     await Crypto.setSessionKey(password, user.salt);
-    setSession(user.id, normalized);
+    setSession(user.id, normalized, user.syncChannelGuid);
     return user;
+  }
+
+  async function updateSyncChannel(userId, newGuid) {
+    const user = await DB.getOne('users', userId);
+    if (!user) return;
+    user.syncChannelGuid = newGuid;
+    await DB.put('users', user);
+    // On met à jour la session pour que l'app sache qu'elle doit se reconnecter
+    const session = getSession();
+    if (session) {
+      session.syncChannelGuid = newGuid;
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    }
   }
 
   // ── Password recovery ──────────────────────────────────────
@@ -124,16 +144,23 @@ const Auth = (() => {
     const newRecoverySalt = Crypto.generateSalt();
     const newRecoveryHash = await Crypto.hashRecoveryCode(newRecoveryCode, newRecoverySalt);
 
-    await DB.put('users', {
+    const updatedUser = {
       ...user,
       passwordHash: newHash,
       salt: newSalt,
       recoveryHash: newRecoveryHash,
       recoverySalt: newRecoverySalt,
-    });
+    };
+
+    // Assurer qu'un vieux compte a un GUID lors de la récupération
+    if (!updatedUser.syncChannelGuid) {
+      updatedUser.syncChannelGuid = crypto.randomUUID();
+    }
+
+    await DB.put('users', updatedUser);
 
     await Crypto.setSessionKey(newPassword, newSalt);
-    setSession(user.id, normalized);
+    setSession(user.id, normalized, updatedUser.syncChannelGuid);
 
     return { newRecoveryCode };
   }
@@ -188,9 +215,13 @@ const Auth = (() => {
     return DB.getAll('users');
   }
 
+  function getCurrentSyncChannel() {
+    return getSession()?.syncChannelGuid ?? null;
+  }
+
   return {
     register, login, recoverWithCode, logout,
-    getSession, isLoggedIn, getCurrentUserId, getCurrentEmail,
-    findUserByEmail, listLocalAccounts,
+    getSession, isLoggedIn, getCurrentUserId, getCurrentEmail, getCurrentSyncChannel,
+    findUserByEmail, listLocalAccounts, updateSyncChannel,
   };
 })();

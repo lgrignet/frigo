@@ -438,7 +438,7 @@
     <div class="modal-footer">
       <button class="btn btn-danger btn-sm" id="btn-storage-delete" style="flex:0 0 auto">🗑</button>
       <button class="btn btn-secondary" id="btn-storage-edit">✏️ Modifier</button>
-      <button class="btn btn-primary" onclick="Modal.close('modal-storage-detail')">Fermer</button>
+      <button class="btn btn-primary" id="btn-storage-close" onclick="Modal.close('modal-storage-detail')">Fermer</button>
     </div>
   </div>
 </div>
@@ -480,7 +480,7 @@
     <div class="modal-footer">
       <button class="btn btn-danger btn-sm" id="btn-shop-delete" style="flex:0 0 auto">🗑</button>
       <button class="btn btn-secondary" id="btn-shop-edit">✏️ Modifier</button>
-      <button class="btn btn-primary" onclick="Modal.close('modal-shop-detail')">Fermer</button>
+      <button class="btn btn-primary" id="btn-shop-close" onclick="Modal.close('modal-shop-detail')">Fermer</button>
     </div>
   </div>
 </div>
@@ -608,6 +608,18 @@
         </div>
       </div>
       <div class="prefs-row">
+        <!-- Sync Channel GUID -->
+        <div class="prefs-item" style="flex-direction:column;align-items:flex-start;gap:8px">
+          <div class="prefs-item-label">Canal de synchronisation (GUID)</div>
+          <div style="display:flex;gap:8px;width:100%">
+            <input type="text" id="pref-sync-guid" class="form-control" style="font-size:12px;font-family:monospace" readonly>
+            <button class="btn btn-secondary btn-sm" id="btn-copy-guid">📋</button>
+          </div>
+          <p style="font-size:11px;color:var(--text-muted);margin-top:4px">Partagez ce GUID pour synchroniser vos stocks avec d'autres personnes.</p>
+          <button class="btn btn-secondary btn-sm" style="width:100%" id="btn-join-channel">Rejoindre un autre canal</button>
+        </div>
+      </div>
+      <div class="prefs-row">
         <!-- Notifications -->
         <div class="prefs-item" style="flex-direction:column;align-items:flex-start;gap:8px">
           <div style="display:flex;align-items:center;justify-content:space-between;width:100%">
@@ -688,10 +700,14 @@
      SCRIPTS (ordre de chargement important)
 ═══════════════════════════════════════════════════════════ -->
 <!-- Core -->
+<script src="https://cdn.jsdelivr.net/npm/yjs@13.6.15/dist/yjs.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/y-webrtc@10.3.0/dist/y-webrtc.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/y-indexeddb@9.0.12/dist/y-indexeddb.js"></script>
 <script src="js/i18n.js"></script>
 <script src="js/core/crypto.js"></script>
 <script src="js/core/db.js"></script>
 <script src="js/core/auth.js"></script>
+<script src="js/core/sync.js"></script>
 <!-- Models -->
 <script src="js/models/shop.model.js"></script>
 <script src="js/models/item.model.js"></script>
