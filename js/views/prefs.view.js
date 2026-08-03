@@ -216,14 +216,64 @@ const PrefsView = (() => {
     document.getElementById('btn-join-channel')?.addEventListener('click', () => {
       const newGuid = prompt(i18n.lang === 'fr' ? 'Entrez le GUID du canal à rejoindre :' : 'Enter the channel GUID to join:');
       if (newGuid && newGuid.trim().length > 30) {
-        if (confirm(i18n.lang === 'fr' ? 'Rejoindre ce canal synchronisera vos données avec ses membres. Continuer ?' : 'Joining this channel will sync your data with its members. Continue?')) {
-          Auth.updateSyncChannel(Auth.getCurrentUserId(), newGuid.trim()).then(() => {
-            Toast.success(i18n.lang === 'fr' ? 'Canal mis à jour. Redémarrage...' : 'Channel updated. Restarting...');
-            setTimeout(() => location.reload(), 1500);
-          });
-        }
+        joinChannel(newGuid.trim());
       }
     });
+
+    // Show QR
+    document.getElementById('btn-show-qr')?.addEventListener('click', () => {
+      const guid = document.getElementById('pref-sync-guid').value;
+      if (!guid) return;
+
+      Modal.open('modal-qr-display');
+      const canvas = document.getElementById('qr-canvas');
+      QRCode.toCanvas(canvas, guid, { width: 256, margin: 1 }, error => {
+        if (error) console.error(error);
+      });
+      document.getElementById('qr-guid-text').textContent = guid;
+    });
+
+    // Scan QR
+    let html5QrCode = null;
+    document.getElementById('btn-scan-qr')?.addEventListener('click', async () => {
+      Modal.open('modal-qr-scanner');
+      html5QrCode = new Html5Qrcode("reader");
+      const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+
+      try {
+        await html5QrCode.start({ facingMode: "environment" }, config, (decodedText) => {
+          html5QrCode.stop().then(() => {
+            Modal.close('modal-qr-scanner');
+            if (decodedText && decodedText.length > 30) {
+              joinChannel(decodedText.trim());
+            }
+          });
+        });
+      } catch (err) {
+        console.error("Camera error:", err);
+        Toast.error(i18n.lang === 'fr' ? "Erreur caméra" : "Camera error");
+        Modal.close('modal-qr-scanner');
+      }
+    });
+
+    document.getElementById('btn-close-scanner')?.addEventListener('click', () => {
+      if (html5QrCode) {
+        html5QrCode.stop().finally(() => {
+          Modal.close('modal-qr-scanner');
+        });
+      } else {
+        Modal.close('modal-qr-scanner');
+      }
+    });
+  }
+
+  function joinChannel(guid) {
+    if (confirm(i18n.lang === 'fr' ? 'Rejoindre ce canal synchronisera vos données avec ses membres. Continuer ?' : 'Joining this channel will sync your data with its members. Continue?')) {
+      Auth.updateSyncChannel(Auth.getCurrentUserId(), guid).then(() => {
+        Toast.success(i18n.lang === 'fr' ? 'Canal mis à jour. Redémarrage...' : 'Channel updated. Restarting...');
+        setTimeout(() => location.reload(), 1500);
+      });
+    }
   }
 
   return { init, render, open };

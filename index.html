@@ -467,20 +467,40 @@
 
 <!-- ── Modal: Shop detail ── -->
 <div id="modal-shop-detail" class="modal">
+  <!-- ... existing content ... -->
+</div>
+
+<!-- ── Modal: QR Display ── -->
+<div id="modal-qr-display" class="modal">
   <div class="modal-backdrop"></div>
   <div class="modal-sheet">
     <div class="modal-handle"></div>
     <div class="modal-header">
-      <span class="modal-title" id="shop-detail-title"></span>
-      <button class="modal-close" onclick="Modal.close('modal-shop-detail')">✕</button>
+      <span class="modal-title">Partage de canal</span>
+      <button class="modal-close" onclick="Modal.close('modal-qr-display')">✕</button>
     </div>
-    <div class="modal-body">
-      <div id="shop-detail-items"></div>
+    <div class="modal-body" style="text-align:center">
+      <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px">Scannez ce code pour rejoindre ce canal de synchronisation.</p>
+      <canvas id="qr-canvas" style="background:white;padding:12px;border-radius:12px;max-width:100%"></canvas>
+      <div id="qr-guid-text" style="font-size:10px;font-family:monospace;margin-top:12px;color:var(--text-muted)"></div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-danger btn-sm" id="btn-shop-delete" style="flex:0 0 auto">🗑</button>
-      <button class="btn btn-secondary" id="btn-shop-edit">✏️ Modifier</button>
-      <button class="btn btn-primary" id="btn-shop-close" onclick="Modal.close('modal-shop-detail')">Fermer</button>
+      <button class="btn btn-primary" onclick="Modal.close('modal-qr-display')">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal: QR Scanner ── -->
+<div id="modal-qr-scanner" class="modal">
+  <div class="modal-backdrop"></div>
+  <div class="modal-sheet" style="height:80dvh">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <span class="modal-title">Scanner un canal</span>
+      <button class="modal-close" id="btn-close-scanner">✕</button>
+    </div>
+    <div class="modal-body" style="padding:0;overflow:hidden;background:#000;display:flex;align-items:center;justify-content:center">
+      <div id="reader" style="width:100%"></div>
     </div>
   </div>
 </div>
@@ -614,9 +634,13 @@
           <div style="display:flex;gap:8px;width:100%">
             <input type="text" id="pref-sync-guid" class="form-control" style="font-size:12px;font-family:monospace" readonly>
             <button class="btn btn-secondary btn-sm" id="btn-copy-guid">📋</button>
+            <button class="btn btn-secondary btn-sm" id="btn-show-qr">QR</button>
           </div>
           <p style="font-size:11px;color:var(--text-muted);margin-top:4px">Partagez ce GUID pour synchroniser vos stocks avec d'autres personnes.</p>
-          <button class="btn btn-secondary btn-sm" style="width:100%" id="btn-join-channel">Rejoindre un autre canal</button>
+          <div style="display:flex;gap:8px;width:100%">
+            <button class="btn btn-secondary btn-sm" style="flex:1" id="btn-join-channel">Rejoindre (manuel)</button>
+            <button class="btn btn-primary btn-sm" style="flex:1" id="btn-scan-qr">📷 Scanner QR</button>
+          </div>
         </div>
       </div>
       <div class="prefs-row">
@@ -703,6 +727,8 @@
 <script src="https://cdn.jsdelivr.net/npm/yjs@13.6.15/dist/yjs.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/y-webrtc@10.3.0/dist/y-webrtc.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/y-indexeddb@9.0.12/dist/y-indexeddb.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 <script src="js/i18n.js"></script>
 <script src="js/core/crypto.js"></script>
 <script src="js/core/db.js"></script>

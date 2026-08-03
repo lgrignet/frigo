@@ -1,7 +1,9 @@
 package com.mystockmanager.app;
 
+import android.Manifest;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
@@ -17,6 +19,8 @@ import androidx.activity.EdgeToEdge;
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -32,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String APP_ASSETS_HOST = "appassets.androidplatform.net";
     private static final String START_URL = "https://appassets.androidplatform.net/index.html";
     private static final String JS_ADS_BRIDGE_NAME = "AndroidAdsBridge";
+    private static final int PERMISSION_REQUEST_CAMERA = 100;
     private WebView webView;
     private AdView adView;
 
@@ -40,6 +45,8 @@ public class MainActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        checkPermissions();
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -84,7 +91,13 @@ public class MainActivity extends AppCompatActivity {
 
         boolean isDebuggable = (getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0;
         WebView.setWebContentsDebuggingEnabled(isDebuggable);
-        view.setWebChromeClient(new WebChromeClient());
+        
+        view.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public void onPermissionRequest(final android.webkit.PermissionRequest request) {
+                request.grant(request.getResources());
+            }
+        });
 
         WebViewAssetLoader assetLoader = new WebViewAssetLoader.Builder()
                 .addPathHandler("/", new WebViewAssetLoader.AssetsPathHandler(this))
@@ -190,6 +203,12 @@ public class MainActivity extends AppCompatActivity {
         @JavascriptInterface
         public void setAdsEnabled(boolean enabled) {
             updateNativeAdVisibility(enabled);
+        }
+    }
+
+    private void checkPermissions() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, PERMISSION_REQUEST_CAMERA);
         }
     }
 }
