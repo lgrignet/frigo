@@ -31,6 +31,13 @@ const StorageModel = (() => {
       createdAt: new Date().toISOString(),
     };
     await DB.put('storages', storage);
+
+    // Propagation P2P via Yjs
+    try {
+      const map = SyncConnector.getCollection('storages');
+      map.set(storage.id, storage);
+    } catch (e) { console.warn('Sync Storage Error:', e); }
+
     return storage;
   }
 
@@ -39,6 +46,13 @@ const StorageModel = (() => {
     if (!existing) throw new Error('Storage not found');
     const updated = { ...existing, ...data, id };
     await DB.put('storages', updated);
+
+    // Propagation P2P via Yjs
+    try {
+      const map = SyncConnector.getCollection('storages');
+      map.set(id, updated);
+    } catch (e) { console.warn('Sync Storage Error:', e); }
+
     return updated;
   }
 
@@ -47,6 +61,12 @@ const StorageModel = (() => {
     const items = await ItemModel.getByStorage(userId, id);
     if (items.length > 0) throw new Error('STORAGE_NOT_EMPTY');
     await DB.del('storages', id);
+
+    // Propagation P2P via Yjs
+    try {
+      const map = SyncConnector.getCollection('storages');
+      map.delete(id);
+    } catch (e) { console.warn('Sync Storage Error:', e); }
   }
 
   async function getItemCount(id, userId) {

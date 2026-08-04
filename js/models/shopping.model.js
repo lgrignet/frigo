@@ -27,6 +27,7 @@ const ShoppingModel = (() => {
       addedAt: new Date().toISOString(),
     };
     await DB.put('shopping_list', entry);
+    propagate(entry.id, entry);
     return entry;
   }
 
@@ -35,6 +36,7 @@ const ShoppingModel = (() => {
     if (!item) return;
     item.checked = !item.checked;
     await DB.put('shopping_list', item);
+    propagate(id, item);
     return item;
   }
  
@@ -46,6 +48,7 @@ const ShoppingModel = (() => {
     if (next === current) return item;
     item.quantity = next;
     await DB.put('shopping_list', item);
+    propagate(id, item);
     return item;
   }
  
@@ -54,11 +57,21 @@ const ShoppingModel = (() => {
     if (!item) return;
     item.targetStorageId = storageId;
     await DB.put('shopping_list', item);
+    propagate(id, item);
     return item;
   }
 
   async function remove(id) {
     await DB.del('shopping_list', id);
+    propagate(id, null);
+  }
+
+  function propagate(id, data) {
+    try {
+      const map = SyncConnector.getCollection('shopping_list');
+      if (data) map.set(id, data);
+      else map.delete(id);
+    } catch (e) { console.warn('Sync Shopping Error:', e); }
   }
 
   async function clearChecked(userId) {
@@ -100,6 +113,7 @@ const ShoppingModel = (() => {
           shopId: item.shopId || null,
         };
         await DB.put('shopping_list', updatedEntry);
+        propagate(updatedEntry.id, updatedEntry);
       }
     }
 
@@ -108,6 +122,7 @@ const ShoppingModel = (() => {
     for (const s of existingAuto) {
       if (s.itemId && !lowIds.has(s.itemId)) {
         await DB.del('shopping_list', s.id);
+        propagate(s.id, null);
       }
     }
   }
@@ -139,6 +154,7 @@ const ShoppingModel = (() => {
     }
 
     await DB.del('shopping_list', shoppingId);
+    propagate(shoppingId, null);
     return true;
   }
 

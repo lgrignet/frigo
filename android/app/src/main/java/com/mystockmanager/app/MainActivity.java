@@ -87,6 +87,7 @@ public class MainActivity extends AppCompatActivity {
         settings.setAllowContentAccess(false);
         settings.setJavaScriptCanOpenWindowsAutomatically(false);
         settings.setSupportMultipleWindows(false);
+        settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
         view.addJavascriptInterface(new AndroidAdsBridge(), JS_ADS_BRIDGE_NAME);
 
         boolean isDebuggable = (getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0;

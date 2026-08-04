@@ -25,6 +25,13 @@ const PrefsModel = (() => {
     const current = await get(userId);
     const updated = { ...current, ...updates, userId };
     await DB.put('preferences', updated);
+
+    // Propagation P2P via Yjs
+    try {
+      const map = SyncConnector.getCollection('preferences');
+      map.set(String(userId), updated);
+    } catch (e) { console.warn('Sync Prefs Error:', e); }
+
     return updated;
   }
 

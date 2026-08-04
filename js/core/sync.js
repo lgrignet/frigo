@@ -1,5 +1,5 @@
 // ============================================================
-//  sync.js — Connecteur de synchronisation P2P (Yjs + WebRTC)
+//  sync.js — Connecteur de synchronisation (Yjs + WebSocket)
 // ============================================================
 
 const SyncConnector = (() => {
@@ -8,7 +8,7 @@ const SyncConnector = (() => {
   let _indexeddb = null;
 
   /**
-   * Initialise le document Yjs et la connexion WebRTC
+   * Initialise le document Yjs et la connexion WebSocket
    * @param {string} channelGuid - Le GUID unique du canal
    */
   async function init(channelGuid) {
@@ -18,28 +18,40 @@ const SyncConnector = (() => {
     console.log('Sync: Initialisation du canal', channelGuid);
 
     // 1. Création du document Yjs
+    // Avec les versions UMD/Globales, Y est directement disponible
+    if (typeof Y === 'undefined') {
+      console.error('Sync: Yjs library not found!');
+      return;
+    }
     _doc = new Y.Doc();
 
-    // 2. Persistance locale avec IndexedDB (Offline-first)
-    // y-indexeddb permet de sauvegarder l'état CRDT localement entre les sessions
-    _indexeddb = new YIndexeddbPersistence('msm-sync-' + channelGuid, _doc);
+    // 2. Persistance locale
+    // Dans les versions globales, les noms peuvent varier (YIndexeddb ou Y.IndexeddbPersistence)
+    const YIDB = typeof YIndexeddbPersistence !== 'undefined' ? YIndexeddbPersistence : (typeof Y.IndexeddbPersistence !== 'undefined' ? Y.IndexeddbPersistence : null);
+    if (YIDB) {
+      _indexeddb = new YIDB('msm-sync-' + channelGuid, _doc);
+      _indexeddb.on('synced', () => {
+        console.log('Sync: Données locales chargées (Local)');
+        window.dispatchEvent(new CustomEvent('sync:local-ready'));
+      });
+    }
 
-    _indexeddb.on('synced', () => {
-      console.log('Sync: Données locales chargées depuis IndexedDB');
-      // Déclencher un événement global pour rafraîchir l'UI si nécessaire
-      window.dispatchEvent(new CustomEvent('sync:local-ready'));
-    });
+    // 3. Connexion au serveur centralisé WebSocket
+    const WSProvider = typeof WebsocketProvider !== 'undefined' ? WebsocketProvider : (typeof Y.WebsocketProvider !== 'undefined' ? Y.WebsocketProvider : null);
 
-    // 3. Connexion WebRTC pour la synchro P2P
-    // On utilise le GUID comme nom de room.
-    // NOTE: Pour la production, remplacez signaling par votre propre serveur WebSocket.
-    _provider = new YWebrtcProvider('msm-room-' + channelGuid, _doc, {
-      signaling: ['wss://signaling.yjs.dev'], // Serveur de signalisation public pour le test
-      password: null // Optionnel: ajouter un mot de passe de canal
-    });
+    if (!WSProvider) {
+      console.error('Sync: WebSocketProvider not found!');
+      return;
+    }
+
+    _provider = new WSProvider(
+      "wss://sync.noshi.be",
+      channelGuid,
+      _doc
+    );
 
     _provider.on('status', event => {
-      console.log('Sync WebRTC Status:', event.status); // 'connected' or 'disconnected'
+      console.log('Sync WebSocket Status:', event.status);
     });
 
     // 4. Branchement automatique des collections vers IndexedDB
@@ -106,7 +118,7 @@ const SyncConnector = (() => {
   }
 
   function isConnected() {
-    return _provider && _provider.connected;
+    return _provider && _provider.wsconnected;
   }
 
   return { init, destroy, getCollection, observe, isConnected };

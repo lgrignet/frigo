@@ -223,9 +223,22 @@ function showBootError(msg) {
   document.body.appendChild(div);
 }
 
-// ── Main event listeners ────────────────────────────────────
+  // ── Main event listeners ────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
   bindInputSecurityGuards();
+
+  // Écouter les changements venant de la synchronisation P2P
+  window.addEventListener('sync:data-changed', (e) => {
+    console.log('Sync: Rafraîchissement de la vue car données modifiées:', e.detail.collection);
+    const activeTab = document.querySelector('.nav-tab.active')?.dataset.view;
+    if (activeTab) {
+      if (activeTab === 'expiring') ExpiringView.render();
+      if (activeTab === 'all')      AllItemsView.render();
+      if (activeTab === 'shopping') ShoppingView.render();
+      if (activeTab === 'storages') StoragesView.render();
+    }
+    App.updateBadges();
+  });
 
   // Nav tabs
   document.querySelectorAll('.nav-tab').forEach(tab => {

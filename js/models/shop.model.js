@@ -25,6 +25,13 @@ const ShopModel = (() => {
       updatedAt: new Date().toISOString(),
     };
     await DB.put('shops', shop);
+
+    // Propagation P2P via Yjs
+    try {
+      const map = SyncConnector.getCollection('shops');
+      map.set(shop.id, shop);
+    } catch (e) { console.warn('Sync Shop Error:', e); }
+
     return shop;
   }
 
@@ -37,11 +44,24 @@ const ShopModel = (() => {
       updatedAt: new Date().toISOString(),
     };
     await DB.put('shops', updated);
+
+    // Propagation P2P via Yjs
+    try {
+      const map = SyncConnector.getCollection('shops');
+      map.set(id, updated);
+    } catch (e) { console.warn('Sync Shop Error:', e); }
+
     return updated;
   }
 
   async function remove(id, userId) {
     await DB.del('shops', id);
+
+    // Propagation P2P via Yjs
+    try {
+      const map = SyncConnector.getCollection('shops');
+      map.delete(id);
+    } catch (e) { console.warn('Sync Shop Error:', e); }
 
     const [items, shopping] = await Promise.all([
       ItemModel.getAll(userId),
