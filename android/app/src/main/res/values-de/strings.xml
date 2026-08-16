@@ -13,6 +13,8 @@
     <string name="btn_close">Schließen</string>
     <string name="btn_copy">Kopieren</string>
     <string name="btn_scan">Scannen</string>
+    <string name="btn_minus">Minus</string>
+    <string name="btn_plus">Plus</string>
     <string name="btn_continue">Weiter</string>
     <string name="label_name">Name</string>
     <string name="label_quantity">Menge</string>

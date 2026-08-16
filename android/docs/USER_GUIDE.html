@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guide Utilisateur - MyStockManager</title>
+    <style>
+        :root {
+            --primary: #00E676;
+            --background: #F0F2F5;
+            --surface: #FFFFFF;
+            --text: #1A1C1E;
+            --text-secondary: #44474E;
+            --card-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --background: #000000;
+                --surface: #1A1C1E;
+                --text: #FFFFFF;
+                --text-secondary: #C4C7C5;
+            }
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--background);
+            color: var(--text);
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            font-weight: 900;
+            border-bottom: 4px solid var(--primary);
+            padding-bottom: 10px;
+            margin-bottom: 40px;
+        }
+
+        h2 {
+            font-size: 1.8em;
+            margin-top: 50px;
+            color: var(--primary);
+        }
+
+        h3 {
+            font-size: 1.3em;
+            margin-top: 30px;
+        }
+
+        p {
+            margin-bottom: 20px;
+        }
+
+        ul {
+            margin-bottom: 20px;
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        .screenshot-container {
+            background-color: var(--surface);
+            padding: 20px;
+            border-radius: 24px;
+            box-shadow: var(--card-shadow);
+            margin: 30px 0;
+            text-align: center;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 12px;
+            border: 1px solid rgba(128,128,128,0.1);
+        }
+
+        .caption {
+            display: block;
+            margin-top: 15px;
+            font-size: 0.9em;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        hr {
+            border: 0;
+            height: 1px;
+            background: rgba(128,128,128,0.2);
+            margin: 40px 0;
+        }
+
+        .badge {
+            display: inline-block;
+            background: var(--primary);
+            color: #000;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.8em;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Guide Utilisateur MyStockManager</h1>
+        <p>Bienvenue dans votre gestionnaire de stock intelligent. Cette application vous permet de gérer vos produits, vos courses et vos lieux de stockage de manière simple et synchronisée.</p>
+
+        <section id="dashboard">
+            <h2>1. Tableau de Bord (Péremption)</h2>
+            <p>L'écran d'accueil affiche les produits qui arrivent bientôt à expiration.</p>
+            <ul>
+                <li>Les produits sont triés par date de péremption.</li>
+                <li>Une icône ⏰ indique l'urgence visuelle.</li>
+                <li>Le système vous envoie une notification quotidienne si des produits vont périmer (réglable dans les paramètres).</li>
+            </ul>
+            <div class="screenshot-container">
+                <img src="screenshots/dashboard.png" alt="Tableau de bord">
+                <span class="caption">Vue d'ensemble des produits arrivant à expiration</span>
+            </div>
+        </section>
+
+        <hr>
+
+        <section id="products">
+            <h2>2. Gestion des Produits</h2>
+            <p>Cet onglet liste l'intégralité de votre stock actuel.</p>
+            <ul>
+                <li><strong>Recherche :</strong> Barre de recherche ultra-rapide en haut de l'écran.</li>
+                <li><strong>Modification :</strong> Cliquez sur une carte produit pour éditer ses détails.</li>
+                <li><strong>Ajout :</strong> Le bouton flottant <strong>＋</strong> permet d'ajouter un nouvel article.</li>
+            </ul>
+
+            <h3>Ajout et Modification</h3>
+            <p>Saisissez manuellement ou gagnez du temps avec les outils natifs :</p>
+            <ul>
+                <li><span class="badge">Nouveau</span> <strong>Scanner de codes-barres :</strong> Interroge automatiquement l'API Open Food Facts pour remplir le nom.</li>
+                <li><strong>Photos :</strong> Prenez une photo du produit via l'appareil photo pour une identification visuelle rapide.</li>
+                <li><strong>Réassort :</strong> Définissez un seuil critique pour l'ajout automatique à la liste de courses.</li>
+            </ul>
+            <div style="display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;">
+                <div class="screenshot-container" style="flex: 1; min-width: 300px;">
+                    <img src="screenshots/add_product.png" alt="Formulaire produit">
+                    <span class="caption">Fiche produit complète</span>
+                </div>
+                <div class="screenshot-container" style="flex: 1; min-width: 300px;">
+                    <img src="screenshots/scanner.png" alt="Interface scanner">
+                    <span class="caption">Scanner multi-format intégré</span>
+                </div>
+            </div>
+        </section>
+
+        <hr>
+
+        <section id="shopping">
+            <h2>3. Liste de Courses</h2>
+            <p>Un assistant intelligent pour vos achats.</p>
+            <ul>
+                <li><strong>Sections :</strong> Distinction nette entre "À acheter" et "Acheté".</li>
+                <li><strong>Filtres :</strong> Menu déroulant pour n'afficher que les courses d'un magasin spécifique.</li>
+                <li><strong>Rangement :</strong> Une icône 📦 apparaît sur les produits achetés pour les transférer directement dans le stock.</li>
+            </ul>
+            <div class="screenshot-container">
+                <img src="screenshots/shopping.png" alt="Liste de courses">
+                <span class="caption">Organisation par magasin et statut d'achat</span>
+            </div>
+        </section>
+
+        <hr>
+
+        <section id="places">
+            <h2>4. Gestion des Lieux</h2>
+            <p>Configurez votre environnement de stockage.</p>
+            <ul>
+                <li><strong>Rangements :</strong> Définissez vos frigos, congélateurs ou placards avec icônes adaptées.</li>
+                <li><strong>Magasins :</strong> Enregistrez vos enseignes habituelles pour optimiser vos parcours de courses.</li>
+            </ul>
+            <div class="screenshot-container">
+                <img src="screenshots/places.png" alt="Gestion des lieux">
+                <span class="caption">Double onglet pour les rangements et magasins</span>
+            </div>
+        </section>
+
+        <hr>
+
+        <section id="settings">
+            <h2>5. Paramètres et Synchronisation</h2>
+            <p>Adaptez l'application à vos besoins.</p>
+            <ul>
+                <li><strong>Multilingue :</strong> Support du Français, Anglais, Néerlandais, Allemand et Espagnol.</li>
+                <li><strong>Thèmes :</strong> Support complet du Mode Sombre (pour préserver vos yeux) et du Mode Clair.</li>
+                <li><strong>Synchronisation :</strong> Utilisez votre GUID unique ou le scanner de QR Code pour partager votre stock en temps réel avec vos proches.</li>
+            </ul>
+            <div style="display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;">
+                <div class="screenshot-container" style="flex: 1; min-width: 300px;">
+                    <img src="screenshots/settings.png" alt="Réglages">
+                    <span class="caption">Configuration des préférences</span>
+                </div>
+                <div class="screenshot-container" style="flex: 1; min-width: 300px;">
+                    <img src="screenshots/share_qr.png" alt="QR Code">
+                    <span class="caption">Partage instantané par QR Code</span>
+                </div>
+            </div>
+        </section>
+    </div>
+</body>
+</html>

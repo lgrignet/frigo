@@ -3,6 +3,8 @@ package com.mystockmanager.app.ui.components
 import android.annotation.SuppressLint
 import android.util.Log
 import android.view.ViewGroup
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
@@ -36,11 +38,22 @@ fun QRScanner(
     val lifecycleOwner = LocalLifecycleOwner.current
     val cameraExecutor = remember { Executors.newSingleThreadExecutor() }
     
-    var hasPermission by remember { mutableStateOf(false) }
-    
+    var hasPermission by remember { mutableStateOf(
+        ContextCompat.checkSelfPermission(context, android.Manifest.permission.CAMERA) == android.content.pm.PackageManager.PERMISSION_GRANTED
+    ) }
+
+    val launcher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        hasPermission = isGranted
+        if (!isGranted) {
+            onClose()
+        }
+    }
+
     LaunchedEffect(Unit) {
-        if (ContextCompat.checkSelfPermission(context, android.Manifest.permission.CAMERA) == android.content.pm.PackageManager.PERMISSION_GRANTED) {
-            hasPermission = true
+        if (!hasPermission) {
+            launcher.launch(android.Manifest.permission.CAMERA)
         }
     }
 
@@ -70,7 +83,13 @@ fun QRScanner(
 
                         val scanner = BarcodeScanning.getClient(
                             BarcodeScannerOptions.Builder()
-                                .setBarcodeFormats(Barcode.FORMAT_QR_CODE)
+                                .setBarcodeFormats(
+                                    Barcode.FORMAT_QR_CODE,
+                                    Barcode.FORMAT_EAN_13,
+                                    Barcode.FORMAT_EAN_8,
+                                    Barcode.FORMAT_UPC_A,
+                                    Barcode.FORMAT_UPC_E
+                                )
                                 .build()
                         )
 

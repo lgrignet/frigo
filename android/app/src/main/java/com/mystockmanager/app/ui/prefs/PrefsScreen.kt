@@ -1,8 +1,5 @@
 package com.mystockmanager.app.ui.prefs
 
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -12,6 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material.icons.filled.QrCodeScanner
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,18 +17,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.mystockmanager.app.R
 import com.mystockmanager.app.core.QRCodeGenerator
 import com.mystockmanager.app.ui.components.QRScanner
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PrefsScreen(
     onLogout: () -> Unit,
@@ -39,16 +36,10 @@ fun PrefsScreen(
     val prefs by viewModel.prefs.collectAsState()
     val syncGuid by viewModel.syncGuid.collectAsState()
     val clipboardManager = LocalClipboardManager.current
-    val context = LocalContext.current
     
     var showQrDialog by remember { mutableStateOf(false) }
     var showScanner by remember { mutableStateOf(false) }
-
-    val permissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (isGranted) showScanner = true
-    }
+    var langExpanded by remember { mutableStateOf(false) }
 
     if (showScanner) {
         QRScanner(
@@ -78,24 +69,53 @@ fun PrefsScreen(
         PrefsSection(title = stringResource(R.string.prefs_section_general)) {
             // Language
             PrefsItem(label = stringResource(R.string.setting_lang)) {
-                Row(modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    val langs = listOf("fr", "en", "nl", "de", "es")
-                    langs.forEach { lang ->
-                        FilterChip(
-                            selected = prefs.lang == lang,
-                            onClick = { viewModel.updateLang(lang) },
-                            label = { 
-                                val label = when(lang) {
-                                    "fr" -> stringResource(R.string.lang_fr)
-                                    "en" -> stringResource(R.string.lang_en)
-                                    "nl" -> stringResource(R.string.lang_nl)
-                                    "de" -> stringResource(R.string.lang_de)
-                                    "es" -> stringResource(R.string.lang_es)
-                                    else -> lang
-                                }
-                                Text(label) 
+                ExposedDropdownMenuBox(
+                    expanded = langExpanded,
+                    onExpandedChange = { langExpanded = it },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    val currentLangName = when(prefs.lang) {
+                        "fr" -> stringResource(R.string.lang_fr)
+                        "en" -> stringResource(R.string.lang_en)
+                        "nl" -> stringResource(R.string.lang_nl)
+                        "de" -> stringResource(R.string.lang_de)
+                        "es" -> stringResource(R.string.lang_es)
+                        else -> prefs.lang
+                    }
+
+                    OutlinedTextField(
+                        value = currentLangName,
+                        onValueChange = {},
+                        readOnly = true,
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = langExpanded) },
+                        colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+                        modifier = Modifier.menuAnchor().fillMaxWidth(),
+                        shape = RoundedCornerShape(14.dp)
+                    )
+
+                    ExposedDropdownMenu(
+                        expanded = langExpanded,
+                        onDismissRequest = { langExpanded = false }
+                    ) {
+                        val langs = listOf("fr", "en", "nl", "de", "es")
+                        langs.forEach { lang ->
+                            val label = when(lang) {
+                                "fr" -> stringResource(R.string.lang_fr)
+                                "en" -> stringResource(R.string.lang_en)
+                                "nl" -> stringResource(R.string.lang_nl)
+                                "de" -> stringResource(R.string.lang_de)
+                                "es" -> stringResource(R.string.lang_es)
+                                else -> lang
                             }
-                        )
+                            DropdownMenuItem(
+                                text = { Text(label) },
+                                onClick = {
+                                    viewModel.updateLang(lang)
+                                    langExpanded = false
+                                },
+                                contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                            )
+                        }
                     }
                 }
             }
@@ -196,14 +216,7 @@ fun PrefsScreen(
                         Icon(Icons.Default.QrCode, contentDescription = "Show QR", tint = MaterialTheme.colorScheme.primary)
                     }
 
-                    IconButton(onClick = {
-                        val permissionCheckResult = ContextCompat.checkSelfPermission(context, android.Manifest.permission.CAMERA)
-                        if (permissionCheckResult == android.content.pm.PackageManager.PERMISSION_GRANTED) {
-                            showScanner = true
-                        } else {
-                            permissionLauncher.launch(android.Manifest.permission.CAMERA)
-                        }
-                    }) {
+                    IconButton(onClick = { showScanner = true }) {
                         Icon(Icons.Default.QrCodeScanner, contentDescription = stringResource(R.string.btn_scan), tint = MaterialTheme.colorScheme.primary)
                     }
                 }

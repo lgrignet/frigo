@@ -40,4 +40,14 @@ class AllItemsViewModel @Inject constructor(
             stockRepository.deleteItem(item)
         }
     }
+
+    fun adjustQuantity(item: ItemEntity, delta: Double) {
+        viewModelScope.launch {
+            val newQuantity = (item.quantity + delta).coerceAtLeast(0.0)
+            if (newQuantity != item.quantity) {
+                val updatedItem = item.copy(quantity = newQuantity)
+                stockRepository.addItem(updatedItem) // Cela déclenchera la synchro dans le Repo
+            }
+        }
+    }
 }

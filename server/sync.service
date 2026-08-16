@@ -1,0 +1,14 @@
+[Unit]
+Description=MyStockManager Sync Server
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/node /home/debian/sync-server/server.js
+WorkingDirectory=/home/debian/sync-server
+Restart=always
+User=debian
+Group=debian
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target

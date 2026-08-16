@@ -14,7 +14,7 @@ import com.mystockmanager.app.data.local.entities.*
         ShoppingEntity::class,
         PreferenceEntity::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

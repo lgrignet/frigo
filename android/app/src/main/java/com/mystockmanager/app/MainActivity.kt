@@ -1,32 +1,34 @@
 package com.mystockmanager.app
 
+import android.content.res.Configuration
 import android.os.Bundle
-import androidx.activity.ComponentActivity
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.lifecycleScope
-import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.PeriodicWorkRequestBuilder
-import androidx.work.WorkManager
-import com.mystockmanager.app.core.ExpiryWorker
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
+import com.mystockmanager.app.core.ExpiryWorker
 import com.mystockmanager.app.core.SessionManager
 import com.mystockmanager.app.core.SyncManager
 import com.mystockmanager.app.data.repository.PrefsRepository
@@ -38,16 +40,17 @@ import com.mystockmanager.app.ui.navigation.Screen
 import com.mystockmanager.app.ui.prefs.PrefsScreen
 import com.mystockmanager.app.ui.shopping.ShoppingScreen
 import com.mystockmanager.app.ui.storages.StoragesScreen
+import com.mystockmanager.app.ui.components.AdBanner
 import com.mystockmanager.app.ui.theme.Accent
 import com.mystockmanager.app.ui.theme.MyStockManagerTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import androidx.activity.result.contract.ActivityResultContracts
+import java.util.Locale
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
 
     @Inject lateinit var sessionManager: SessionManager
     @Inject lateinit var syncManager: SyncManager
@@ -63,18 +66,22 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         
-        // Appliquer la langue le plus tôt possible
-        val userId = sessionManager.getUserId().toString()
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            requestPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+        }
+
+        scheduleExpiryCheck()
+
         lifecycleScope.launch {
-            prefsRepository.getPrefs(userId).first()?.lang?.let { lang ->
+            val userId = sessionManager.getUserId().toString()
+            val prefs = prefsRepository.getPrefs(userId).first()
+            prefs?.lang?.let { lang ->
                 val appLocales = LocaleListCompat.forLanguageTags(lang)
                 if (AppCompatDelegate.getApplicationLocales() != appLocales) {
                     AppCompatDelegate.setApplicationLocales(appLocales)
                 }
             }
         }
-
-        scheduleExpiryCheck()
         
         if (sessionManager.isLoggedIn()) {
             syncManager.startSync()
@@ -83,30 +90,43 @@ class MainActivity : ComponentActivity() {
         setContent {
             val userId = sessionManager.getUserId().toString()
             val prefs by prefsRepository.getPrefs(userId).collectAsState(initial = null)
+            
+            // Logique de thème
             val isDarkTheme = when (prefs?.theme) {
                 "dark" -> true
                 "light" -> false
                 else -> isSystemInDarkTheme()
             }
 
-            MyStockManagerTheme(darkTheme = isDarkTheme, lang = prefs?.lang) {
-                var isLoggedIn by remember { mutableStateOf(sessionManager.isLoggedIn()) }
+            // Forcer la langue au niveau de Compose
+            val locale = remember(prefs?.lang) { 
+                if (prefs?.lang != null) Locale(prefs!!.lang) else Locale.getDefault() 
+            }
+            val configuration = LocalConfiguration.current
+            val localizedConfig = Configuration(configuration).apply {
+                setLocale(locale)
+            }
 
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    if (isLoggedIn) {
-                        MainScreen(onLogout = {
-                            syncManager.stopSync()
-                            sessionManager.clearSession()
-                            isLoggedIn = false
-                        })
-                    } else {
-                        LoginScreen(onLoginSuccess = {
-                            isLoggedIn = true
-                            syncManager.startSync()
-                        })
+            CompositionLocalProvider(LocalConfiguration provides localizedConfig) {
+                MyStockManagerTheme(darkTheme = isDarkTheme, lang = prefs?.lang) {
+                    var isLoggedIn by remember { mutableStateOf(sessionManager.isLoggedIn()) }
+
+                    Surface(
+                        modifier = Modifier.fillMaxSize(),
+                        color = MaterialTheme.colorScheme.background
+                    ) {
+                        if (isLoggedIn) {
+                            MainScreen(onLogout = {
+                                syncManager.stopSync()
+                                sessionManager.clearSession()
+                                isLoggedIn = false
+                            })
+                        } else {
+                            LoginScreen(onLoginSuccess = {
+                                isLoggedIn = true
+                                syncManager.startSync()
+                            })
+                        }
                     }
                 }
             }
@@ -139,37 +159,40 @@ fun MainScreen(onLogout: () -> Unit) {
 
     Scaffold(
         bottomBar = {
-            NavigationBar(
-                containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
-                tonalElevation = 0.dp
-            ) {
-                val navBackStackEntry by navController.currentBackStackEntryAsState()
-                val currentRoute = navBackStackEntry?.destination?.route
+            Column {
+                NavigationBar(
+                    containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
+                    tonalElevation = 0.dp
+                ) {
+                    val navBackStackEntry by navController.currentBackStackEntryAsState()
+                    val currentRoute = navBackStackEntry?.destination?.route
 
-                items.forEach { screen ->
-                    NavigationBarItem(
-                        icon = { Text(screen.icon, fontSize = 20.sp) },
-                        label = { 
-                            val label = when(screen) {
-                                Screen.Expiring -> stringResource(R.string.tab_expiring)
-                                Screen.AllItems -> stringResource(R.string.tab_products)
-                                Screen.Shopping -> stringResource(R.string.tab_shopping)
-                                Screen.Storages -> stringResource(R.string.tab_storages)
-                                Screen.Prefs -> stringResource(R.string.tab_settings)
-                                else -> screen.label
+                    items.forEach { screen ->
+                        NavigationBarItem(
+                            icon = { Text(screen.icon, fontSize = 20.sp) },
+                            label = { 
+                                val label = when(screen) {
+                                    Screen.Expiring -> stringResource(R.string.tab_expiring)
+                                    Screen.AllItems -> stringResource(R.string.tab_products)
+                                    Screen.Shopping -> stringResource(R.string.tab_shopping)
+                                    Screen.Storages -> stringResource(R.string.tab_storages)
+                                    Screen.Prefs -> stringResource(R.string.tab_settings)
+                                    else -> screen.label
+                                }
+                                Text(label, fontSize = 10.sp) 
+                            },
+                            selected = currentRoute == screen.route,
+                            onClick = {
+                                navController.navigate(screen.route) {
+                                    popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
                             }
-                            Text(label, fontSize = 10.sp) 
-                        },
-                        selected = currentRoute == screen.route,
-                        onClick = {
-                            navController.navigate(screen.route) {
-                                popUpTo(navController.graph.startDestinationId) { saveState = true }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                        }
-                    )
+                        )
+                    }
                 }
+                AdBanner()
             }
         },
         floatingActionButton = {

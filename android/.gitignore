@@ -6,3 +6,4 @@ keystore.properties
 *.jks
 *.keystore
 android/app/src/main/res/values/strings.xml
+docs/screenshots/

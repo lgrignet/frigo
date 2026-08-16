@@ -2,6 +2,7 @@ package com.mystockmanager.app.ui.items
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.mystockmanager.app.core.ProductInfoService
 import com.mystockmanager.app.core.SessionManager
 import com.mystockmanager.app.data.local.entities.ItemEntity
 import com.mystockmanager.app.data.local.entities.ShopEntity
@@ -17,7 +18,8 @@ import javax.inject.Inject
 @HiltViewModel
 class ItemFormViewModel @Inject constructor(
     private val stockRepository: StockRepository,
-    private val sessionManager: SessionManager
+    private val sessionManager: SessionManager,
+    private val productInfoService: ProductInfoService
 ) : ViewModel() {
 
     private val userId = sessionManager.getUserId().toString()
@@ -34,10 +36,27 @@ class ItemFormViewModel @Inject constructor(
     private val _itemToEdit = MutableStateFlow<ItemEntity?>(null)
     val itemToEdit = _itemToEdit.asStateFlow()
 
+    private val _productFoundName = MutableSharedFlow<String>()
+    val productFoundName = _productFoundName.asSharedFlow()
+
+    private val _isLoadingProduct = MutableStateFlow(false)
+    val isLoadingProduct = _isLoadingProduct.asStateFlow()
+
     fun loadItem(itemId: String) {
         viewModelScope.launch {
             val item = stockRepository.getItems(userId).first().find { it.id == itemId }
             _itemToEdit.value = item
+        }
+    }
+
+    fun onBarcodeScanned(barcode: String) {
+        viewModelScope.launch {
+            _isLoadingProduct.value = true
+            val name = productInfoService.getProductName(barcode)
+            if (name != null) {
+                _productFoundName.emit(name)
+            }
+            _isLoadingProduct.value = false
         }
     }
 
@@ -46,6 +65,7 @@ class ItemFormViewModel @Inject constructor(
         name: String,
         quantity: Double,
         unit: String,
+        barcode: String?,
         expiryDate: String?,
         storageId: String,
         shopId: String?,
@@ -62,6 +82,7 @@ class ItemFormViewModel @Inject constructor(
                 name = name,
                 quantity = quantity,
                 unit = unit,
+                barcode = barcode,
                 expiryDate = expiryDate,
                 storageId = storageId,
                 shopId = shopId,

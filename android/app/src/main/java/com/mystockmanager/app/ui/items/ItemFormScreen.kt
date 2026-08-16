@@ -11,22 +11,24 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.mystockmanager.app.R
 import com.mystockmanager.app.core.ImageUtils
+import com.mystockmanager.app.ui.theme.Accent
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,18 +48,50 @@ fun ItemFormScreen(
     var restockThreshold by remember { mutableStateOf("0") }
     var restockBuyQuantity by remember { mutableStateOf("1") }
     var notes by remember { mutableStateOf("") }
+    var barcode by remember { mutableStateOf<String?>(null) }
     var photoPath by remember { mutableStateOf<String?>(null) }
     var tempUri by remember { mutableStateOf<android.net.Uri?>(null) }
+
+    var showScanner by remember { mutableStateOf(false) }
 
     val storages by viewModel.storages.collectAsState()
     val shops by viewModel.shops.collectAsState()
     val itemToEdit by viewModel.itemToEdit.collectAsState()
+    val isLoadingProduct by viewModel.isLoadingProduct.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.productFoundName.collect { foundName ->
+            name = foundName
+        }
+    }
+
+    if (showScanner) {
+        com.mystockmanager.app.ui.components.QRScanner(
+            onScan = { scannedBarcode ->
+                barcode = scannedBarcode
+                viewModel.onBarcodeScanned(scannedBarcode)
+                showScanner = false
+            },
+            onClose = { showScanner = false }
+        )
+        return
+    }
 
     val cameraLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.TakePicture()
     ) { success ->
         if (success && tempUri != null) {
             photoPath = ImageUtils.saveImageToInternalStorage(context, tempUri!!)
+        }
+    }
+
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            val uri = ImageUtils.createTempImageUri(context)
+            tempUri = uri
+            cameraLauncher.launch(uri)
         }
     }
 
@@ -72,6 +106,7 @@ fun ItemFormScreen(
             name = item.name
             quantity = item.quantity.toString()
             unit = item.unit
+            barcode = item.barcode
             storageId = item.storageId
             shopId = item.shopId
             expiryDate = item.expiryDate ?: ""
@@ -126,9 +161,13 @@ fun ItemFormScreen(
                     .clip(RoundedCornerShape(20.dp))
                     .background(MaterialTheme.colorScheme.surface)
                     .clickable {
-                        val uri = ImageUtils.createTempImageUri(context)
-                        tempUri = uri
-                        cameraLauncher.launch(uri)
+                        if (ContextCompat.checkSelfPermission(context, android.Manifest.permission.CAMERA) == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                            val uri = ImageUtils.createTempImageUri(context)
+                            tempUri = uri
+                            cameraLauncher.launch(uri)
+                        } else {
+                            cameraPermissionLauncher.launch(android.Manifest.permission.CAMERA)
+                        }
                     },
                 contentAlignment = Alignment.Center
             ) {
@@ -145,6 +184,21 @@ fun ItemFormScreen(
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(stringResource(R.string.btn_add), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
                     }
+                }
+            }
+
+            // Barcode Button
+            OutlinedButton(
+                onClick = { showScanner = true },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(14.dp)
+            ) {
+                Icon(Icons.Default.QrCodeScanner, contentDescription = null)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(if (barcode == null) "Scanner un code-barres" else "Code : $barcode")
+                if (isLoadingProduct) {
+                    Spacer(modifier = Modifier.width(8.dp))
+                    CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
                 }
             }
 
@@ -251,6 +305,7 @@ fun ItemFormScreen(
                         name = name,
                         quantity = quantity.toDoubleOrNull() ?: 1.0,
                         unit = unit,
+                        barcode = barcode,
                         expiryDate = expiryDate,
                         storageId = storageId,
                         shopId = shopId,

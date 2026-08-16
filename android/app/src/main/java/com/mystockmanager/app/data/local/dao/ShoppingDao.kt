@@ -18,6 +18,9 @@ interface ShoppingDao {
     @Query("UPDATE shopping_list SET checked = :checked WHERE id = :id")
     suspend fun toggleItem(id: String, checked: Boolean)
 
+    @Query("SELECT * FROM shopping_list WHERE id = :id LIMIT 1")
+    suspend fun getShoppingItemById(id: String): ShoppingEntity?
+
     @Query("SELECT * FROM shopping_list WHERE userId = :userId AND source = 'auto'")
     suspend fun getAutoRestockItems(userId: String): List<ShoppingEntity>
 

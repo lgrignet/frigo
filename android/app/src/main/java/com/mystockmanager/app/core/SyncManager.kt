@@ -9,6 +9,7 @@ import io.ktor.client.engine.okhttp.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -27,9 +28,11 @@ class SyncManager @Inject constructor(
     }
     
     private val deviceId = UUID.randomUUID().toString()
-    private var session: DefaultClientWebSocketSession? = null
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private val json = Json { ignoreUnknownKeys = true }
+    
+    // File d'attente pour les messages à envoyer
+    private val outgoingChannel = Channel<SyncMessage>(Channel.BUFFERED)
 
     init {
         Log.i("Sync", "SyncManager initialisé avec deviceId: $deviceId")
@@ -49,29 +52,54 @@ class SyncManager @Inject constructor(
                 try {
                     Log.i("Sync", "Tentative de connexion à wss://sync.noshi.be/$guid...")
                     client.webSocket("wss://sync.noshi.be/$guid?device=android_native") {
-                        session = this
                         Log.i("Sync", "--- CONNECTÉ EN KOTLIN NATIF ---")
                         
-                        // Envoi d'un message JSON très explicite
-                        val testMsg = "{\"type\":\"system\", \"action\":\"hello\", \"data\":\"Android Native Device\", \"origin\":\"$deviceId\"}"
-                        send(Frame.Text(testMsg))
-                        
-                        // Écouter les messages entrants
-                        for (frame in incoming) {
-                            if (frame is Frame.Text) {
-                                val text = frame.readText()
-                                Log.i("Sync", "Message reçu du serveur: $text")
-                                handleIncomingMessage(text)
+                        // 1. Lancer l'envoi des messages en parallèle dans la même session
+                        val sendJob = launch {
+                            for (message in outgoingChannel) {
+                                try {
+                                    val text = json.encodeToString(message)
+                                    send(Frame.Text(text))
+                                    Log.d("Sync", "Message envoyé: ${message.type}")
+                                } catch (e: Exception) {
+                                    Log.e("Sync", "Erreur lors de l'envoi: ${e.message}")
+                                }
                             }
                         }
+
+                        // 2. Lancer un heartbeat (Ping) toutes les 30 secondes
+                        val heartbeatJob = launch {
+                            while (isActive) {
+                                delay(30000)
+                                try {
+                                    val ping = SyncMessage("system", "ping", "{}", deviceId)
+                                    send(Frame.Text(json.encodeToString(ping)))
+                                    Log.d("Sync", "Heartbeat envoyé")
+                                } catch (e: Exception) {
+                                    Log.e("Sync", "Erreur heartbeat: ${e.message}")
+                                }
+                            }
+                        }
+
+                        // 3. Envoyer le message de bienvenue
+                        val hello = SyncMessage("system", "hello", "{\"device\":\"android-native\"}", deviceId)
+                        outgoingChannel.send(hello)
+                        
+                        // 4. Boucle de réception
+                        for (frame in incoming) {
+                            if (frame is Frame.Text) {
+                                handleIncomingMessage(frame.readText())
+                            }
+                        }
+                        
+                        heartbeatJob.cancel()
+                        sendJob.cancel()
                     }
                 } catch (e: Exception) {
                     Log.e("Sync", "Erreur WebSocket: ${e.message}")
-                    e.printStackTrace()
                     delay(5000)
                 } finally {
-                    session = null
-                    Log.w("Sync", "Déconnecté du serveur")
+                    Log.w("Sync", "Déconnecté du serveur, nouvelle tentative dans 5s...")
                 }
             }
         }
@@ -80,9 +108,10 @@ class SyncManager @Inject constructor(
     private suspend fun handleIncomingMessage(text: String) {
         try {
             val message = json.decodeFromString<SyncMessage>(text)
-            if (message.origin == deviceId) return // Ne pas traiter ses propres messages
+            if (message.origin == deviceId) return
+            if (message.action == "ping") return // Ignorer les heartbeats des autres
 
-            Log.i("Sync", "Donnée reçue de l'extérieur: ${message.type} (${message.action})")
+            Log.i("Sync", "Donnée reçue : ${message.type} (${message.action})")
             
             withContext(Dispatchers.IO) {
                 when (message.type) {
@@ -118,36 +147,28 @@ class SyncManager @Inject constructor(
     }
 
     fun syncItem(entity: ItemEntity, action: String = "put") {
-        sendSyncMessage(SyncMessage("item", action, json.encodeToString(entity), deviceId))
+        enqueueMessage(SyncMessage("item", action, json.encodeToString(entity), deviceId))
     }
 
     fun syncStorage(entity: StorageEntity, action: String = "put") {
-        sendSyncMessage(SyncMessage("storage", action, json.encodeToString(entity), deviceId))
+        enqueueMessage(SyncMessage("storage", action, json.encodeToString(entity), deviceId))
     }
 
     fun syncShop(entity: ShopEntity, action: String = "put") {
-        sendSyncMessage(SyncMessage("shop", action, json.encodeToString(entity), deviceId))
+        enqueueMessage(SyncMessage("shop", action, json.encodeToString(entity), deviceId))
     }
 
     fun syncShopping(entity: ShoppingEntity, action: String = "put") {
-        sendSyncMessage(SyncMessage("shopping", action, json.encodeToString(entity), deviceId))
+        enqueueMessage(SyncMessage("shopping", action, json.encodeToString(entity), deviceId))
     }
 
     fun syncPrefs(entity: PreferenceEntity) {
-        sendSyncMessage(SyncMessage("preferences", "put", json.encodeToString(entity), deviceId))
+        enqueueMessage(SyncMessage("preferences", "put", json.encodeToString(entity), deviceId))
     }
 
-    private fun sendSyncMessage(message: SyncMessage) {
-        val sessionRef = session
-        if (sessionRef != null && sessionRef.isActive) {
-            scope.launch {
-                try {
-                    val text = json.encodeToString(message)
-                    sessionRef.send(Frame.Text(text))
-                } catch (e: Exception) {
-                    Log.e("Sync", "Erreur envoi message: ${e.message}")
-                }
-            }
+    private fun enqueueMessage(message: SyncMessage) {
+        scope.launch {
+            outgoingChannel.send(message)
         }
     }
 

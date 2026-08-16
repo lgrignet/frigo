@@ -13,6 +13,8 @@
     <string name="btn_close">Sluiten</string>
     <string name="btn_copy">Kopiëren</string>
     <string name="btn_scan">Scannen</string>
+    <string name="btn_minus">Min</string>
+    <string name="btn_plus">Plus</string>
     <string name="btn_continue">Doorgaan</string>
     <string name="label_name">Naam</string>
     <string name="label_quantity">Hoeveelheid</string>

@@ -6,7 +6,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -73,6 +75,7 @@ fun AllItemsScreen(
                     ItemRow(
                         item = item,
                         onDelete = { viewModel.deleteItem(item) },
+                        onAdjustQuantity = { delta -> viewModel.adjustQuantity(item, delta) },
                         onClick = { onEditItem(item.id) }
                     )
                 }
@@ -86,6 +89,7 @@ fun AllItemsScreen(
 fun ItemRow(
     item: ItemEntity,
     onDelete: () -> Unit,
+    onAdjustQuantity: (Double) -> Unit,
     onClick: () -> Unit
 ) {
     Card(
@@ -132,6 +136,27 @@ fun ItemRow(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 12.sp
                 )
+            }
+
+            // Boutons de réglage rapide
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = { onAdjustQuantity(-1.0) }) {
+                    Icon(
+                        Icons.Default.Remove, 
+                        contentDescription = stringResource(R.string.btn_minus), 
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+                
+                IconButton(onClick = { onAdjustQuantity(1.0) }) {
+                    Icon(
+                        Icons.Default.Add, 
+                        contentDescription = stringResource(R.string.btn_plus), 
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
             }
 
             IconButton(onClick = onDelete) {
