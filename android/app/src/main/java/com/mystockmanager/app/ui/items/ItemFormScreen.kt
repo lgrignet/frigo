@@ -10,6 +10,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material3.*
@@ -29,6 +30,10 @@ import coil.compose.AsyncImage
 import com.mystockmanager.app.R
 import com.mystockmanager.app.core.ImageUtils
 import com.mystockmanager.app.ui.theme.Accent
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,11 +58,20 @@ fun ItemFormScreen(
     var tempUri by remember { mutableStateOf<android.net.Uri?>(null) }
 
     var showScanner by remember { mutableStateOf(false) }
+    var showDatePicker by remember { mutableStateOf(false) }
+    var unitExpanded by remember { mutableStateOf(false) }
 
     val storages by viewModel.storages.collectAsState()
     val shops by viewModel.shops.collectAsState()
+    val units by viewModel.units.collectAsState()
     val itemToEdit by viewModel.itemToEdit.collectAsState()
     val isLoadingProduct by viewModel.isLoadingProduct.collectAsState()
+    val dateFormatPref by viewModel.dateFormat.collectAsState()
+
+    val dateFormatter = remember(dateFormatPref) {
+        if (dateFormatPref == "iso") DateTimeFormatter.ofPattern("yyyy-MM-dd")
+        else DateTimeFormatter.ofPattern("dd/MM/yyyy")
+    }
 
     LaunchedEffect(Unit) {
         viewModel.productFoundName.collect { foundName ->
@@ -75,6 +89,41 @@ fun ItemFormScreen(
             onClose = { showScanner = false }
         )
         return
+    }
+
+    if (showDatePicker) {
+        val datePickerState = rememberDatePickerState(
+            initialSelectedDateMillis = try {
+                if (expiryDate.isNotBlank()) {
+                    LocalDate.parse(expiryDate, dateFormatter)
+                        .atStartOfDay(ZoneId.systemDefault())
+                        .toInstant()
+                        .toEpochMilli()
+                } else null
+            } catch (e: Exception) { null }
+        )
+
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    datePickerState.selectedDateMillis?.let { millis ->
+                        val date = Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDate()
+                        expiryDate = date.format(dateFormatter)
+                    }
+                    showDatePicker = false
+                }) {
+                    Text(stringResource(R.string.btn_continue))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text(stringResource(R.string.btn_cancel))
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
     }
 
     val cameraLauncher = rememberLauncherForActivityResult(
@@ -109,7 +158,16 @@ fun ItemFormScreen(
             barcode = item.barcode
             storageId = item.storageId
             shopId = item.shopId
-            expiryDate = item.expiryDate ?: ""
+            
+            // Format existing date to preferred format
+            expiryDate = item.expiryDate?.let { dateStr ->
+                try {
+                    val date = if (dateStr.contains("-")) LocalDate.parse(dateStr) 
+                               else LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                    date.format(dateFormatter)
+                } catch(e: Exception) { dateStr }
+            } ?: ""
+            
             restockThreshold = item.restockThreshold.toString()
             restockBuyQuantity = item.restockBuyQuantity.toString()
             notes = item.notes
@@ -219,13 +277,35 @@ fun ItemFormScreen(
                     shape = RoundedCornerShape(14.dp)
                 )
                 
-                OutlinedTextField(
-                    value = unit,
-                    onValueChange = { unit = it },
-                    label = { Text(stringResource(R.string.label_unit)) },
-                    modifier = Modifier.weight(1.5f),
-                    shape = RoundedCornerShape(14.dp)
-                )
+                ExposedDropdownMenuBox(
+                    expanded = unitExpanded,
+                    onExpandedChange = { unitExpanded = it },
+                    modifier = Modifier.weight(1.5f)
+                ) {
+                    OutlinedTextField(
+                        value = unit,
+                        onValueChange = { unit = it },
+                        label = { Text(stringResource(R.string.label_unit)) },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = unitExpanded) },
+                        modifier = Modifier.menuAnchor().fillMaxWidth(),
+                        shape = RoundedCornerShape(14.dp)
+                    )
+
+                    ExposedDropdownMenu(
+                        expanded = unitExpanded,
+                        onDismissRequest = { unitExpanded = false }
+                    ) {
+                        units.forEach { unitItem ->
+                            DropdownMenuItem(
+                                text = { Text(unitItem.label) },
+                                onClick = {
+                                    unit = unitItem.label
+                                    unitExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
             }
 
             // Rangement selection
@@ -263,11 +343,20 @@ fun ItemFormScreen(
                 }
             }
 
+            // Expiry Date with Picker
             OutlinedTextField(
                 value = expiryDate,
-                onValueChange = { expiryDate = it },
-                label = { Text(stringResource(R.string.label_expiry) + " " + stringResource(R.string.label_date_format_hint)) },
-                modifier = Modifier.fillMaxWidth(),
+                onValueChange = { },
+                readOnly = true,
+                label = { Text(stringResource(R.string.label_expiry)) },
+                trailingIcon = { 
+                    IconButton(onClick = { showDatePicker = true }) {
+                        Icon(Icons.Default.CalendarToday, contentDescription = "Choisir une date")
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { showDatePicker = true },
                 shape = RoundedCornerShape(14.dp)
             )
 
@@ -306,7 +395,7 @@ fun ItemFormScreen(
                         quantity = quantity.toDoubleOrNull() ?: 1.0,
                         unit = unit,
                         barcode = barcode,
-                        expiryDate = expiryDate,
+                        expiryDate = if (expiryDate.isNotBlank()) expiryDate else null,
                         storageId = storageId,
                         shopId = shopId,
                         photo = photoPath,

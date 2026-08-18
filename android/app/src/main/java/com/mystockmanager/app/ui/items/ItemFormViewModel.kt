@@ -7,6 +7,8 @@ import com.mystockmanager.app.core.SessionManager
 import com.mystockmanager.app.data.local.entities.ItemEntity
 import com.mystockmanager.app.data.local.entities.ShopEntity
 import com.mystockmanager.app.data.local.entities.StorageEntity
+import com.mystockmanager.app.data.local.entities.UnitEntity
+import com.mystockmanager.app.data.repository.PrefsRepository
 import com.mystockmanager.app.data.repository.StockRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
@@ -18,16 +20,24 @@ import javax.inject.Inject
 @HiltViewModel
 class ItemFormViewModel @Inject constructor(
     private val stockRepository: StockRepository,
+    private val prefsRepository: PrefsRepository,
     private val sessionManager: SessionManager,
     private val productInfoService: ProductInfoService
 ) : ViewModel() {
 
     private val userId = sessionManager.getUserId().toString()
 
+    val dateFormat: StateFlow<String> = prefsRepository.getPrefs(userId)
+        .map { it?.dateFormat ?: "european" }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "european")
+
     val storages: StateFlow<List<StorageEntity>> = stockRepository.getStorages(userId)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val shops: StateFlow<List<ShopEntity>> = stockRepository.getShops(userId)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val units: StateFlow<List<UnitEntity>> = stockRepository.getUnits(userId)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     private val _saveSuccess = MutableSharedFlow<Unit>()

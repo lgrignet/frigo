@@ -4,6 +4,7 @@
     <string name="tab_shopping">Courses</string>
     <string name="tab_storages">Lieux</string>
     <string name="tab_settings">Paramètres</string>
+    <string name="tab_units">Unités</string>
     <string name="btn_logout">Se déconnecter</string>
     <string name="btn_cancel">Annuler</string>
     <string name="btn_save">Enregistrer</string>
@@ -42,6 +43,8 @@
     <string name="title_edit_storage">Modifier le rangement</string>
     <string name="title_new_shop">Nouveau magasin</string>
     <string name="title_edit_shop">Modifier le magasin</string>
+    <string name="title_new_unit">Nouvelle unité</string>
+    <string name="title_edit_unit">Modifier l\'unité</string>
     <string name="title_new_shopping_item">Nouvel article</string>
     <string name="title_edit_shopping_item">Modifier l\'article</string>
     <string name="title_qr_code">Votre QR Code de synchro</string>

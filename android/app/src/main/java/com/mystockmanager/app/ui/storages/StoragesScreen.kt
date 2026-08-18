@@ -30,6 +30,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.mystockmanager.app.R
 import com.mystockmanager.app.data.local.entities.ShopEntity
 import com.mystockmanager.app.data.local.entities.StorageEntity
+import com.mystockmanager.app.data.local.entities.UnitEntity
 
 @Composable
 fun StoragesScreen(
@@ -37,14 +38,21 @@ fun StoragesScreen(
 ) {
     val storages by viewModel.storages.collectAsState()
     val shops by viewModel.shops.collectAsState()
+    val units by viewModel.units.collectAsState()
+    
+    LaunchedEffect(Unit) {
+        viewModel.addDefaultDataIfEmpty()
+    }
     
     var selectedTab by remember { mutableIntStateOf(0) }
 
     var showAddStorage by remember { mutableStateOf(false) }
     var showAddShop by remember { mutableStateOf(false) }
+    var showAddUnit by remember { mutableStateOf(false) }
     
     var editingStorage by remember { mutableStateOf<StorageEntity?>(null) }
     var editingShop by remember { mutableStateOf<ShopEntity?>(null) }
+    var editingUnit by remember { mutableStateOf<UnitEntity?>(null) }
 
     Column(
         modifier = Modifier
@@ -71,12 +79,16 @@ fun StoragesScreen(
                 )
             }
         ) {
-            val tabTitles = listOf(stringResource(R.string.tab_storages), stringResource(R.string.label_shop))
+            val tabTitles = listOf(
+                stringResource(R.string.tab_storages), 
+                stringResource(R.string.label_shop),
+                stringResource(R.string.tab_units)
+            )
             tabTitles.forEachIndexed { index, title ->
                 Tab(
                     selected = selectedTab == index,
                     onClick = { selectedTab = index },
-                    text = { Text(title, fontWeight = if (selectedTab == index) FontWeight.Bold else FontWeight.Normal) }
+                    text = { Text(title, fontWeight = if (selectedTab == index) FontWeight.Bold else FontWeight.Normal, fontSize = 12.sp) }
                 )
             }
         }
@@ -84,81 +96,123 @@ fun StoragesScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         Box(modifier = Modifier.weight(1f)) {
-            if (selectedTab == 0) {
-                // Storages Section
-                Column {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = stringResource(R.string.my_storages),
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
-                        IconButton(onClick = { 
-                            editingStorage = null
-                            showAddStorage = true 
-                        }) {
-                            Icon(Icons.Default.Add, contentDescription = stringResource(R.string.btn_add), tint = MaterialTheme.colorScheme.primary)
-                        }
-                    }
-
-                    LazyVerticalGrid(
-                        columns = GridCells.Fixed(2),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        verticalArrangement = Arrangement.spacedBy(10.dp),
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        items(storages) { storage ->
-                            StorageCard(
-                                storage = storage, 
-                                onDelete = { viewModel.deleteStorage(storage) },
-                                onClick = {
-                                    editingStorage = storage
-                                    showAddStorage = true
-                                }
+            when (selectedTab) {
+                0 -> {
+                    // Storages Section
+                    Column {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = stringResource(R.string.my_storages),
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onBackground
                             )
+                            IconButton(onClick = { 
+                                editingStorage = null
+                                showAddStorage = true 
+                            }) {
+                                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.btn_add), tint = MaterialTheme.colorScheme.primary)
+                            }
+                        }
+
+                        LazyVerticalGrid(
+                            columns = GridCells.Fixed(2),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            verticalArrangement = Arrangement.spacedBy(10.dp),
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            items(storages) { storage ->
+                                StorageCard(
+                                    storage = storage, 
+                                    onDelete = { viewModel.deleteStorage(storage) },
+                                    onClick = {
+                                        editingStorage = storage
+                                        showAddStorage = true
+                                    }
+                                )
+                            }
                         }
                     }
                 }
-            } else {
-                // Shops Section
-                Column {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = stringResource(R.string.my_shops),
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
-                        IconButton(onClick = { 
-                            editingShop = null
-                            showAddShop = true 
-                        }) {
-                            Icon(Icons.Default.Add, contentDescription = stringResource(R.string.btn_add), tint = MaterialTheme.colorScheme.primary)
+                1 -> {
+                    // Shops Section
+                    Column {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = stringResource(R.string.my_shops),
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onBackground
+                            )
+                            IconButton(onClick = { 
+                                editingShop = null
+                                showAddShop = true 
+                            }) {
+                                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.btn_add), tint = MaterialTheme.colorScheme.primary)
+                            }
+                        }
+
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            items(shops) { shop ->
+                                ShopItem(
+                                    shop = shop, 
+                                    onDelete = { viewModel.deleteShop(shop) },
+                                    onClick = {
+                                        editingShop = shop
+                                        showAddShop = true
+                                    }
+                                )
+                            }
                         }
                     }
-
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        items(shops) { shop ->
-                            ShopItem(
-                                shop = shop, 
-                                onDelete = { viewModel.deleteShop(shop) },
-                                onClick = {
-                                    editingShop = shop
-                                    showAddShop = true
-                                }
+                }
+                2 -> {
+                    // Units Section
+                    Column {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = stringResource(R.string.tab_units),
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onBackground
                             )
+                            IconButton(onClick = { 
+                                editingUnit = null
+                                showAddUnit = true 
+                            }) {
+                                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.btn_add), tint = MaterialTheme.colorScheme.primary)
+                            }
+                        }
+
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            items(units) { unit ->
+                                UnitItem(
+                                    unit = unit, 
+                                    onDelete = { viewModel.deleteUnit(unit) },
+                                    onClick = {
+                                        editingUnit = unit
+                                        showAddUnit = true
+                                    }
+                                )
+                            }
                         }
                     }
                 }
@@ -197,6 +251,83 @@ fun StoragesScreen(
             }
         )
     }
+
+    if (showAddUnit) {
+        AddUnitDialog(
+            existingUnit = editingUnit,
+            onDismiss = { showAddUnit = false },
+            onConfirm = { name, label ->
+                if (editingUnit != null) {
+                    viewModel.updateUnit(editingUnit!!.copy(name = name, label = label))
+                } else {
+                    viewModel.createUnit(name, label)
+                }
+                showAddUnit = false
+            }
+        )
+    }
+}
+
+@Composable
+fun UnitItem(unit: UnitEntity, onDelete: () -> Unit, onClick: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onLongPress = { },
+                    onTap = { onClick() }
+                )
+            },
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        shape = RoundedCornerShape(14.dp),
+        border = AssistChipDefaults.assistChipBorder(enabled = true, borderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
+    ) {
+        Row(
+            modifier = Modifier.padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("⚖️", fontSize = 20.sp)
+            Spacer(modifier = Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(unit.name, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+                Text(unit.label, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            IconButton(onClick = onDelete) {
+                Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.btn_delete), tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f), modifier = Modifier.size(20.dp))
+            }
+        }
+    }
+}
+
+@Composable
+fun AddUnitDialog(
+    existingUnit: UnitEntity? = null,
+    onDismiss: () -> Unit, 
+    onConfirm: (String, String) -> Unit
+) {
+    var name by remember { mutableStateOf(existingUnit?.name ?: "") }
+    var label by remember { mutableStateOf(existingUnit?.label ?: "") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            Button(
+                onClick = { if (name.isNotBlank() && label.isNotBlank()) onConfirm(name, label) },
+                enabled = name.isNotBlank() && label.isNotBlank()
+            ) { Text(if (existingUnit == null) stringResource(R.string.btn_add) else stringResource(R.string.btn_modify)) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.btn_cancel)) }
+        },
+        title = { Text(if (existingUnit == null) stringResource(R.string.title_new_unit) else stringResource(R.string.title_edit_unit)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text(stringResource(R.string.label_name) + " (ex: Kilogramme)") }, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(value = label, onValueChange = { label = it }, label = { Text(stringResource(R.string.label_unit) + " (ex: kg)") }, modifier = Modifier.fillMaxWidth())
+            }
+        }
+    )
 }
 
 @Composable

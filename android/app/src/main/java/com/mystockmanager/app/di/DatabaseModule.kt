@@ -43,4 +43,7 @@ object DatabaseModule {
 
     @Provides
     fun providePreferenceDao(db: AppDatabase): PreferenceDao = db.preferenceDao()
+
+    @Provides
+    fun provideUnitDao(db: AppDatabase): UnitDao = db.unitDao()
 }

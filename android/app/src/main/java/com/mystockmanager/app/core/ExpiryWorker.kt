@@ -35,10 +35,11 @@ class ExpiryWorker @AssistedInject constructor(
         
         val expiringItems = items.filter { item ->
             item.expiryDate?.let { dateStr ->
+                if (dateStr.isBlank()) return@let false
                 try {
-                    val expiryDate = LocalDate.parse(dateStr)
+                    val expiryDate = parseDate(dateStr)
                     val daysUntil = ChronoUnit.DAYS.between(LocalDate.now(), expiryDate)
-                    daysUntil in 0..warningDays
+                    daysUntil <= warningDays
                 } catch (e: Exception) {
                     false
                 }
@@ -56,5 +57,13 @@ class ExpiryWorker @AssistedInject constructor(
         }
 
         return Result.success()
+    }
+
+    private fun parseDate(dateStr: String): LocalDate {
+        return if (dateStr.contains("-")) {
+            LocalDate.parse(dateStr)
+        } else {
+            LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+        }
     }
 }

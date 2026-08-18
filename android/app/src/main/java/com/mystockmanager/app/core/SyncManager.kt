@@ -31,7 +31,6 @@ class SyncManager @Inject constructor(
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private val json = Json { ignoreUnknownKeys = true }
     
-    // File d'attente pour les messages à envoyer
     private val outgoingChannel = Channel<SyncMessage>(Channel.BUFFERED)
 
     init {
@@ -40,52 +39,31 @@ class SyncManager @Inject constructor(
 
     fun startSync() {
         val guid = sessionManager.getSyncGuid()
-        if (guid == null) {
-            Log.e("Sync", "Impossible de démarrer la synchro : GUID manquant")
-            return
-        }
-        
-        Log.i("Sync", "Démarrage du service de synchro pour le canal: $guid")
+        if (guid == null) return
         
         scope.launch {
             while (isActive) {
                 try {
-                    Log.i("Sync", "Tentative de connexion à wss://sync.noshi.be/$guid...")
                     client.webSocket("wss://sync.noshi.be/$guid?device=android_native") {
                         Log.i("Sync", "--- CONNECTÉ EN KOTLIN NATIF ---")
                         
-                        // 1. Lancer l'envoi des messages en parallèle dans la même session
                         val sendJob = launch {
                             for (message in outgoingChannel) {
                                 try {
-                                    val text = json.encodeToString(message)
-                                    send(Frame.Text(text))
-                                    Log.d("Sync", "Message envoyé: ${message.type}")
-                                } catch (e: Exception) {
-                                    Log.e("Sync", "Erreur lors de l'envoi: ${e.message}")
-                                }
+                                    send(Frame.Text(json.encodeToString(message)))
+                                } catch (e: Exception) {}
                             }
                         }
 
-                        // 2. Lancer un heartbeat (Ping) toutes les 30 secondes
                         val heartbeatJob = launch {
                             while (isActive) {
                                 delay(30000)
                                 try {
-                                    val ping = SyncMessage("system", "ping", "{}", deviceId)
-                                    send(Frame.Text(json.encodeToString(ping)))
-                                    Log.d("Sync", "Heartbeat envoyé")
-                                } catch (e: Exception) {
-                                    Log.e("Sync", "Erreur heartbeat: ${e.message}")
-                                }
+                                    send(Frame.Text(json.encodeToString(SyncMessage("system", "ping", "{}", deviceId))))
+                                } catch (e: Exception) {}
                             }
                         }
 
-                        // 3. Envoyer le message de bienvenue
-                        val hello = SyncMessage("system", "hello", "{\"device\":\"android-native\"}", deviceId)
-                        outgoingChannel.send(hello)
-                        
-                        // 4. Boucle de réception
                         for (frame in incoming) {
                             if (frame is Frame.Text) {
                                 handleIncomingMessage(frame.readText())
@@ -96,10 +74,7 @@ class SyncManager @Inject constructor(
                         sendJob.cancel()
                     }
                 } catch (e: Exception) {
-                    Log.e("Sync", "Erreur WebSocket: ${e.message}")
                     delay(5000)
-                } finally {
-                    Log.w("Sync", "Déconnecté du serveur, nouvelle tentative dans 5s...")
                 }
             }
         }
@@ -109,7 +84,13 @@ class SyncManager @Inject constructor(
         try {
             val message = json.decodeFromString<SyncMessage>(text)
             if (message.origin == deviceId) return
-            if (message.action == "ping") return // Ignorer les heartbeats des autres
+            
+            if (message.type == "system") {
+                if (message.action == "sync_catalog") {
+                    handleSyncCatalog(message.data)
+                }
+                return
+            }
 
             Log.i("Sync", "Donnée reçue : ${message.type} (${message.action})")
             
@@ -130,6 +111,11 @@ class SyncManager @Inject constructor(
                         if (message.action == "put") db.shopDao().insertShop(entity)
                         else if (message.action == "delete") db.shopDao().deleteShop(entity)
                     }
+                    "unit" -> {
+                        val entity = json.decodeFromString<UnitEntity>(message.data)
+                        if (message.action == "put") db.unitDao().insertUnit(entity)
+                        else if (message.action == "delete") db.unitDao().deleteUnit(entity)
+                    }
                     "shopping" -> {
                         val entity = json.decodeFromString<ShoppingEntity>(message.data)
                         if (message.action == "put") db.shoppingDao().insertShoppingItem(entity)
@@ -146,6 +132,42 @@ class SyncManager @Inject constructor(
         }
     }
 
+    private suspend fun handleSyncCatalog(catalogData: String) {
+        val userId = sessionManager.getUserId().toString()
+        val pairs = catalogData.split(",").filter { it.contains(":") }
+        val validIdsByType = pairs.map { it.split(":") }.groupBy({ it[0] }, { it[1] })
+
+        Log.i("Sync", "Nettoyage via catalogue reçu : ${pairs.size} objets valides")
+
+        withContext(Dispatchers.IO) {
+            // Items
+            val validItems = validIdsByType["item"] ?: emptyList()
+            db.itemDao().getAllItems(userId).first().forEach { local ->
+                if (!validItems.contains(local.id)) db.itemDao().deleteItem(local)
+            }
+            // Storages
+            val validStorages = validIdsByType["storage"] ?: emptyList()
+            db.storageDao().getAllStorages(userId).first().forEach { local ->
+                if (!validStorages.contains(local.id)) db.storageDao().deleteStorage(local)
+            }
+            // Shops
+            val validShops = validIdsByType["shop"] ?: emptyList()
+            db.shopDao().getAllShops(userId).first().forEach { local ->
+                if (!validShops.contains(local.id)) db.shopDao().deleteShop(local)
+            }
+            // Units
+            val validUnits = validIdsByType["unit"] ?: emptyList()
+            db.unitDao().getAllUnits(userId).first().forEach { local ->
+                if (!validUnits.contains(local.id)) db.unitDao().deleteUnit(local)
+            }
+            // Shopping
+            val validShopping = validIdsByType["shopping"] ?: emptyList()
+            db.shoppingDao().getShoppingList(userId).first().forEach { local ->
+                if (!validShopping.contains(local.id)) db.shoppingDao().deleteShoppingItem(local)
+            }
+        }
+    }
+
     fun syncItem(entity: ItemEntity, action: String = "put") {
         enqueueMessage(SyncMessage("item", action, json.encodeToString(entity), deviceId))
     }
@@ -156,6 +178,10 @@ class SyncManager @Inject constructor(
 
     fun syncShop(entity: ShopEntity, action: String = "put") {
         enqueueMessage(SyncMessage("shop", action, json.encodeToString(entity), deviceId))
+    }
+
+    fun syncUnit(entity: UnitEntity, action: String = "put") {
+        enqueueMessage(SyncMessage("unit", action, json.encodeToString(entity), deviceId))
     }
 
     fun syncShopping(entity: ShoppingEntity, action: String = "put") {

@@ -4,6 +4,7 @@
     <string name="tab_shopping">Compras</string>
     <string name="tab_storages">Lugares</string>
     <string name="tab_settings">Ajustes</string>
+    <string name="tab_units">Unidades</string>
     <string name="btn_logout">Cerrar sesión</string>
     <string name="btn_cancel">Cancelar</string>
     <string name="btn_save">Guardar</string>
@@ -42,6 +43,8 @@
     <string name="title_edit_storage">Editar almacenamiento</string>
     <string name="title_new_shop">Nueva tienda</string>
     <string name="title_edit_shop">Editar tienda</string>
+    <string name="title_new_unit">Nueva unidad</string>
+    <string name="title_edit_unit">Editar unidad</string>
     <string name="title_new_shopping_item">Nuevo artículo</string>
     <string name="title_edit_shopping_item">Editar artículo</string>
     <string name="title_qr_code">Tu código QR de sincronización</string>

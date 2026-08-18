@@ -4,6 +4,7 @@
     <string name="tab_shopping">Boodschappen</string>
     <string name="tab_storages">Locaties</string>
     <string name="tab_settings">Instellingen</string>
+    <string name="tab_units">Eenheden</string>
     <string name="btn_logout">Uitloggen</string>
     <string name="btn_cancel">Annuleren</string>
     <string name="btn_save">Opslaan</string>

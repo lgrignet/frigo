@@ -4,9 +4,11 @@ import com.mystockmanager.app.core.SyncManager
 import com.mystockmanager.app.data.local.dao.ItemDao
 import com.mystockmanager.app.data.local.dao.ShopDao
 import com.mystockmanager.app.data.local.dao.StorageDao
+import com.mystockmanager.app.data.local.dao.UnitDao
 import com.mystockmanager.app.data.local.entities.ItemEntity
 import com.mystockmanager.app.data.local.entities.ShopEntity
 import com.mystockmanager.app.data.local.entities.StorageEntity
+import com.mystockmanager.app.data.local.entities.UnitEntity
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -16,6 +18,7 @@ class StockRepository @Inject constructor(
     private val itemDao: ItemDao,
     private val storageDao: StorageDao,
     private val shopDao: ShopDao,
+    private val unitDao: UnitDao,
     private val syncManager: SyncManager
 ) {
     fun getItems(userId: String): Flow<List<ItemEntity>> = itemDao.getAllItems(userId)
@@ -23,6 +26,8 @@ class StockRepository @Inject constructor(
     fun getStorages(userId: String): Flow<List<StorageEntity>> = storageDao.getAllStorages(userId)
 
     fun getShops(userId: String): Flow<List<ShopEntity>> = shopDao.getAllShops(userId)
+
+    fun getUnits(userId: String): Flow<List<UnitEntity>> = unitDao.getAllUnits(userId)
 
     suspend fun addItem(item: ItemEntity) {
         itemDao.insertItem(item)
@@ -52,5 +57,15 @@ class StockRepository @Inject constructor(
     suspend fun deleteShop(shop: ShopEntity) {
         shopDao.deleteShop(shop)
         syncManager.syncShop(shop, "delete")
+    }
+
+    suspend fun addUnit(unit: UnitEntity) {
+        unitDao.insertUnit(unit)
+        syncManager.syncUnit(unit, "put")
+    }
+
+    suspend fun deleteUnit(unit: UnitEntity) {
+        unitDao.deleteUnit(unit)
+        syncManager.syncUnit(unit, "delete")
     }
 }

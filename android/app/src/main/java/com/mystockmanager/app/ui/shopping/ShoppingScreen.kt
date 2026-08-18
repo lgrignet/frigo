@@ -38,6 +38,7 @@ fun ShoppingScreen(
     val items by viewModel.shoppingItems.collectAsState()
     val shops by viewModel.shops.collectAsState()
     val storages by viewModel.storages.collectAsState()
+    val units by viewModel.units.collectAsState()
     val filterShopId by viewModel.filterShopId.collectAsState()
 
     var showAddDialog by remember { mutableStateOf(false) }
@@ -180,6 +181,7 @@ fun ShoppingScreen(
             existingItem = editingItem,
             shops = shops,
             storages = storages,
+            units = units,
             onDismiss = { showAddDialog = false },
             onConfirm = { name, qty, unit, shopId, targetStorageId ->
                 if (editingItem != null) {
@@ -293,6 +295,7 @@ fun ShoppingItemDialog(
     existingItem: ShoppingEntity? = null,
     shops: List<com.mystockmanager.app.data.local.entities.ShopEntity> = emptyList(),
     storages: List<StorageEntity> = emptyList(),
+    units: List<com.mystockmanager.app.data.local.entities.UnitEntity> = emptyList(),
     onDismiss: () -> Unit,
     onConfirm: (String, String, String, String?, String?) -> Unit
 ) {
@@ -304,6 +307,7 @@ fun ShoppingItemDialog(
     
     var shopExpanded by remember { mutableStateOf(false) }
     var storageExpanded by remember { mutableStateOf(false) }
+    var unitExpanded by remember { mutableStateOf(false) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -325,7 +329,26 @@ fun ShoppingItemDialog(
                 OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text(stringResource(R.string.label_name)) }, modifier = Modifier.fillMaxWidth())
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(value = qty, onValueChange = { qty = it }, label = { Text(stringResource(R.string.label_quantity)) }, modifier = Modifier.weight(1f))
-                    OutlinedTextField(value = unit, onValueChange = { unit = it }, label = { Text(stringResource(R.string.label_unit)) }, modifier = Modifier.weight(1.5f))
+                    
+                    ExposedDropdownMenuBox(
+                        expanded = unitExpanded,
+                        onExpandedChange = { unitExpanded = it },
+                        modifier = Modifier.weight(1.5f)
+                    ) {
+                        OutlinedTextField(
+                            value = unit,
+                            onValueChange = { unit = it },
+                            label = { Text(stringResource(R.string.label_unit)) },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = unitExpanded) },
+                            modifier = Modifier.menuAnchor().fillMaxWidth(),
+                            shape = RoundedCornerShape(14.dp)
+                        )
+                        ExposedDropdownMenu(expanded = unitExpanded, onDismissRequest = { unitExpanded = false }) {
+                            units.forEach { unitItem ->
+                                DropdownMenuItem(text = { Text(unitItem.label) }, onClick = { unit = unitItem.label; unitExpanded = false })
+                            }
+                        }
+                    }
                 }
 
                 // Shop Selection

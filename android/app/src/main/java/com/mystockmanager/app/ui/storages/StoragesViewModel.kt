@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.mystockmanager.app.core.SessionManager
 import com.mystockmanager.app.data.local.entities.ShopEntity
 import com.mystockmanager.app.data.local.entities.StorageEntity
+import com.mystockmanager.app.data.local.entities.UnitEntity
 import com.mystockmanager.app.data.repository.StockRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
@@ -23,6 +24,9 @@ class StoragesViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val shops: StateFlow<List<ShopEntity>> = stockRepository.getShops(userId)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val units: StateFlow<List<UnitEntity>> = stockRepository.getUnits(userId)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     fun createStorage(name: String, icon: String, type: String) {
@@ -76,9 +80,45 @@ class StoragesViewModel @Inject constructor(
         }
     }
 
+    fun createUnit(name: String, label: String) {
+        viewModelScope.launch {
+            val unit = UnitEntity(
+                id = java.util.UUID.randomUUID().toString(),
+                userId = userId,
+                name = name,
+                label = label
+            )
+            stockRepository.addUnit(unit)
+        }
+    }
+
+    fun updateUnit(unit: UnitEntity) {
+        viewModelScope.launch {
+            stockRepository.addUnit(unit)
+        }
+    }
+
+    fun deleteUnit(unit: UnitEntity) {
+        viewModelScope.launch {
+            stockRepository.deleteUnit(unit)
+        }
+    }
+
     fun addDefaultDataIfEmpty() {
         viewModelScope.launch {
-            // Logic to create defaults if nothing exists (handled by AuthRepository during register usually)
+            val currentUnits = units.first()
+            if (currentUnits.isEmpty()) {
+                val defaults = listOf(
+                    "pièce(s)" to "pièce(s)",
+                    "Kilogramme" to "kg",
+                    "Gramme" to "g",
+                    "Litre" to "L",
+                    "Paquet" to "paquet(s)"
+                )
+                defaults.forEach { (name, label) ->
+                    createUnit(name, label)
+                }
+            }
         }
     }
 }

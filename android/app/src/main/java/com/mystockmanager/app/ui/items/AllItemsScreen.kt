@@ -1,5 +1,6 @@
 package com.mystockmanager.app.ui.items
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -14,6 +15,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -26,6 +28,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.mystockmanager.app.R
 import com.mystockmanager.app.data.local.entities.ItemEntity
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 
 @Composable
 fun AllItemsScreen(
@@ -34,6 +39,7 @@ fun AllItemsScreen(
 ) {
     val items by viewModel.items.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
+    val warningDays by viewModel.warningDays.collectAsState()
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         Text(
@@ -74,6 +80,7 @@ fun AllItemsScreen(
                 items(items, key = { it.id }) { item ->
                     ItemRow(
                         item = item,
+                        warningDays = warningDays,
                         onDelete = { viewModel.deleteItem(item) },
                         onAdjustQuantity = { delta -> viewModel.adjustQuantity(item, delta) },
                         onClick = { onEditItem(item.id) }
@@ -88,16 +95,38 @@ fun AllItemsScreen(
 @Composable
 fun ItemRow(
     item: ItemEntity,
+    warningDays: Int,
     onDelete: () -> Unit,
     onAdjustQuantity: (Double) -> Unit,
     onClick: () -> Unit
 ) {
+    val borderColor = remember(item.expiryDate, warningDays) {
+        val dateStr = item.expiryDate
+        if (dateStr.isNullOrBlank()) return@remember Color.Transparent
+        
+        try {
+            val expiryDate = if (dateStr.contains("-")) LocalDate.parse(dateStr) 
+                            else LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+            val today = LocalDate.now()
+            val daysUntil = ChronoUnit.DAYS.between(today, expiryDate)
+            
+            when {
+                daysUntil < 0 -> Color(0xFFFF5252) // Périmé (Rouge)
+                daysUntil <= warningDays -> Color(0xFFFFD740) // Bientôt périmé (Orange/Ambre)
+                else -> Color.Transparent
+            }
+        } catch (e: Exception) {
+            Color.Transparent
+        }
+    }
+
     Card(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         shape = RoundedCornerShape(16.dp),
-        border = AssistChipDefaults.assistChipBorder(enabled = true, borderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
+        border = if (borderColor != Color.Transparent) BorderStroke(2.dp, borderColor) 
+                 else AssistChipDefaults.assistChipBorder(enabled = true, borderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
     ) {
         Row(
             modifier = Modifier.padding(12.dp),

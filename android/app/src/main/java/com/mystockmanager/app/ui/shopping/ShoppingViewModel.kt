@@ -6,6 +6,7 @@ import com.mystockmanager.app.core.SessionManager
 import com.mystockmanager.app.data.local.entities.ShopEntity
 import com.mystockmanager.app.data.local.entities.ShoppingEntity
 import com.mystockmanager.app.data.local.entities.StorageEntity
+import com.mystockmanager.app.data.local.entities.UnitEntity
 import com.mystockmanager.app.data.repository.ShoppingRepository
 import com.mystockmanager.app.data.repository.StockRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -33,6 +34,9 @@ class ShoppingViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val storages: StateFlow<List<StorageEntity>> = stockRepository.getStorages(userId)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val units: StateFlow<List<UnitEntity>> = stockRepository.getUnits(userId)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     private val _filterShopId = MutableStateFlow<String?>(null)

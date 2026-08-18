@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mystockmanager.app.core.SessionManager
 import com.mystockmanager.app.data.local.entities.ItemEntity
+import com.mystockmanager.app.data.repository.PrefsRepository
 import com.mystockmanager.app.data.repository.StockRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
@@ -13,14 +14,20 @@ import javax.inject.Inject
 @HiltViewModel
 class AllItemsViewModel @Inject constructor(
     private val stockRepository: StockRepository,
+    private val prefsRepository: PrefsRepository,
     private val sessionManager: SessionManager
 ) : ViewModel() {
 
+    private val userId = sessionManager.getUserId().toString()
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery
 
+    val warningDays: StateFlow<Int> = prefsRepository.getPrefs(userId)
+        .map { it?.expiryWarningDays ?: 7 }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 7)
+
     val items: StateFlow<List<ItemEntity>> = combine(
-        stockRepository.getItems(sessionManager.getUserId().toString()),
+        stockRepository.getItems(userId),
         _searchQuery
     ) { allItems, query ->
         if (query.isBlank()) {
@@ -46,7 +53,7 @@ class AllItemsViewModel @Inject constructor(
             val newQuantity = (item.quantity + delta).coerceAtLeast(0.0)
             if (newQuantity != item.quantity) {
                 val updatedItem = item.copy(quantity = newQuantity)
-                stockRepository.addItem(updatedItem) // Cela déclenchera la synchro dans le Repo
+                stockRepository.addItem(updatedItem)
             }
         }
     }
