@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>MyStockManager – Captures d'écran</title>
+  <style>
+    body { font-family: sans-serif; margin: 20px; }
+    .gallery { display: flex; flex-wrap: wrap; gap: 16px; }
+    .thumb {
+      width: 220px;
+      cursor: pointer;
+      border: 1px solid #ccc;
+      padding: 8px;
+      border-radius: 4px;
+      background: #f9f9f9;
+    }
+    .thumb img { width: 100%; height: auto; display: block; }
+    .thumb-title { margin-top: 6px; font-size: 0.9rem; font-weight: bold; }
+
+    .details {
+      margin-top: 30px;
+      padding: 16px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background: #fafafa;
+    }
+    .details h2 { margin-top: 0; }
+    .details-placeholder {
+      color: #777;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>MyStockManager – Documentation sommaire</h1>
+
+  <div class="gallery">
+    <!-- Exemple de vignette 1 -->
+    <div class="thumb">
+      <img src="screenshots/ecran-liste-produits.png" alt="Liste des produits">
+      <div class="thumb-title">Liste des produits</div>
+    </div>
+
+    <!-- Exemple de vignette 2 -->
+    <div class="thumb">
+      <img src="screenshots/ecran-detail-produit.png" alt="Détail d'un produit">
+      <div class="thumb-title">Détail d'un produit</div>
+    </div>
+
+    <!-- Ajoute ici autant de blocs .thumb que nécessaire,
+         en adaptant le src et le titre -->
+  </div>
+
+  <div class="details">
+    <h2>Détails de la capture</h2>
+    <!-- Zone pour détailler chaque capture -->
+    <p class="details-placeholder">
+      Sélectionne une capture dans la galerie ci-dessus, puis décris ici :
+      fonctionnalités montrées, cas d’usage, choix UX, etc.
+    </p>
+    <!-- Tu peux remplacer ce paragraphe par du texte statique
+         ou le remplir dynamiquement en JS si tu veux aller plus loin. -->
+  </div>
+
+</body>
