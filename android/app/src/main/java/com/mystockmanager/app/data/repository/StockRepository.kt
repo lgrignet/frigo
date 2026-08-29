@@ -1,14 +1,8 @@
 package com.mystockmanager.app.data.repository
 
 import com.mystockmanager.app.core.SyncManager
-import com.mystockmanager.app.data.local.dao.ItemDao
-import com.mystockmanager.app.data.local.dao.ShopDao
-import com.mystockmanager.app.data.local.dao.StorageDao
-import com.mystockmanager.app.data.local.dao.UnitDao
-import com.mystockmanager.app.data.local.entities.ItemEntity
-import com.mystockmanager.app.data.local.entities.ShopEntity
-import com.mystockmanager.app.data.local.entities.StorageEntity
-import com.mystockmanager.app.data.local.entities.UnitEntity
+import com.mystockmanager.app.data.local.dao.*
+import com.mystockmanager.app.data.local.entities.*
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -19,6 +13,7 @@ class StockRepository @Inject constructor(
     private val storageDao: StorageDao,
     private val shopDao: ShopDao,
     private val unitDao: UnitDao,
+    private val domicileDao: DomicileDao,
     private val syncManager: SyncManager
 ) {
     fun getItems(userId: String): Flow<List<ItemEntity>> = itemDao.getAllItems(userId)
@@ -28,6 +23,10 @@ class StockRepository @Inject constructor(
     fun getShops(userId: String): Flow<List<ShopEntity>> = shopDao.getAllShops(userId)
 
     fun getUnits(userId: String): Flow<List<UnitEntity>> = unitDao.getAllUnits(userId)
+
+    fun getDomiciles(): Flow<List<DomicileEntity>> = domicileDao.getAllDomiciles()
+
+    suspend fun getDomicileById(id: String): DomicileEntity? = domicileDao.getDomicileById(id)
 
     suspend fun addItem(item: ItemEntity) {
         itemDao.insertItem(item)
@@ -67,5 +66,19 @@ class StockRepository @Inject constructor(
     suspend fun deleteUnit(unit: UnitEntity) {
         unitDao.deleteUnit(unit)
         syncManager.syncUnit(unit, "delete")
+    }
+
+    suspend fun cleanupUnits(userId: String, label: String, fixedId: String) {
+        unitDao.cleanupOldUnits(userId, label, fixedId)
+    }
+
+    suspend fun addDomicile(domicile: DomicileEntity) {
+        domicileDao.insertDomicile(domicile)
+        syncManager.syncDomicile(domicile, "put")
+    }
+
+    suspend fun deleteDomicile(domicile: DomicileEntity) {
+        domicileDao.deleteDomicile(domicile)
+        syncManager.syncDomicile(domicile, "delete")
     }
 }

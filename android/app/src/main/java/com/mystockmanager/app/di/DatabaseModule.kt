@@ -46,4 +46,7 @@ object DatabaseModule {
 
     @Provides
     fun provideUnitDao(db: AppDatabase): UnitDao = db.unitDao()
+
+    @Provides
+    fun provideDomicileDao(db: AppDatabase): DomicileDao = db.domicileDao()
 }

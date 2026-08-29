@@ -9,12 +9,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material.icons.filled.QrCodeScanner
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.res.stringResource
@@ -34,12 +33,18 @@ fun PrefsScreen(
     viewModel: PrefsViewModel = hiltViewModel()
 ) {
     val prefs by viewModel.prefs.collectAsState()
+    val domiciles by viewModel.domiciles.collectAsState()
     val syncGuid by viewModel.syncGuid.collectAsState()
+    
+    val firstName by viewModel.firstName.collectAsState()
+    val lastName by viewModel.lastName.collectAsState()
+    
     val clipboardManager = LocalClipboardManager.current
     
     var showQrDialog by remember { mutableStateOf(false) }
     var showScanner by remember { mutableStateOf(false) }
     var langExpanded by remember { mutableStateOf(false) }
+    var domExpanded by remember { mutableStateOf(false) }
 
     if (showScanner) {
         QRScanner(
@@ -66,7 +71,72 @@ fun PrefsScreen(
             modifier = Modifier.padding(vertical = 16.dp)
         )
 
+        // Profile Section
+        PrefsSection(title = "Mon Profil") {
+            OutlinedTextField(
+                value = firstName,
+                onValueChange = { viewModel.firstName.value = it },
+                label = { Text(stringResource(R.string.label_first_name)) },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(14.dp)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedTextField(
+                value = lastName,
+                onValueChange = { viewModel.lastName.value = it },
+                label = { Text(stringResource(R.string.label_last_name)) },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(14.dp)
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Button(
+                onClick = { viewModel.saveProfile() },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(14.dp)
+            ) {
+                Icon(Icons.Default.Save, contentDescription = null)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Enregistrer le profil")
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
         PrefsSection(title = stringResource(R.string.prefs_section_general)) {
+            // Active Domicile
+            PrefsItem(label = stringResource(R.string.setting_active_domicile)) {
+                ExposedDropdownMenuBox(
+                    expanded = domExpanded,
+                    onExpandedChange = { domExpanded = it },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    val currentDomName = domiciles.find { it.id == prefs.activeDomicileId }?.name ?: stringResource(R.string.label_none)
+                    OutlinedTextField(
+                        value = currentDomName,
+                        onValueChange = {},
+                        readOnly = true,
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = domExpanded) },
+                        colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+                        modifier = Modifier.menuAnchor().fillMaxWidth(),
+                        shape = RoundedCornerShape(14.dp)
+                    )
+                    ExposedDropdownMenu(expanded = domExpanded, onDismissRequest = { domExpanded = false }) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.label_none)) },
+                            onClick = { viewModel.updateActiveDomicile(null); domExpanded = false }
+                        )
+                        domiciles.forEach { dom ->
+                            DropdownMenuItem(
+                                text = { Text(dom.name) },
+                                onClick = { viewModel.updateActiveDomicile(dom.id); domExpanded = false }
+                            )
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
             // Language
             PrefsItem(label = stringResource(R.string.setting_lang)) {
                 ExposedDropdownMenuBox(

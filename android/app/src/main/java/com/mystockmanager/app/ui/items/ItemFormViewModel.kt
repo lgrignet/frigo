@@ -4,10 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mystockmanager.app.core.ProductInfoService
 import com.mystockmanager.app.core.SessionManager
-import com.mystockmanager.app.data.local.entities.ItemEntity
-import com.mystockmanager.app.data.local.entities.ShopEntity
-import com.mystockmanager.app.data.local.entities.StorageEntity
-import com.mystockmanager.app.data.local.entities.UnitEntity
+import com.mystockmanager.app.data.local.entities.*
 import com.mystockmanager.app.data.repository.PrefsRepository
 import com.mystockmanager.app.data.repository.StockRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -30,6 +27,17 @@ class ItemFormViewModel @Inject constructor(
     val dateFormat: StateFlow<String> = prefsRepository.getPrefs(userId)
         .map { it?.dateFormat ?: "european" }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "european")
+
+    val lang: StateFlow<String> = prefsRepository.getPrefs(userId)
+        .map { it?.lang ?: "fr" }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
+
+    val activeDomicileId: StateFlow<String?> = prefsRepository.getPrefs(userId)
+        .map { it?.activeDomicileId }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    val domiciles: StateFlow<List<DomicileEntity>> = stockRepository.getDomiciles()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val storages: StateFlow<List<StorageEntity>> = stockRepository.getStorages(userId)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -93,6 +101,7 @@ class ItemFormViewModel @Inject constructor(
                 quantity = quantity,
                 unit = unit,
                 barcode = barcode,
+                requestorInitials = if (id == null) sessionManager.getInitials() else _itemToEdit.value?.requestorInitials,
                 expiryDate = expiryDate,
                 storageId = storageId,
                 shopId = shopId,

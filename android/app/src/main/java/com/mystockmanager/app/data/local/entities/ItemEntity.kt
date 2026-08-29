@@ -13,6 +13,7 @@ data class ItemEntity(
     val quantity: Double,
     val unit: String,
     val barcode: String? = null,
+    val requestorInitials: String? = null, // Added for multi-user
     val expiryDate: String?, // Format ISO YYYY-MM-DD
     val storageId: String,
     val shopId: String?,

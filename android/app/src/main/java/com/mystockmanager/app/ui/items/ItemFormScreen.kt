@@ -1,7 +1,11 @@
 package com.mystockmanager.app.ui.items
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -12,12 +16,15 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -28,7 +35,11 @@ import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.mystockmanager.app.R
+import com.mystockmanager.app.core.DateVoiceParser
 import com.mystockmanager.app.core.ImageUtils
+import com.mystockmanager.app.core.InputValidator
+import com.mystockmanager.app.core.UnitTranslator
+import com.mystockmanager.app.core.VoiceRecognitionManager
 import com.mystockmanager.app.ui.theme.Accent
 import java.time.Instant
 import java.time.LocalDate
@@ -47,7 +58,10 @@ fun ItemFormScreen(
     var name by remember { mutableStateOf("") }
     var quantity by remember { mutableStateOf("1") }
     var unit by remember { mutableStateOf("pièce(s)") }
+    
     var storageId by remember { mutableStateOf("") }
+    var domicileId by remember { mutableStateOf<String?>(null) }
+    
     var shopId by remember { mutableStateOf<String?>(null) }
     var expiryDate by remember { mutableStateOf("") }
     var restockThreshold by remember { mutableStateOf("0") }
@@ -60,13 +74,30 @@ fun ItemFormScreen(
     var showScanner by remember { mutableStateOf(false) }
     var showDatePicker by remember { mutableStateOf(false) }
     var unitExpanded by remember { mutableStateOf(false) }
+    var isListening by remember { mutableStateOf(false) }
 
+    val domiciles by viewModel.domiciles.collectAsState()
     val storages by viewModel.storages.collectAsState()
     val shops by viewModel.shops.collectAsState()
     val units by viewModel.units.collectAsState()
     val itemToEdit by viewModel.itemToEdit.collectAsState()
     val isLoadingProduct by viewModel.isLoadingProduct.collectAsState()
     val dateFormatPref by viewModel.dateFormat.collectAsState()
+    val langPref by viewModel.lang.collectAsState()
+    val activeDomicileId by viewModel.activeDomicileId.collectAsState()
+
+    val voiceManager = remember { VoiceRecognitionManager(context) }
+
+    val infiniteTransition = rememberInfiniteTransition(label = "mic_anim")
+    val micAlpha by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 0.3f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(800, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "mic_alpha"
+    )
 
     val dateFormatter = remember(dateFormatPref) {
         if (dateFormatPref == "iso") DateTimeFormatter.ofPattern("yyyy-MM-dd")
@@ -76,6 +107,30 @@ fun ItemFormScreen(
     LaunchedEffect(Unit) {
         viewModel.productFoundName.collect { foundName ->
             name = foundName
+        }
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            voiceManager.stopListening()
+        }
+    }
+
+    val recordAudioPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            Toast.makeText(context, "Permission accordée. Cliquez à nouveau sur le micro.", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    fun handleVoiceResult(text: String) {
+        val parsedDate = DateVoiceParser.parse(text, langPref)
+        if (parsedDate != null) {
+            expiryDate = parsedDate.format(dateFormatter)
+            Toast.makeText(context, "Date comprise : ${expiryDate}", Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(context, "Pas compris : \"$text\"", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -157,9 +212,12 @@ fun ItemFormScreen(
             unit = item.unit
             barcode = item.barcode
             storageId = item.storageId
+            
+            val currentStor = storages.find { it.id == item.storageId }
+            domicileId = currentStor?.domicileId ?: activeDomicileId
+            
             shopId = item.shopId
             
-            // Format existing date to preferred format
             expiryDate = item.expiryDate?.let { dateStr ->
                 try {
                     val date = if (dateStr.contains("-")) LocalDate.parse(dateStr) 
@@ -175,9 +233,9 @@ fun ItemFormScreen(
         }
     }
 
-    LaunchedEffect(storages) {
-        if (storageId.isEmpty() && storages.isNotEmpty() && itemId == null) {
-            storageId = storages.first().id
+    LaunchedEffect(activeDomicileId, itemId) {
+        if (domicileId == null && itemId == null) {
+            domicileId = activeDomicileId
         }
     }
 
@@ -219,12 +277,12 @@ fun ItemFormScreen(
                     .clip(RoundedCornerShape(20.dp))
                     .background(MaterialTheme.colorScheme.surface)
                     .clickable {
-                        if (ContextCompat.checkSelfPermission(context, android.Manifest.permission.CAMERA) == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                        if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
                             val uri = ImageUtils.createTempImageUri(context)
                             tempUri = uri
                             cameraLauncher.launch(uri)
                         } else {
-                            cameraPermissionLauncher.launch(android.Manifest.permission.CAMERA)
+                            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
                         }
                     },
                 contentAlignment = Alignment.Center
@@ -262,7 +320,7 @@ fun ItemFormScreen(
 
             OutlinedTextField(
                 value = name,
-                onValueChange = { name = it },
+                onValueChange = { name = InputValidator.filterAlphanumericSpace(it) },
                 label = { Text(stringResource(R.string.label_name)) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(14.dp)
@@ -271,7 +329,7 @@ fun ItemFormScreen(
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
                     value = quantity,
-                    onValueChange = { quantity = it },
+                    onValueChange = { quantity = InputValidator.filterDecimal(it) },
                     label = { Text(stringResource(R.string.label_quantity)) },
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(14.dp)
@@ -284,7 +342,7 @@ fun ItemFormScreen(
                 ) {
                     OutlinedTextField(
                         value = unit,
-                        onValueChange = { unit = it },
+                        onValueChange = { unit = InputValidator.filterAlphanumericSpace(it) },
                         label = { Text(stringResource(R.string.label_unit)) },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = unitExpanded) },
                         modifier = Modifier.menuAnchor().fillMaxWidth(),
@@ -297,7 +355,7 @@ fun ItemFormScreen(
                     ) {
                         units.forEach { unitItem ->
                             DropdownMenuItem(
-                                text = { Text(unitItem.label) },
+                                text = { Text(UnitTranslator.getTranslatedLabel(unitItem)) },
                                 onClick = {
                                     unit = unitItem.label
                                     unitExpanded = false
@@ -308,13 +366,43 @@ fun ItemFormScreen(
                 }
             }
 
-            // Rangement selection
+            // Domicile selection
+            Text(stringResource(R.string.label_domicile), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Bold)
+            Row(modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FilterChip(
+                    selected = domicileId == null,
+                    onClick = { domicileId = null; storageId = "" },
+                    label = { Text(stringResource(R.string.label_none)) },
+                    shape = RoundedCornerShape(10.dp)
+                )
+                domiciles.forEach { dom ->
+                    FilterChip(
+                        selected = domicileId == dom.id,
+                        onClick = { 
+                            domicileId = dom.id
+                            val storInDom = storages.filter { it.domicileId == dom.id }
+                            if (storInDom.isNotEmpty() && storages.find { it.id == storageId }?.domicileId != dom.id) {
+                                storageId = storInDom.first().id
+                            }
+                        },
+                        label = { Text(dom.name) },
+                        shape = RoundedCornerShape(10.dp)
+                    )
+                }
+            }
+
+            // Rangement selection (Filtered by domicile)
             Text(stringResource(R.string.label_storage), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Bold)
-            if (storages.isEmpty()) {
-                Text(stringResource(R.string.msg_no_storage_defined), fontSize = 11.sp, color = MaterialTheme.colorScheme.error)
+            val filteredStorages = remember(domicileId, storages) {
+                if (domicileId == null) storages.filter { it.domicileId == null }
+                else storages.filter { it.domicileId == domicileId }
+            }
+
+            if (filteredStorages.isEmpty()) {
+                Text(if (domicileId == null) stringResource(R.string.msg_no_storage_defined) else "Aucun rangement dans ce domicile.", fontSize = 11.sp, color = MaterialTheme.colorScheme.error)
             }
             Row(modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                storages.forEach { storage ->
+                filteredStorages.forEach { storage ->
                     FilterChip(
                         selected = storageId == storage.id,
                         onClick = { storageId = storage.id },
@@ -343,15 +431,48 @@ fun ItemFormScreen(
                 }
             }
 
-            // Expiry Date with Picker
+            // Expiry Date with Picker AND Voice
             OutlinedTextField(
                 value = expiryDate,
                 onValueChange = { },
                 readOnly = true,
                 label = { Text(stringResource(R.string.label_expiry)) },
                 trailingIcon = { 
-                    IconButton(onClick = { showDatePicker = true }) {
-                        Icon(Icons.Default.CalendarToday, contentDescription = "Choisir une date")
+                    Row {
+                        IconButton(onClick = { 
+                            if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+                                if (isListening) {
+                                    voiceManager.stopListening()
+                                } else {
+                                    val recognitionLang = when(langPref) {
+                                        "fr" -> "fr-FR"
+                                        "en" -> "en-US"
+                                        "nl" -> "nl-NL"
+                                        "de" -> "de-DE"
+                                        "es" -> "es-ES"
+                                        else -> "fr-FR"
+                                    }
+                                    voiceManager.startListening(
+                                        language = recognitionLang,
+                                        onResult = { handleVoiceResult(it) },
+                                        onError = { Toast.makeText(context, it, Toast.LENGTH_SHORT).show() },
+                                        onStatusChange = { isListening = it }
+                                    )
+                                }
+                            } else {
+                                recordAudioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                            }
+                        }) {
+                            Icon(
+                                Icons.Default.Mic, 
+                                contentDescription = "Dicter la date",
+                                tint = if (isListening) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.graphicsLayer { alpha = if (isListening) micAlpha else 1f }
+                            )
+                        }
+                        IconButton(onClick = { showDatePicker = true }) {
+                            Icon(Icons.Default.CalendarToday, contentDescription = "Choisir une date")
+                        }
                     }
                 },
                 modifier = Modifier
@@ -362,7 +483,7 @@ fun ItemFormScreen(
 
             OutlinedTextField(
                 value = restockThreshold,
-                onValueChange = { restockThreshold = it },
+                onValueChange = { restockThreshold = InputValidator.filterDigits(it) },
                 label = { Text(stringResource(R.string.label_restock)) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(14.dp)
@@ -370,7 +491,7 @@ fun ItemFormScreen(
 
             OutlinedTextField(
                 value = restockBuyQuantity,
-                onValueChange = { restockBuyQuantity = it },
+                onValueChange = { restockBuyQuantity = InputValidator.filterDecimal(it) },
                 label = { Text(stringResource(R.string.label_restock_quantity)) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(14.dp)
@@ -404,6 +525,7 @@ fun ItemFormScreen(
                         notes = notes
                     )
                 },
+                enabled = name.isNotBlank() && storageId.isNotBlank(),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),

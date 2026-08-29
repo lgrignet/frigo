@@ -21,7 +21,7 @@ class AuthRepository @Inject constructor(
     private val cryptoManager: CryptoManager,
     private val sessionManager: SessionManager
 ) {
-    suspend fun register(email: String, password: String): String {
+    suspend fun register(email: String, password: String, firstName: String, lastName: String): String {
         val normalized = email.trim().lowercase()
         if (userDao.getUserByEmail(normalized) != null) throw Exception("EMAIL_EXISTS")
 
@@ -36,6 +36,8 @@ class AuthRepository @Inject constructor(
 
         val user = UserEntity(
             email = normalized,
+            firstName = firstName,
+            lastName = lastName,
             passwordHash = passwordHash,
             salt = salt,
             recoveryHash = recoveryHash,
@@ -50,16 +52,17 @@ class AuthRepository @Inject constructor(
         createDefaultStorages(userId.toString())
         createDefaultShops(userId.toString())
 
-        sessionManager.setSession(userId, normalized, syncGuid)
+        sessionManager.setSession(userId, normalized, syncGuid, firstName, lastName)
 
         return recoveryCode
     }
 
     private suspend fun createDefaultStorages(userId: String) {
+        val now = Instant.now().toString()
         val defaults = listOf(
-            StorageEntity(UUID.randomUUID().toString(), userId, "Frigo", "🧊", "cold", true, Instant.now().toString()),
-            StorageEntity(UUID.randomUUID().toString(), userId, "Congélateur", "❄️", "frozen", false, Instant.now().toString()),
-            StorageEntity(UUID.randomUUID().toString(), userId, "Armoire", "🚪", "dry", false, Instant.now().toString())
+            StorageEntity(UUID.randomUUID().toString(), userId, null, "Frigo", "🧊", "cold", true, now),
+            StorageEntity(UUID.randomUUID().toString(), userId, null, "Congélateur", "❄️", "frozen", false, now),
+            StorageEntity(UUID.randomUUID().toString(), userId, null, "Armoire", "🚪", "dry", false, now)
         )
         defaults.forEach { storageDao.insertStorage(it) }
     }
@@ -77,7 +80,7 @@ class AuthRepository @Inject constructor(
 
         val hash = cryptoManager.hashPassword(password, user.salt)
         if (hash == user.passwordHash) {
-            sessionManager.setSession(user.id, user.email, user.syncChannelGuid)
+            sessionManager.setSession(user.id, user.email, user.syncChannelGuid, user.firstName, user.lastName)
             return true
         }
         return false
@@ -88,4 +91,20 @@ class AuthRepository @Inject constructor(
     }
 
     fun isLoggedIn(): Boolean = sessionManager.isLoggedIn()
+
+    suspend fun updateProfile(firstName: String, lastName: String) {
+        val userId = sessionManager.getUserId()
+        val user = userDao.getUserById(userId)
+        if (user != null) {
+            val updatedUser = user.copy(firstName = firstName, lastName = lastName)
+            userDao.updateUser(updatedUser)
+            sessionManager.setSession(
+                userId = updatedUser.id,
+                email = updatedUser.email,
+                syncChannelGuid = updatedUser.syncChannelGuid,
+                firstName = updatedUser.firstName,
+                lastName = updatedUser.lastName
+            )
+        }
+    }
 }

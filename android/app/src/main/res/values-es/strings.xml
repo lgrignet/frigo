@@ -16,6 +16,7 @@
     <string name="btn_scan">Escanear</string>
     <string name="btn_minus">Menos</string>
     <string name="btn_plus">Más</string>
+    <string name="btn_add_to_shopping">Añadir a la lista de la compra</string>
     <string name="btn_continue">Continuar</string>
     <string name="label_name">Nombre</string>
     <string name="label_quantity">Cantidad</string>
@@ -26,6 +27,8 @@
     <string name="label_restock">Umbral de reposición</string>
     <string name="label_restock_quantity">Cantidad a comprar</string>
     <string name="label_notes">Notas</string>
+    <string name="label_first_name">Nombre</string>
+    <string name="label_last_name">Apellido</string>
     <string name="label_storage_type">Tipo de conservación</string>
     <string name="label_email">Correo electrónico</string>
     <string name="label_password">Contraseña</string>
@@ -35,6 +38,7 @@
     <string name="msg_empty_list">Tu lista está vacía 🛒</string>
     <string name="msg_all_fresh">¡Todo está fresco! ✅</string>
     <string name="msg_no_results">Sin resultados</string>
+    <string name="msg_added_to_shopping">Producto añadido a la lista de la compra</string>
     <string name="msg_search_placeholder">Buscar un producto...</string>
     <string name="msg_no_storage_defined">No hay almacenamiento definido. Crea uno en la pestaña Lugares.</string>
     <string name="title_new_product">Nuevo producto</string>
@@ -75,6 +79,18 @@
     <string name="lang_nl">Neerlandés</string>
     <string name="lang_de">Alemán</string>
     <string name="lang_es">Español</string>
+
+    <!-- Units -->
+    <string name="unit_piece_name">Pieza(s)</string>
+    <string name="unit_piece_label">pz</string>
+    <string name="unit_kg_name">Kilogramo</string>
+    <string name="unit_kg_label">kg</string>
+    <string name="unit_g_name">Gramo</string>
+    <string name="unit_g_label">g</string>
+    <string name="unit_l_name">Litro</string>
+    <string name="unit_l_label">L</string>
+    <string name="unit_packet_name">Paquete(s)</string>
+    <string name="unit_packet_label">paq</string>
 
     <string name="login_subtitle">Gestiona tu stock de forma inteligente</string>
     <string name="login_tab_signin">Iniciar sesión</string>

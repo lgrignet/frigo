@@ -11,6 +11,8 @@ import androidx.room.PrimaryKey
 data class UserEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val email: String,
+    val firstName: String = "",
+    val lastName: String = "",
     val passwordHash: String,
     val salt: String,
     val recoveryHash: String,

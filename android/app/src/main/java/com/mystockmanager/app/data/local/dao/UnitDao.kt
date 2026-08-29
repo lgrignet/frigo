@@ -12,6 +12,9 @@ interface UnitDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertUnit(unit: UnitEntity)
 
+    @Query("DELETE FROM units WHERE userId = :userId AND label = :label AND id != :fixedId")
+    suspend fun cleanupOldUnits(userId: String, label: String, fixedId: String)
+
     @Delete
     suspend fun deleteUnit(unit: UnitEntity)
 }

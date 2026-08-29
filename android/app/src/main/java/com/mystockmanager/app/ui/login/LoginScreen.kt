@@ -5,7 +5,9 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.mystockmanager.app.R
+import com.mystockmanager.app.core.InputValidator
 
 @Composable
 fun LoginScreen(
@@ -27,6 +30,8 @@ fun LoginScreen(
 ) {
     var isRegisterTab by remember { mutableStateOf(false) }
     var email by remember { mutableStateOf("") }
+    var firstName by remember { mutableStateOf("") }
+    var lastName by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordConfirm by remember { mutableStateOf("") }
     
@@ -42,7 +47,8 @@ fun LoginScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .padding(24.dp),
+            .padding(24.dp)
+            .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -119,17 +125,38 @@ fun LoginScreen(
                 // Form
                 OutlinedTextField(
                     value = email,
-                    onValueChange = { email = it },
+                    onValueChange = { email = InputValidator.filterEmail(it) },
                     label = { Text(stringResource(R.string.label_email)) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(14.dp)
                 )
+
+                AnimatedVisibility(visible = isRegisterTab) {
+                    Column {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        OutlinedTextField(
+                            value = firstName,
+                            onValueChange = { firstName = InputValidator.filterAlphanumericSpace(it) },
+                            label = { Text(stringResource(R.string.label_first_name)) },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(14.dp)
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        OutlinedTextField(
+                            value = lastName,
+                            onValueChange = { lastName = InputValidator.filterAlphanumericSpace(it) },
+                            label = { Text(stringResource(R.string.label_last_name)) },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(14.dp)
+                        )
+                    }
+                }
                 
                 Spacer(modifier = Modifier.height(12.dp))
 
                 OutlinedTextField(
                     value = password,
-                    onValueChange = { password = it },
+                    onValueChange = { password = it }, // Password usually allows special chars
                     label = { Text(stringResource(R.string.label_password)) },
                     visualTransformation = PasswordVisualTransformation(),
                     modifier = Modifier.fillMaxWidth(),
@@ -155,7 +182,7 @@ fun LoginScreen(
                 Button(
                     onClick = {
                         if (isRegisterTab) {
-                            viewModel.register(email, password)
+                            viewModel.register(email, password, firstName, lastName)
                         } else {
                             viewModel.login(email, password)
                         }

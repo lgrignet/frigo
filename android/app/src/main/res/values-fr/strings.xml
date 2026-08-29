@@ -1,10 +1,16 @@
 <resources>
+    <string name="app_name">MyStockManager</string>
+
+    <!-- Tabs -->
     <string name="tab_expiring">Péremption</string>
     <string name="tab_products">Produits</string>
     <string name="tab_shopping">Courses</string>
     <string name="tab_storages">Lieux</string>
+    <string name="tab_domiciles">Domiciles</string>
     <string name="tab_settings">Paramètres</string>
     <string name="tab_units">Unités</string>
+
+    <!-- Buttons -->
     <string name="btn_logout">Se déconnecter</string>
     <string name="btn_cancel">Annuler</string>
     <string name="btn_save">Enregistrer</string>
@@ -16,33 +22,51 @@
     <string name="btn_scan">Scanner</string>
     <string name="btn_minus">Moins</string>
     <string name="btn_plus">Plus</string>
+    <string name="btn_add_to_shopping">Ajouter aux courses</string>
     <string name="btn_continue">Continuer</string>
+
+    <!-- Labels -->
     <string name="label_name">Nom</string>
     <string name="label_quantity">Quantité</string>
     <string name="label_unit">Unité</string>
     <string name="label_storage">Rangement</string>
     <string name="label_shop">Magasin</string>
+    <string name="label_domicile">Domicile</string>
     <string name="label_expiry">Péremption</string>
     <string name="label_restock">Seuil de réassort</string>
     <string name="label_restock_quantity">Quantité à acheter</string>
     <string name="label_notes">Notes</string>
+    <string name="label_first_name">Prénom</string>
+    <string name="label_last_name">Nom</string>
     <string name="label_storage_type">Type de conservation</string>
     <string name="label_email">Adresse email</string>
     <string name="label_password">Mot de passe</string>
     <string name="label_confirm_password">Confirmer le mot de passe</string>
     <string name="label_none">Aucun</string>
     <string name="label_date_format_hint">(JJ/MM/AAAA)</string>
+
+    <!-- Messages -->
     <string name="msg_empty_list">Votre liste est vide 🛒</string>
     <string name="msg_all_fresh">Tout est frais ! ✅</string>
     <string name="msg_no_results">Aucun résultat</string>
+    <string name="msg_added_to_shopping">Produit ajouté à la liste de courses</string>
     <string name="msg_search_placeholder">Rechercher un produit...</string>
     <string name="msg_no_storage_defined">Aucun rangement défini. Créez-en un dans l\'onglet Lieux.</string>
+    <string name="msg_no_domicile_defined">Aucun domicile défini. Créez-en un d\'abord.</string>
+
+    <!-- Filters -->
+    <string name="filter_all_domiciles">Tous Domiciles</string>
+    <string name="filter_all_storages">Tous Rangements</string>
+
+    <!-- Titles -->
     <string name="title_new_product">Nouveau produit</string>
     <string name="title_edit_product">Modifier le produit</string>
     <string name="title_new_storage">Nouveau rangement</string>
     <string name="title_edit_storage">Modifier le rangement</string>
     <string name="title_new_shop">Nouveau magasin</string>
     <string name="title_edit_shop">Modifier le magasin</string>
+    <string name="title_new_domicile">Nouveau domicile</string>
+    <string name="title_edit_domicile">Modifier le domicile</string>
     <string name="title_new_unit">Nouvelle unité</string>
     <string name="title_edit_unit">Modifier l\'unité</string>
     <string name="title_new_shopping_item">Nouvel article</string>
@@ -51,19 +75,28 @@
     <string name="manage_places_title">Gestion des lieux</string>
     <string name="my_storages">Mes Rangements</string>
     <string name="my_shops">Mes Magasins</string>
+    <string name="my_domiciles">Mes Domiciles</string>
+
+    <!-- Confirmation -->
     <string name="confirm_delete_storage_title">Supprimer le rangement ?</string>
-    <string name="confirm_delete_storage_msg">Voulez-vous supprimer \'%1$s\' ? Cela n\'effacera pas les produits à l\'intérieur.</string>
+    <string name="confirm_delete_storage_msg">Voulez-vous supprimer \'%1$s\' ? Cela ne supprimera pas les produits à l\'intérieur.</string>
     <string name="confirm_delete_shop_title">Supprimer le magasin ?</string>
     <string name="confirm_delete_shop_msg">Voulez-vous supprimer \'%1$s\' ?</string>
+    <string name="confirm_delete_domicile_title">Supprimer le domicile ?</string>
+    <string name="confirm_delete_domicile_msg">Voulez-vous supprimer \'%1$s\' ? Cela affectera les rangements liés.</string>
+
+    <!-- Settings -->
     <string name="setting_lang">Langue de l\'interface</string>
     <string name="setting_date_format">Format de date</string>
     <string name="setting_expiry_warning">Alerte péremption</string>
     <string name="setting_theme">Thème</string>
+    <string name="setting_active_domicile">Domicile Actif</string>
     <string name="setting_sync_channel">Canal GUID</string>
 
     <string name="prefs_section_general">Général</string>
     <string name="prefs_section_sync">Synchronisation</string>
 
+    <!-- Other -->
     <string name="storage_type_sec">Sec</string>
     <string name="storage_type_frais">Frais</string>
     <string name="storage_type_congele">Congelé</string>
@@ -76,10 +109,23 @@
     <string name="lang_de">Allemand</string>
     <string name="lang_es">Espagnol</string>
 
+    <!-- Units -->
+    <string name="unit_piece_name">Pièce(s)</string>
+    <string name="unit_piece_label">pc</string>
+    <string name="unit_kg_name">Kilogramme</string>
+    <string name="unit_kg_label">kg</string>
+    <string name="unit_g_name">Gramme</string>
+    <string name="unit_g_label">g</string>
+    <string name="unit_l_name">Litre</string>
+    <string name="unit_l_label">L</string>
+    <string name="unit_packet_name">Paquet(s)</string>
+    <string name="unit_packet_label">paquet(s)</string>
+
+    <!-- Login -->
     <string name="login_subtitle">Gérez votre stock intelligemment</string>
-    <string name="login_tab_signin">Connexion</string>
+    <string name="login_tab_signin">Se connecter</string>
     <string name="login_tab_signup">Créer un compte</string>
     <string name="login_btn_signin">Se connecter</string>
     <string name="login_btn_signup">Créer mon compte</string>
-    <string name="login_msg_register_success">Compte créé ! Notez votre code :</string>
+    <string name="login_msg_register_success">Compte créé ! Notez bien votre code :</string>
 </resources>

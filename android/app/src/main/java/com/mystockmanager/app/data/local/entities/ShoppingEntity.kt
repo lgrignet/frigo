@@ -15,6 +15,7 @@ data class ShoppingEntity(
     val source: String = "manual", // auto, manual, recipe
     val itemId: String? = null,
     val shopId: String? = null,
+    val requestorInitials: String? = null, // Added for detailed view
     val checked: Boolean = false,
     val targetStorageId: String? = null,
     val notes: String = "",

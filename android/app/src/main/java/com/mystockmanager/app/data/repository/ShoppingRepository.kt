@@ -68,6 +68,8 @@ class ShoppingRepository @Inject constructor(
                 name = shoppingItem.name,
                 quantity = qty,
                 unit = shoppingItem.unit,
+                barcode = null,
+                requestorInitials = shoppingItem.requestorInitials,
                 expiryDate = null,
                 storageId = storageId,
                 shopId = shoppingItem.shopId,
@@ -103,6 +105,7 @@ class ShoppingRepository @Inject constructor(
                 source = "auto",
                 itemId = item.id,
                 shopId = item.shopId,
+                requestorInitials = item.requestorInitials, // Conserve les initiales du produit d'origine
                 checked = existing?.checked ?: false,
                 addedAt = existing?.addedAt ?: Instant.now().toString()
             )

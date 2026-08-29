@@ -1,6 +1,8 @@
 package com.mystockmanager.app.ui.shopping
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
@@ -11,13 +13,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Inventory
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -26,8 +27,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.mystockmanager.app.R
+import com.mystockmanager.app.core.InputValidator
+import com.mystockmanager.app.core.UnitTranslator
+import com.mystockmanager.app.data.local.entities.DomicileEntity
 import com.mystockmanager.app.data.local.entities.ShoppingEntity
 import com.mystockmanager.app.data.local.entities.StorageEntity
+import com.mystockmanager.app.data.local.entities.UnitEntity
 import com.mystockmanager.app.ui.theme.Accent
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -38,8 +43,10 @@ fun ShoppingScreen(
     val items by viewModel.shoppingItems.collectAsState()
     val shops by viewModel.shops.collectAsState()
     val storages by viewModel.storages.collectAsState()
+    val domiciles by viewModel.domiciles.collectAsState()
     val units by viewModel.units.collectAsState()
     val filterShopId by viewModel.filterShopId.collectAsState()
+    val isAggregated by viewModel.isAggregated.collectAsState()
 
     var showAddDialog by remember { mutableStateOf(false) }
     var editingItem by remember { mutableStateOf<ShoppingEntity?>(null) }
@@ -62,11 +69,21 @@ fun ShoppingScreen(
                 color = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
-            IconButton(onClick = { 
-                editingItem = null
-                showAddDialog = true 
+            
+            Row {
+                IconButton(onClick = { viewModel.toggleAggregation() }) {
+                    Icon(
+                        if (isAggregated) Icons.Default.Groups else Icons.Default.Person,
+                        contentDescription = "Basculer l'agrégation",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+                IconButton(onClick = { 
+                    editingItem = null
+                    showAddDialog = true 
             }) {
                 Icon(Icons.Default.Add, contentDescription = stringResource(R.string.btn_add), tint = MaterialTheme.colorScheme.primary)
+            }
             }
         }
 
@@ -132,18 +149,26 @@ fun ShoppingScreen(
                     items(toBuy, key = { it.id }) { item ->
                         ShoppingItemRow(
                             item = item,
+                            isAggregated = isAggregated,
                             onToggle = { viewModel.toggleChecked(item) },
                             onDelete = { viewModel.deleteItem(item) },
                             onStore = { 
                                 if (item.targetStorageId != null) {
-                                    viewModel.moveToStock(item, item.targetStorageId)
+                                    viewModel.moveToStock(item, item.targetStorageId!!)
                                 } else {
                                     itemToStore = item 
                                 }
                             },
                             onClick = {
-                                editingItem = item
-                                showAddDialog = true
+                                if (item.id.startsWith("agg_")) {
+                                    viewModel.editFirstOfAggregated(item) { firstItem ->
+                                        editingItem = firstItem
+                                        showAddDialog = true
+                                    }
+                                } else {
+                                    editingItem = item
+                                    showAddDialog = true
+                                }
                             }
                         )
                     }
@@ -156,18 +181,26 @@ fun ShoppingScreen(
                     items(bought, key = { it.id }) { item ->
                         ShoppingItemRow(
                             item = item,
+                            isAggregated = isAggregated,
                             onToggle = { viewModel.toggleChecked(item) },
                             onDelete = { viewModel.deleteItem(item) },
                             onStore = { 
                                 if (item.targetStorageId != null) {
-                                    viewModel.moveToStock(item, item.targetStorageId)
+                                    viewModel.moveToStock(item, item.targetStorageId!!)
                                 } else {
                                     itemToStore = item 
                                 }
                             },
                             onClick = {
-                                editingItem = item
-                                showAddDialog = true
+                                if (item.id.startsWith("agg_")) {
+                                    viewModel.editFirstOfAggregated(item) { firstItem ->
+                                        editingItem = firstItem
+                                        showAddDialog = true
+                                    }
+                                } else {
+                                    editingItem = item
+                                    showAddDialog = true
+                                }
                             }
                         )
                     }
@@ -181,6 +214,7 @@ fun ShoppingScreen(
             existingItem = editingItem,
             shops = shops,
             storages = storages,
+            domiciles = domiciles,
             units = units,
             onDismiss = { showAddDialog = false },
             onConfirm = { name, qty, unit, shopId, targetStorageId ->
@@ -203,6 +237,7 @@ fun ShoppingScreen(
     if (itemToStore != null) {
         StorageSelectionDialog(
             storages = storages,
+            domiciles = domiciles,
             onDismiss = { itemToStore = null },
             onConfirm = { storageId ->
                 viewModel.moveToStock(itemToStore!!, storageId)
@@ -226,20 +261,16 @@ fun SectionHeader(title: String) {
 @Composable
 fun ShoppingItemRow(
     item: ShoppingEntity,
+    isAggregated: Boolean,
     onToggle: () -> Unit,
     onDelete: () -> Unit,
     onStore: () -> Unit,
     onClick: () -> Unit
 ) {
+    val isAggregatedRow = item.id.startsWith("agg_")
+
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .pointerInput(Unit) {
-                detectTapGestures(
-                    onTap = { onToggle() },
-                    onLongPress = { onClick() }
-                )
-            },
+        modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
             containerColor = if (item.checked) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f) 
                              else MaterialTheme.colorScheme.surface
@@ -248,7 +279,9 @@ fun ShoppingItemRow(
         border = AssistChipDefaults.assistChipBorder(enabled = true, borderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
     ) {
         Row(
-            modifier = Modifier.padding(12.dp),
+            modifier = Modifier
+                .clickable { onClick() }
+                .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Checkbox(
@@ -260,19 +293,42 @@ fun ShoppingItemRow(
             Spacer(modifier = Modifier.width(8.dp))
 
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = item.name,
-                    fontWeight = FontWeight.SemiBold,
-                    color = if (item.checked) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
-                    fontSize = 15.sp,
-                    textDecoration = if (item.checked) TextDecoration.LineThrough else TextDecoration.None
-                )
-                if (item.quantity.isNotBlank()) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = "${item.quantity} ${item.unit}",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontSize = 12.sp
+                        text = item.name,
+                        fontWeight = FontWeight.SemiBold,
+                        color = if (item.checked) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
+                        fontSize = 15.sp,
+                        textDecoration = if (item.checked) TextDecoration.LineThrough else TextDecoration.None
                     )
+                    if (isAggregatedRow) {
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Icon(Icons.Default.Groups, contentDescription = null, tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f), modifier = Modifier.size(14.dp))
+                    }
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (item.quantity.isNotBlank()) {
+                        Text(
+                            text = "${item.quantity} ${UnitTranslator.translateLabel(item.unit)}",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontSize = 12.sp
+                        )
+                    }
+                    if (!item.requestorInitials.isNullOrBlank()) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Surface(
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.2f)
+                        ) {
+                            Text(
+                                text = item.requestorInitials,
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.secondary,
+                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
+                            )
+                        }
+                    }
                 }
             }
 
@@ -295,7 +351,8 @@ fun ShoppingItemDialog(
     existingItem: ShoppingEntity? = null,
     shops: List<com.mystockmanager.app.data.local.entities.ShopEntity> = emptyList(),
     storages: List<StorageEntity> = emptyList(),
-    units: List<com.mystockmanager.app.data.local.entities.UnitEntity> = emptyList(),
+    domiciles: List<DomicileEntity> = emptyList(),
+    units: List<UnitEntity> = emptyList(),
     onDismiss: () -> Unit,
     onConfirm: (String, String, String, String?, String?) -> Unit
 ) {
@@ -303,10 +360,15 @@ fun ShoppingItemDialog(
     var qty by remember { mutableStateOf(existingItem?.quantity ?: "1") }
     var unit by remember { mutableStateOf(existingItem?.unit ?: "pièce(s)") }
     var shopId by remember { mutableStateOf(existingItem?.shopId) }
+    
     var targetStorageId by remember { mutableStateOf(existingItem?.targetStorageId) }
+    var targetDomicileId by remember { 
+        mutableStateOf(storages.find { it.id == existingItem?.targetStorageId }?.domicileId) 
+    }
     
     var shopExpanded by remember { mutableStateOf(false) }
     var storageExpanded by remember { mutableStateOf(false) }
+    var domicileExpanded by remember { mutableStateOf(false) }
     var unitExpanded by remember { mutableStateOf(false) }
 
     AlertDialog(
@@ -326,9 +388,21 @@ fun ShoppingItemDialog(
                 modifier = Modifier.verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text(stringResource(R.string.label_name)) }, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(
+                    value = name, 
+                    onValueChange = { name = InputValidator.filterAlphanumericSpace(it) }, 
+                    label = { Text(stringResource(R.string.label_name)) }, 
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp)
+                )
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(value = qty, onValueChange = { qty = it }, label = { Text(stringResource(R.string.label_quantity)) }, modifier = Modifier.weight(1f))
+                    OutlinedTextField(
+                        value = qty, 
+                        onValueChange = { qty = InputValidator.filterDecimal(it) }, 
+                        label = { Text(stringResource(R.string.label_quantity)) }, 
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(14.dp)
+                    )
                     
                     ExposedDropdownMenuBox(
                         expanded = unitExpanded,
@@ -337,7 +411,7 @@ fun ShoppingItemDialog(
                     ) {
                         OutlinedTextField(
                             value = unit,
-                            onValueChange = { unit = it },
+                            onValueChange = { unit = InputValidator.filterAlphanumericSpace(it) },
                             label = { Text(stringResource(R.string.label_unit)) },
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = unitExpanded) },
                             modifier = Modifier.menuAnchor().fillMaxWidth(),
@@ -345,7 +419,7 @@ fun ShoppingItemDialog(
                         )
                         ExposedDropdownMenu(expanded = unitExpanded, onDismissRequest = { unitExpanded = false }) {
                             units.forEach { unitItem ->
-                                DropdownMenuItem(text = { Text(unitItem.label) }, onClick = { unit = unitItem.label; unitExpanded = false })
+                                DropdownMenuItem(text = { Text(UnitTranslator.getTranslatedLabel(unitItem)) }, onClick = { unit = unitItem.label; unitExpanded = false })
                             }
                         }
                     }
@@ -376,13 +450,52 @@ fun ShoppingItemDialog(
                     }
                 }
 
+                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                Text("Cible de rangement", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
+
+                // Domicile Selection for Target
+                ExposedDropdownMenuBox(
+                    expanded = domicileExpanded,
+                    onExpandedChange = { domicileExpanded = it },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    val currentDomName = domiciles.find { it.id == targetDomicileId }?.name ?: stringResource(R.string.label_none)
+                    OutlinedTextField(
+                        value = currentDomName,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Domicile cible") },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = domicileExpanded) },
+                        colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+                        modifier = Modifier.menuAnchor().fillMaxWidth(),
+                        shape = RoundedCornerShape(14.dp)
+                    )
+                    ExposedDropdownMenu(expanded = domicileExpanded, onDismissRequest = { domicileExpanded = false }) {
+                        DropdownMenuItem(text = { Text(stringResource(R.string.label_none)) }, onClick = { targetDomicileId = null; targetStorageId = null; domicileExpanded = false })
+                        domiciles.forEach { dom ->
+                            DropdownMenuItem(text = { Text(dom.name) }, onClick = { 
+                                targetDomicileId = dom.id
+                                // Reset storage if not in this domicile
+                                if (storages.find { it.id == targetStorageId }?.domicileId != dom.id) {
+                                    targetStorageId = null
+                                }
+                                domicileExpanded = false 
+                            })
+                        }
+                    }
+                }
+
                 // Target Storage Selection
                 ExposedDropdownMenuBox(
                     expanded = storageExpanded,
                     onExpandedChange = { storageExpanded = it },
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    val currentStorageName = storages.find { it.id == targetStorageId }?.let { "${it.icon} ${it.name}" } ?: stringResource(R.string.label_none)
+                    val filteredStorages = if (targetDomicileId == null) storages.filter { it.domicileId == null } 
+                                          else storages.filter { it.domicileId == targetDomicileId }
+                    
+                    val currentStorageName = filteredStorages.find { it.id == targetStorageId }?.let { "${it.icon} ${it.name}" } ?: stringResource(R.string.label_none)
+                    
                     OutlinedTextField(
                         value = currentStorageName,
                         onValueChange = {},
@@ -395,7 +508,7 @@ fun ShoppingItemDialog(
                     )
                     ExposedDropdownMenu(expanded = storageExpanded, onDismissRequest = { storageExpanded = false }) {
                         DropdownMenuItem(text = { Text(stringResource(R.string.label_none)) }, onClick = { targetStorageId = null; storageExpanded = false })
-                        storages.forEach { storage ->
+                        filteredStorages.forEach { storage ->
                             DropdownMenuItem(text = { Text("${storage.icon} ${storage.name}") }, onClick = { targetStorageId = storage.id; storageExpanded = false })
                         }
                     }
@@ -408,9 +521,12 @@ fun ShoppingItemDialog(
 @Composable
 fun StorageSelectionDialog(
     storages: List<StorageEntity>,
+    domiciles: List<DomicileEntity>,
     onDismiss: () -> Unit,
     onConfirm: (String) -> Unit
 ) {
+    var selectedDomicileId by remember { mutableStateOf<String?>(null) }
+    
     AlertDialog(
         onDismissRequest = onDismiss,
         confirmButton = {},
@@ -420,16 +536,47 @@ fun StorageSelectionDialog(
         title = { Text("Où ranger ce produit ?") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                if (storages.isEmpty()) {
-                    Text(stringResource(R.string.msg_no_storage_defined), color = MaterialTheme.colorScheme.error)
+                // Domicile selector inside store dialog
+                Text("Lieu :", style = MaterialTheme.typography.labelSmall)
+                Row(modifier = Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FilterChip(
+                        selected = selectedDomicileId == null,
+                        onClick = { selectedDomicileId = null },
+                        label = { Text("Tous") }
+                    )
+                    domiciles.forEach { dom ->
+                        FilterChip(
+                            selected = selectedDomicileId == dom.id,
+                            onClick = { selectedDomicileId = dom.id },
+                            label = { Text(dom.name) }
+                        )
+                    }
                 }
-                storages.forEach { storage ->
-                    Button(
-                        onClick = { onConfirm(storage.id) },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant, contentColor = MaterialTheme.colorScheme.onSurfaceVariant)
-                    ) {
-                        Text("${storage.icon} ${storage.name}")
+
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                val filtered = if (selectedDomicileId == null) storages 
+                               else storages.filter { it.domicileId == selectedDomicileId }
+
+                if (filtered.isEmpty()) {
+                    Text("Aucun rangement trouvé.", color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
+                }
+                
+                Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                    filtered.forEach { storage ->
+                        val domName = domiciles.find { it.id == storage.domicileId }?.name ?: ""
+                        Button(
+                            onClick = { onConfirm(storage.id) },
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant, contentColor = MaterialTheme.colorScheme.onSurfaceVariant)
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text("${storage.icon} ${storage.name}")
+                                if (domName.isNotBlank()) {
+                                    Text(domName, fontSize = 9.sp, color = MaterialTheme.colorScheme.primary)
+                                }
+                            }
+                        }
                     }
                 }
             }

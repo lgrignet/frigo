@@ -16,6 +16,7 @@
     <string name="btn_scan">Scannen</string>
     <string name="btn_minus">Min</string>
     <string name="btn_plus">Plus</string>
+    <string name="btn_add_to_shopping">Aan boodschappenlijst toevoegen</string>
     <string name="btn_continue">Doorgaan</string>
     <string name="label_name">Naam</string>
     <string name="label_quantity">Hoeveelheid</string>
@@ -26,6 +27,8 @@
     <string name="label_restock">Drempel voor herbevoorrading</string>
     <string name="label_restock_quantity">Te kopen hoeveelheid</string>
     <string name="label_notes">Notities</string>
+    <string name="label_first_name">Voornaam</string>
+    <string name="label_last_name">Achternaam</string>
     <string name="label_storage_type">Opslagtype</string>
     <string name="label_email">E-mailadres</string>
     <string name="label_password">Wachtwoord</string>
@@ -35,7 +38,13 @@
     <string name="msg_empty_list">Je lijst is leeg 🛒</string>
     <string name="msg_all_fresh">Alles is vers! ✅</string>
     <string name="msg_no_results">Geen resultaten</string>
+    <string name="msg_added_to_shopping">Product aan boodschappenlijst toegevoegd</string>
     <string name="msg_search_placeholder">Zoek naar een product...</string>
+
+    <!-- Filters -->
+    <string name="filter_all_domiciles">Alle Domicilies</string>
+    <string name="filter_all_storages">Alle Opslagen</string>
+
     <string name="msg_no_storage_defined">Geen opslag gedefinieerd. Maak er een aan in het tabblad Locaties.</string>
     <string name="title_new_product">Nieuw product</string>
     <string name="title_edit_product">Product wijzigen</string>
@@ -73,6 +82,18 @@
     <string name="lang_nl">Nederlands</string>
     <string name="lang_de">Duits</string>
     <string name="lang_es">Spaans</string>
+
+    <!-- Units -->
+    <string name="unit_piece_name">Stuk(s)</string>
+    <string name="unit_piece_label">st</string>
+    <string name="unit_kg_name">Kilogram</string>
+    <string name="unit_kg_label">kg</string>
+    <string name="unit_g_name">Gram</string>
+    <string name="unit_g_label">g</string>
+    <string name="unit_l_name">Liter</string>
+    <string name="unit_l_label">L</string>
+    <string name="unit_packet_name">Pak(ken)</string>
+    <string name="unit_packet_label">pak</string>
 
     <string name="login_subtitle">Beheer je voorraad intelligent</string>
     <string name="login_tab_signin">Inloggen</string>

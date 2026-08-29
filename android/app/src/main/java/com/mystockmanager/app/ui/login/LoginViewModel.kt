@@ -33,11 +33,11 @@ class LoginViewModel @Inject constructor(
         }
     }
 
-    fun register(email: String, password: String) {
+    fun register(email: String, password: String, firstName: String, lastName: String) {
         viewModelScope.launch {
             _uiState.value = LoginUiState.Loading
             try {
-                val recoveryCode = authRepository.register(email, password)
+                val recoveryCode = authRepository.register(email, password, firstName, lastName)
                 _uiState.value = LoginUiState.RegisterSuccess(recoveryCode)
             } catch (e: Exception) {
                 _uiState.value = LoginUiState.Error(e.message ?: "Registration failed")

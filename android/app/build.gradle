@@ -32,8 +32,8 @@ android {
         applicationId 'com.mystockmanager.app'
         minSdk 26
         targetSdk 36
-        versionCode 12
-        versionName '1.11'
+        versionCode 21
+        versionName '1.20'
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -99,7 +99,7 @@ android {
 
 dependencies {
     // Core Android & Kotlin
-    implementation 'androidx.core:core-ktx:1.19.0'
+    implementation 'androidx.core:core-ktx:1.15.0'
     implementation 'androidx.appcompat:appcompat:1.8.0'
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.11.0'
     implementation 'androidx.activity:activity-compose:1.13.0'
@@ -148,7 +148,7 @@ dependencies {
     implementation "androidx.camera:camera-camera2:$camerax_version"
     implementation "androidx.camera:camera-lifecycle:$camerax_version"
     implementation "androidx.camera:camera-view:$camerax_version"
-    implementation 'com.google.guava:guava:33.6.0-android'
+    implementation 'com.google.guava:guava:33.3.1-android'
     implementation 'com.google.mlkit:barcode-scanning:17.3.0'
 
     // WorkManager for background tasks (notifications)

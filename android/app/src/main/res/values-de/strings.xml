@@ -16,6 +16,7 @@
     <string name="btn_scan">Scannen</string>
     <string name="btn_minus">Minus</string>
     <string name="btn_plus">Plus</string>
+    <string name="btn_add_to_shopping">In Einkaufsliste hinzufügen</string>
     <string name="btn_continue">Weiter</string>
     <string name="label_name">Name</string>
     <string name="label_quantity">Menge</string>
@@ -26,6 +27,8 @@
     <string name="label_restock">Nachbestellschwelle</string>
     <string name="label_restock_quantity">Menge zum Kauf</string>
     <string name="label_notes">Notizen</string>
+    <string name="label_first_name">Vorname</string>
+    <string name="label_last_name">Nachname</string>
     <string name="label_storage_type">Lagerart</string>
     <string name="label_email">E-Mail-Adresse</string>
     <string name="label_password">Passwort</string>
@@ -35,7 +38,13 @@
     <string name="msg_empty_list">Deine Liste ist leer 🛒</string>
     <string name="msg_all_fresh">Alles ist frisch! ✅</string>
     <string name="msg_no_results">Keine Ergebnisse</string>
+    <string name="msg_added_to_shopping">Produkt zur Einkaufsliste hinzugefügt</string>
     <string name="msg_search_placeholder">Nach einem Produkt suchen...</string>
+
+    <!-- Filters -->
+    <string name="filter_all_domiciles">Alle Wohnsitze</string>
+    <string name="filter_all_storages">Alle Lagerungen</string>
+
     <string name="msg_no_storage_defined">Keine Lagerung definiert. Erstelle eine im Reiter Orte.</string>
     <string name="title_new_product">Neues Produkt</string>
     <string name="title_edit_product">Produkt bearbeiten</string>
@@ -73,6 +82,18 @@
     <string name="lang_nl">Niederländisch</string>
     <string name="lang_de">Deutsch</string>
     <string name="lang_es">Spanisch</string>
+
+    <!-- Units -->
+    <string name="unit_piece_name">Stück</string>
+    <string name="unit_piece_label">Stk</string>
+    <string name="unit_kg_name">Kilogramm</string>
+    <string name="unit_kg_label">kg</string>
+    <string name="unit_g_name">Gramm</string>
+    <string name="unit_g_label">g</string>
+    <string name="unit_l_name">Liter</string>
+    <string name="unit_l_label">L</string>
+    <string name="unit_packet_name">Paket(e)</string>
+    <string name="unit_packet_label">Pkt</string>
 
     <string name="login_subtitle">Verwalten Sie Ihren Bestand intelligent</string>
     <string name="login_tab_signin">Anmelden</string>

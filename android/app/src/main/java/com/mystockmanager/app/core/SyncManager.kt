@@ -111,6 +111,11 @@ class SyncManager @Inject constructor(
                         if (message.action == "put") db.shopDao().insertShop(entity)
                         else if (message.action == "delete") db.shopDao().deleteShop(entity)
                     }
+                    "domicile" -> {
+                        val entity = json.decodeFromString<DomicileEntity>(message.data)
+                        if (message.action == "put") db.domicileDao().insertDomicile(entity)
+                        else if (message.action == "delete") db.domicileDao().deleteDomicile(entity)
+                    }
                     "unit" -> {
                         val entity = json.decodeFromString<UnitEntity>(message.data)
                         if (message.action == "put") db.unitDao().insertUnit(entity)
@@ -155,6 +160,11 @@ class SyncManager @Inject constructor(
             db.shopDao().getAllShops(userId).first().forEach { local ->
                 if (!validShops.contains(local.id)) db.shopDao().deleteShop(local)
             }
+            // Domiciles
+            val validDomiciles = validIdsByType["domicile"] ?: emptyList()
+            db.domicileDao().getAllDomiciles().first().forEach { local ->
+                if (!validDomiciles.contains(local.id)) db.domicileDao().deleteDomicile(local)
+            }
             // Units
             val validUnits = validIdsByType["unit"] ?: emptyList()
             db.unitDao().getAllUnits(userId).first().forEach { local ->
@@ -178,6 +188,10 @@ class SyncManager @Inject constructor(
 
     fun syncShop(entity: ShopEntity, action: String = "put") {
         enqueueMessage(SyncMessage("shop", action, json.encodeToString(entity), deviceId))
+    }
+
+    fun syncDomicile(entity: DomicileEntity, action: String = "put") {
+        enqueueMessage(SyncMessage("domicile", action, json.encodeToString(entity), deviceId))
     }
 
     fun syncUnit(entity: UnitEntity, action: String = "put") {

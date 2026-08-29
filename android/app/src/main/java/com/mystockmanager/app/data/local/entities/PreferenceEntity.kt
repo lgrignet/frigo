@@ -13,6 +13,8 @@ data class PreferenceEntity(
     val notificationTime: String = "08:00",
     val defaultUnit: String = "pièce(s)",
     val defaultStorageId: String? = null,
+    val activeDomicileId: String? = null, // Track current domicile
+    val isShoppingAggregated: Boolean = true, // Track grouping preference
     val theme: String = "dark",
     val lang: String = "fr",
     val dateFormat: String = "european"

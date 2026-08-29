@@ -31,6 +31,7 @@ import androidx.work.WorkManager
 import com.mystockmanager.app.core.ExpiryWorker
 import com.mystockmanager.app.core.SessionManager
 import com.mystockmanager.app.core.SyncManager
+import com.mystockmanager.app.data.local.dao.UserDao
 import com.mystockmanager.app.data.repository.PrefsRepository
 import com.mystockmanager.app.ui.dashboard.DashboardScreen
 import com.mystockmanager.app.ui.items.AllItemsScreen
@@ -55,6 +56,7 @@ class MainActivity : AppCompatActivity() {
     @Inject lateinit var sessionManager: SessionManager
     @Inject lateinit var syncManager: SyncManager
     @Inject lateinit var prefsRepository: PrefsRepository
+    @Inject lateinit var userDao: UserDao
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -73,8 +75,25 @@ class MainActivity : AppCompatActivity() {
         scheduleExpiryCheck()
 
         lifecycleScope.launch {
-            val userId = sessionManager.getUserId().toString()
-            val prefs = prefsRepository.getPrefs(userId).first()
+            val userId = sessionManager.getUserId()
+            
+            if (userId != -1L) {
+                val user = userDao.getUserById(userId)
+                if (user != null) {
+                    // Sync session names with DB if they differ
+                    if (sessionManager.getFirstName() != user.firstName || sessionManager.getLastName() != user.lastName) {
+                        sessionManager.setSession(user.id, user.email, user.syncChannelGuid, user.firstName, user.lastName)
+                    }
+                } else {
+                    // Critical: User exists in session but GONE from DB (after wipe/migration)
+                    sessionManager.clearSession()
+                    finish()
+                    startActivity(intent)
+                    return@launch
+                }
+            }
+
+            val prefs = prefsRepository.getPrefs(userId.toString()).first()
             prefs?.lang?.let { lang ->
                 val appLocales = LocaleListCompat.forLanguageTags(lang)
                 if (AppCompatDelegate.getApplicationLocales() != appLocales) {
