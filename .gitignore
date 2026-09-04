@@ -15,3 +15,4 @@ frigo.zip
 # account-service (Node)
 /API/node_modules/
 /API/.env
+API/src/server.js.bak.20260831-200851
