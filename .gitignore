@@ -11,3 +11,7 @@
 # Gradle local caches
 /.gradle/
 frigo.zip
+
+# account-service (Node)
+/API/node_modules/
+/API/.env

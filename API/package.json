@@ -1,0 +1,18 @@
+{
+  "name": "account-service",
+  "version": "1.0.0",
+  "description": "MyStockManager - service de gestion de comptes (migration, inscription, connexion)",
+  "type": "module",
+  "private": true,
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "nodemailer": "^6.10.0",
+    "pg": "^8.13.1"
+  }
+}
