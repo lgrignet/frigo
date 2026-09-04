@@ -72,7 +72,7 @@ fun PrefsScreen(
         )
 
         // Profile Section
-        PrefsSection(title = "Mon Profil") {
+        PrefsSection(title = stringResource(R.string.prefs_section_profile)) {
             OutlinedTextField(
                 value = firstName,
                 onValueChange = { viewModel.firstName.value = it },
@@ -96,7 +96,7 @@ fun PrefsScreen(
             ) {
                 Icon(Icons.Default.Save, contentDescription = null)
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Enregistrer le profil")
+                Text(stringResource(R.string.btn_save_profile))
             }
         }
 
@@ -196,12 +196,12 @@ fun PrefsScreen(
                     FilterChip(
                         selected = prefs.dateFormat == "european",
                         onClick = { viewModel.updateDateFormat("european") },
-                        label = { Text("JJ/MM/AAAA") }
+                        label = { Text(stringResource(R.string.date_format_european_label)) }
                     )
                     FilterChip(
                         selected = prefs.dateFormat == "iso",
                         onClick = { viewModel.updateDateFormat("iso") },
-                        label = { Text("AAAA-MM-JJ") }
+                        label = { Text(stringResource(R.string.date_format_iso_label)) }
                     )
                 }
             }
@@ -241,13 +241,13 @@ fun PrefsScreen(
             }
 
             // Notifications Toggle
-            PrefsItem(label = "Notifications d'alerte") {
+            PrefsItem(label = stringResource(R.string.setting_notifications)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(if (prefs.notificationsEnabled) "Activées" else "Désactivées", color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp)
+                    Text(if (prefs.notificationsEnabled) stringResource(R.string.state_enabled) else stringResource(R.string.state_disabled), color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp)
                     Switch(
                         checked = prefs.notificationsEnabled,
                         onCheckedChange = { viewModel.updateNotifications(it) }
@@ -283,7 +283,7 @@ fun PrefsScreen(
                     }
                     
                     IconButton(onClick = { showQrDialog = true }) {
-                        Icon(Icons.Default.QrCode, contentDescription = "Show QR", tint = MaterialTheme.colorScheme.primary)
+                        Icon(Icons.Default.QrCode, contentDescription = stringResource(R.string.cd_show_qr), tint = MaterialTheme.colorScheme.primary)
                     }
 
                     IconButton(onClick = { showScanner = true }) {
@@ -322,7 +322,7 @@ fun PrefsScreen(
                     val bitmap = remember(syncGuid) { QRCodeGenerator.generate(syncGuid) }
                     androidx.compose.foundation.Image(
                         bitmap = bitmap.asImageBitmap(),
-                        contentDescription = "QR Code",
+                        contentDescription = stringResource(R.string.cd_qr_code),
                         modifier = Modifier.size(200.dp)
                     )
                 }

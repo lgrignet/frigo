@@ -47,12 +47,21 @@ fun AllItemsScreen(
     val selectedDomId by viewModel.selectedDomicileId.collectAsState()
     val selectedStorId by viewModel.selectedStorageId.collectAsState()
 
+    var domExpanded by remember { mutableStateOf(false) }
+    var storExpanded by remember { mutableStateOf(false) }
+
     val snackbarHostState = remember { SnackbarHostState() }
     val addedMessage = stringResource(R.string.msg_added_to_shopping)
 
     LaunchedEffect(Unit) {
         viewModel.message.collect { productName ->
             snackbarHostState.showSnackbar("$productName : $addedMessage")
+        }
+    }
+
+    LaunchedEffect(activeDomicileId) {
+        if (selectedDomId == null && activeDomicileId != null) {
+            viewModel.setFilterDomicile(activeDomicileId)
         }
     }
 
@@ -84,40 +93,97 @@ fun AllItemsScreen(
                 )
             )
 
-            // Filters
+            // Filters (Dropdowns)
             Row(
-                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(bottom = 16.dp),
+                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                FilterChip(
-                    selected = selectedDomId == null,
-                    onClick = { viewModel.setFilterDomicile(null) },
-                    label = { Text(stringResource(R.string.filter_all_domiciles)) }
-                )
-                domiciles.forEach { dom ->
-                    FilterChip(
-                        selected = selectedDomId == dom.id,
-                        onClick = { viewModel.setFilterDomicile(dom.id) },
-                        label = { Text(dom.name) }
-                    )
-                }
-            }
+                // Domicile Dropdown
+                ExposedDropdownMenuBox(
+                    expanded = domExpanded,
+                    onExpandedChange = { domExpanded = it },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    val currentDomName = if (selectedDomId == null) stringResource(R.string.filter_all_domiciles)
+                    else domiciles.find { it.id == selectedDomId }?.name ?: stringResource(R.string.filter_all_domiciles)
 
-            Row(
-                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(bottom = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                FilterChip(
-                    selected = selectedStorId == null,
-                    onClick = { viewModel.setFilterStorage(null) },
-                    label = { Text(stringResource(R.string.filter_all_storages)) }
-                )
-                storages.filter { selectedDomId == null || it.domicileId == selectedDomId }.forEach { stor ->
-                    FilterChip(
-                        selected = selectedStorId == stor.id,
-                        onClick = { viewModel.setFilterStorage(stor.id) },
-                        label = { Text("${stor.icon} ${stor.name}") }
+                    OutlinedTextField(
+                        value = currentDomName,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text(stringResource(R.string.label_domicile), fontSize = 11.sp) },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = domExpanded) },
+                        colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+                        modifier = Modifier.menuAnchor().fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        textStyle = MaterialTheme.typography.bodyMedium.copy(fontSize = 13.sp)
                     )
+
+                    ExposedDropdownMenu(
+                        expanded = domExpanded,
+                        onDismissRequest = { domExpanded = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.filter_all_domiciles)) },
+                            onClick = {
+                                viewModel.setFilterDomicile(null)
+                                domExpanded = false
+                            }
+                        )
+                        domiciles.forEach { dom ->
+                            DropdownMenuItem(
+                                text = { Text(dom.name) },
+                                onClick = {
+                                    viewModel.setFilterDomicile(dom.id)
+                                    domExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+
+                // Storage Dropdown
+                ExposedDropdownMenuBox(
+                    expanded = storExpanded,
+                    onExpandedChange = { storExpanded = it },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    val currentStorName = if (selectedStorId == null) stringResource(R.string.filter_all_storages)
+                    else storages.find { it.id == selectedStorId }?.let { "${it.icon} ${it.name}" } ?: stringResource(R.string.filter_all_storages)
+
+                    OutlinedTextField(
+                        value = currentStorName,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text(stringResource(R.string.label_storage), fontSize = 11.sp) },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = storExpanded) },
+                        colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+                        modifier = Modifier.menuAnchor().fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        textStyle = MaterialTheme.typography.bodyMedium.copy(fontSize = 13.sp)
+                    )
+
+                    ExposedDropdownMenu(
+                        expanded = storExpanded,
+                        onDismissRequest = { storExpanded = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.filter_all_storages)) },
+                            onClick = {
+                                viewModel.setFilterStorage(null)
+                                storExpanded = false
+                            }
+                        )
+                        storages.filter { selectedDomId == null || it.domicileId == selectedDomId }.forEach { stor ->
+                            DropdownMenuItem(
+                                text = { Text("${stor.icon} ${stor.name}") },
+                                onClick = {
+                                    viewModel.setFilterStorage(stor.id)
+                                    storExpanded = false
+                                }
+                            )
+                        }
+                    }
                 }
             }
 
@@ -202,13 +268,13 @@ fun ItemRow(
     ) {
         Row(
             modifier = Modifier.padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.Top
         ) {
             // Photo or initials
-            Box(modifier = Modifier.size(50.dp)) {
+            Box(modifier = Modifier.size(60.dp)) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    shape = RoundedCornerShape(10.dp),
+                    shape = RoundedCornerShape(12.dp),
                     color = MaterialTheme.colorScheme.primaryContainer
                 ) {
                     if (!item.photo.isNullOrBlank()) {
@@ -220,7 +286,7 @@ fun ItemRow(
                         )
                     } else {
                         Box(contentAlignment = Alignment.Center) {
-                            Text("📦", fontSize = 24.sp)
+                            Text("📦", fontSize = 28.sp)
                         }
                     }
                 }
@@ -235,10 +301,10 @@ fun ItemRow(
                     ) {
                         Text(
                             text = item.requestorInitials,
-                            fontSize = 8.sp,
+                            fontSize = 9.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.White,
-                            modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                         )
                     }
                 }
@@ -249,57 +315,99 @@ fun ItemRow(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = item.name,
-                    fontWeight = FontWeight.SemiBold,
+                    fontWeight = FontWeight.Bold,
                     color = if (canEdit) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                    fontSize = 15.sp,
+                    fontSize = 17.sp,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     text = "${item.quantity} ${UnitTranslator.translateLabel(item.unit)}${if (storageName != null) " • $storageName" else ""}",
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontSize = 12.sp,
+                    fontSize = 13.sp,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(bottom = 8.dp)
                 )
-            }
 
-            if (canEdit) {
-                // Boutons de réglage rapide
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = { onAdjustQuantity(-1.0) }) {
-                        Icon(
-                            Icons.Default.Remove, 
-                            contentDescription = stringResource(R.string.btn_minus), 
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-                    
-                    IconButton(onClick = { onAdjustQuantity(1.0) }) {
-                        Icon(
-                            Icons.Default.Add, 
-                            contentDescription = stringResource(R.string.btn_plus), 
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
+                if (canEdit) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Boutons de réglage rapide
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.background(
+                                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                                shape = RoundedCornerShape(8.dp)
+                            ).padding(horizontal = 4.dp)
+                        ) {
+                            IconButton(onClick = { onAdjustQuantity(-1.0) }, modifier = Modifier.size(36.dp)) {
+                                Icon(
+                                    Icons.Default.Remove, 
+                                    contentDescription = stringResource(R.string.btn_minus), 
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                            
+                            IconButton(onClick = { onAdjustQuantity(1.0) }, modifier = Modifier.size(36.dp)) {
+                                Icon(
+                                    Icons.Default.Add, 
+                                    contentDescription = stringResource(R.string.btn_plus), 
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
 
-                    IconButton(onClick = onAddToShopping) {
+                        IconButton(
+                            onClick = onAddToShopping,
+                            modifier = Modifier.size(36.dp).background(
+                                color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
+                                shape = CircleShape
+                            )
+                        ) {
+                            Icon(
+                                Icons.Default.AddShoppingCart, 
+                                contentDescription = stringResource(R.string.btn_add_to_shopping), 
+                                tint = MaterialTheme.colorScheme.onSecondaryContainer, 
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.weight(1f))
+
+                        IconButton(onClick = onDelete, modifier = Modifier.size(36.dp)) {
+                            Icon(
+                                Icons.Default.Delete, 
+                                contentDescription = stringResource(R.string.btn_delete), 
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
+                } else {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(top = 4.dp)
+                    ) {
                         Icon(
-                            Icons.Default.AddShoppingCart, 
-                            contentDescription = stringResource(R.string.btn_add_to_shopping), 
-                            tint = MaterialTheme.colorScheme.secondary,
-                            modifier = Modifier.size(20.dp)
+                            Icons.Default.Lock,
+                            contentDescription = stringResource(R.string.label_read_only),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f),
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = stringResource(R.string.label_read_only),
+                            fontSize = 11.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                         )
                     }
                 }
-
-                IconButton(onClick = onDelete) {
-                    Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.btn_delete), tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
-                }
-            } else {
-                Icon(Icons.Default.Lock, contentDescription = "Lecture seule", tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f), modifier = Modifier.size(20.dp))
             }
         }
     }

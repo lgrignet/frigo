@@ -1,6 +1,11 @@
 package com.mystockmanager.app.core
 
 object InputValidator {
+    // Même règle que le serveur (API/src/server.js, EMAIL_RE) : "quelque chose@quelque chose.quelque chose"
+    private val EMAIL_REGEX = Regex("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")
+
+    fun isValidEmail(email: String): Boolean = EMAIL_REGEX.matches(email.trim())
+
     // Permet lettres, chiffres, espaces, tirets et apostrophes (pour les noms de produits/lieux)
     fun filterAlphanumericSpace(input: String): String {
         return input.filter { it.isLetterOrDigit() || it == ' ' || it == '-' || it == '\'' || it == '.' }
@@ -26,5 +31,10 @@ object InputValidator {
     // Filtre pour email (lettres, chiffres, @, ., -, _)
     fun filterEmail(input: String): String {
         return input.filter { it.isLetterOrDigit() || it == '@' || it == '.' || it == '-' || it == '_' }
+    }
+
+    // Filtre pour le code de récupération (lettres, chiffres, tirets), toujours en majuscules
+    fun filterRecoveryCode(input: String): String {
+        return input.filter { it.isLetterOrDigit() || it == '-' }.uppercase()
     }
 }

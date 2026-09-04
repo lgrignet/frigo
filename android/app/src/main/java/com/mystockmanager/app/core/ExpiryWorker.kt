@@ -1,9 +1,11 @@
 package com.mystockmanager.app.core
 
 import android.content.Context
+import android.content.res.Configuration
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import com.mystockmanager.app.R
 import com.mystockmanager.app.data.repository.PrefsRepository
 import com.mystockmanager.app.data.repository.StockRepository
 import dagger.assisted.Assisted
@@ -12,6 +14,7 @@ import kotlinx.coroutines.flow.first
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
+import java.util.Locale
 
 @HiltWorker
 class ExpiryWorker @AssistedInject constructor(
@@ -47,16 +50,25 @@ class ExpiryWorker @AssistedInject constructor(
         }
 
         if (expiringItems.isNotEmpty()) {
-            val title = "Attention : Produits bientôt périmés"
+            // La langue de l'appli est pilotée par prefs.lang (Room) ; on force cette locale
+            // sur le contexte du Worker, qui sinon suivrait la langue du système.
+            val ctx = localizedContext(prefs.lang)
+            val title = ctx.getString(R.string.notif_expiry_title)
             val message = if (expiringItems.size == 1) {
-                "Le produit '${expiringItems.first().name}' périme bientôt."
+                ctx.getString(R.string.notif_expiry_single, expiringItems.first().name)
             } else {
-                "${expiringItems.size} produits vont bientôt périmer."
+                ctx.getString(R.string.notif_expiry_multiple, expiringItems.size)
             }
             notificationHelper.showExpiryNotification(title, message)
         }
 
         return Result.success()
+    }
+
+    private fun localizedContext(lang: String): Context {
+        val config = Configuration(applicationContext.resources.configuration)
+        config.setLocale(Locale(lang))
+        return applicationContext.createConfigurationContext(config)
     }
 
     private fun parseDate(dateStr: String): LocalDate {

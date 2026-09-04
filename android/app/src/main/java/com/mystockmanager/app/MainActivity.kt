@@ -32,6 +32,7 @@ import com.mystockmanager.app.core.ExpiryWorker
 import com.mystockmanager.app.core.SessionManager
 import com.mystockmanager.app.core.SyncManager
 import com.mystockmanager.app.data.local.dao.UserDao
+import com.mystockmanager.app.data.repository.AuthRepository
 import com.mystockmanager.app.data.repository.PrefsRepository
 import com.mystockmanager.app.ui.dashboard.DashboardScreen
 import com.mystockmanager.app.ui.items.AllItemsScreen
@@ -57,6 +58,7 @@ class MainActivity : AppCompatActivity() {
     @Inject lateinit var syncManager: SyncManager
     @Inject lateinit var prefsRepository: PrefsRepository
     @Inject lateinit var userDao: UserDao
+    @Inject lateinit var authRepository: AuthRepository
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -84,6 +86,8 @@ class MainActivity : AppCompatActivity() {
                     if (sessionManager.getFirstName() != user.firstName || sessionManager.getLastName() != user.lastName) {
                         sessionManager.setSession(user.id, user.email, user.syncChannelGuid, user.firstName, user.lastName)
                     }
+                    // Rattache à api.noshi.be les comptes créés avant l'existence du service.
+                    authRepository.migrateIfNeeded()
                 } else {
                     // Critical: User exists in session but GONE from DB (after wipe/migration)
                     sessionManager.clearSession()
@@ -196,7 +200,7 @@ fun MainScreen(onLogout: () -> Unit) {
                                     Screen.Shopping -> stringResource(R.string.tab_shopping)
                                     Screen.Storages -> stringResource(R.string.tab_storages)
                                     Screen.Prefs -> stringResource(R.string.tab_settings)
-                                    else -> screen.label
+                                    else -> ""
                                 }
                                 Text(label, fontSize = 10.sp) 
                             },

@@ -43,7 +43,6 @@
     <string name="label_password">Mot de passe</string>
     <string name="label_confirm_password">Confirmer le mot de passe</string>
     <string name="label_none">Aucun</string>
-    <string name="label_date_format_hint">(JJ/MM/AAAA)</string>
 
     <!-- Messages -->
     <string name="msg_empty_list">Votre liste est vide 🛒</string>
@@ -52,7 +51,6 @@
     <string name="msg_added_to_shopping">Produit ajouté à la liste de courses</string>
     <string name="msg_search_placeholder">Rechercher un produit...</string>
     <string name="msg_no_storage_defined">Aucun rangement défini. Créez-en un dans l\'onglet Lieux.</string>
-    <string name="msg_no_domicile_defined">Aucun domicile défini. Créez-en un d\'abord.</string>
 
     <!-- Filters -->
     <string name="filter_all_domiciles">Tous Domiciles</string>
@@ -83,7 +81,7 @@
     <string name="confirm_delete_shop_title">Supprimer le magasin ?</string>
     <string name="confirm_delete_shop_msg">Voulez-vous supprimer \'%1$s\' ?</string>
     <string name="confirm_delete_domicile_title">Supprimer le domicile ?</string>
-    <string name="confirm_delete_domicile_msg">Voulez-vous supprimer \'%1$s\' ? Cela affectera les rangements liés.</string>
+    <string name="confirm_delete_domicile_msg">Voulez-vous supprimer \'%1$s\' ? Les rangements qui y sont liés se retrouveront sans domicile.</string>
 
     <!-- Settings -->
     <string name="setting_lang">Langue de l\'interface</string>
@@ -128,4 +126,80 @@
     <string name="login_btn_signin">Se connecter</string>
     <string name="login_btn_signup">Créer mon compte</string>
     <string name="login_msg_register_success">Compte créé ! Notez bien votre code :</string>
+    <string name="login_link_forgot_password">Mot de passe oublié ?</string>
+    <string name="recovery_title">Réinitialiser le mot de passe</string>
+    <string name="recovery_subtitle">Utilisez votre code de récupération pour définir un nouveau mot de passe</string>
+    <string name="label_recovery_code">Code de récupération</string>
+    <string name="label_new_password">Nouveau mot de passe</string>
+    <string name="recovery_btn_submit">Réinitialiser</string>
+    <string name="recovery_link_back_to_login">Retour à la connexion</string>
+
+    <!-- ===== i18n pass : catégorie A (texte d'UI visible) ===== -->
+    <string name="prefs_section_profile">Mon Profil</string>
+    <string name="btn_save_profile">Enregistrer le profil</string>
+    <string name="setting_notifications">Notifications d\'alerte</string>
+    <string name="state_enabled">Activées</string>
+    <string name="state_disabled">Désactivées</string>
+    <string name="date_format_european_label">JJ/MM/AAAA</string>
+    <string name="date_format_iso_label">AAAA-MM-JJ</string>
+    <string name="btn_scan_barcode">Scanner un code-barres</string>
+    <string name="label_barcode_value">Code : %1$s</string>
+    <string name="msg_no_storage_in_domicile">Aucun rangement dans ce domicile.</string>
+    <string name="label_read_only">Lecture seule</string>
+    <string name="label_unit_full_name">Nom (ex : Kilogramme)</string>
+    <string name="label_unit_abbrev">Abréviation (ex : kg)</string>
+    <string name="shopping_section_to_buy">À acheter</string>
+    <string name="shopping_section_bought">Acheté</string>
+    <string name="label_target_storage_section">Cible de rangement</string>
+    <string name="label_target_domicile">Domicile cible</string>
+    <string name="title_choose_storage">Où ranger ce produit ?</string>
+    <string name="label_place">Lieu :</string>
+    <string name="filter_all">Tous</string>
+    <string name="msg_no_storage_found">Aucun rangement trouvé.</string>
+    <string name="msg_camera_permission_required">Permission caméra requise</string>
+    <string name="btn_back">Retour</string>
+
+    <!-- ===== i18n pass : catégorie B (chaînes des ViewModels / Worker / managers) ===== -->
+    <string name="error_invalid_credentials">Email ou mot de passe incorrect</string>
+    <string name="error_email_exists">Un compte existe déjà avec cet email</string>
+    <string name="error_generic">Une erreur est survenue</string>
+    <string name="error_registration_failed">Échec de l\'inscription</string>
+    <string name="error_recovery_invalid">Email ou code de récupération invalide</string>
+    <string name="error_password_mismatch">Les mots de passe ne correspondent pas</string>
+    <string name="error_invalid_email">Adresse email invalide</string>
+    <string name="error_storage_duplicate">Un rangement avec ce nom et ce type existe déjà pour ce domicile.</string>
+    <string name="toast_mic_permission_granted">Permission accordée. Appuyez à nouveau sur le micro.</string>
+    <string name="toast_date_understood">Date comprise : %1$s</string>
+    <string name="toast_date_not_understood">Pas compris : \"%1$s\"</string>
+    <string name="voice_error_unavailable">La reconnaissance vocale n\'est pas disponible sur cet appareil.</string>
+    <string name="voice_error_audio">Erreur audio</string>
+    <string name="voice_error_client">Erreur client</string>
+    <string name="voice_error_permission">Permission manquante</string>
+    <string name="voice_error_network">Erreur réseau</string>
+    <string name="voice_error_network_timeout">Délai réseau dépassé</string>
+    <string name="voice_error_no_match">Non compris</string>
+    <string name="voice_error_busy">Reconnaissance occupée</string>
+    <string name="voice_error_server">Erreur serveur</string>
+    <string name="voice_error_speech_timeout">Aucune parole détectée</string>
+    <string name="voice_error_unknown">Erreur inconnue (%1$d)</string>
+    <string name="voice_error_start_failed">Impossible de lancer l\'écoute</string>
+    <string name="notif_channel_expiry_description">Alertes de péremption de produits</string>
+    <string name="notif_expiry_title">Attention : produits bientôt périmés</string>
+    <string name="notif_expiry_single">\'%1$s\' périme bientôt.</string>
+    <string name="notif_expiry_multiple">%1$d produits vont bientôt périmer.</string>
+
+    <!-- ===== i18n pass : catégorie C (descriptions de contenu / accessibilité) ===== -->
+    <string name="cd_show_qr">Afficher le QR code</string>
+    <string name="cd_qr_code">QR code</string>
+    <string name="cd_item_photo">Photo du produit</string>
+    <string name="cd_dictate_date">Dicter la date</string>
+    <string name="cd_pick_date">Choisir une date</string>
+    <string name="cd_toggle_aggregation">Basculer le regroupement</string>
+    <string name="cd_store_item">Ranger</string>
+
+    <!-- ===== i18n pass : données seed (noms par défaut créés pour un nouveau compte) ===== -->
+    <string name="seed_storage_fridge">Frigo</string>
+    <string name="seed_storage_freezer">Congélateur</string>
+    <string name="seed_storage_cupboard">Armoire</string>
+    <string name="seed_domicile_home">Maison</string>
 </resources>

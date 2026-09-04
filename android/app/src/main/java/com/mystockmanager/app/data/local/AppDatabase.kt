@@ -16,7 +16,7 @@ import com.mystockmanager.app.data.local.entities.*
         UnitEntity::class,
         DomicileEntity::class
     ],
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

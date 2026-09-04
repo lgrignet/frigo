@@ -18,5 +18,10 @@ data class UserEntity(
     val recoveryHash: String,
     val recoverySalt: String,
     val syncChannelGuid: String,
-    val createdAt: String
+    val createdAt: String,
+    /** Identifiant du compte côté service de comptes (api.noshi.be), null tant que non synchronisé. */
+    val compteId: String? = null,
+    /** Jeton d'appareil renvoyé par api.noshi.be (register/login/migrate). */
+    val deviceToken: String? = null,
+    val emailVerifie: Boolean = false
 )

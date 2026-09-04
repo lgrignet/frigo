@@ -57,7 +57,7 @@ fun ItemFormScreen(
     val context = LocalContext.current
     var name by remember { mutableStateOf("") }
     var quantity by remember { mutableStateOf("1") }
-    var unit by remember { mutableStateOf("pièce(s)") }
+    var unit by remember { mutableStateOf(context.getString(R.string.unit_piece_label)) }
     
     var storageId by remember { mutableStateOf("") }
     var domicileId by remember { mutableStateOf<String?>(null) }
@@ -120,7 +120,7 @@ fun ItemFormScreen(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (isGranted) {
-            Toast.makeText(context, "Permission accordée. Cliquez à nouveau sur le micro.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.toast_mic_permission_granted), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -128,9 +128,9 @@ fun ItemFormScreen(
         val parsedDate = DateVoiceParser.parse(text, langPref)
         if (parsedDate != null) {
             expiryDate = parsedDate.format(dateFormatter)
-            Toast.makeText(context, "Date comprise : ${expiryDate}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.toast_date_understood, expiryDate), Toast.LENGTH_SHORT).show()
         } else {
-            Toast.makeText(context, "Pas compris : \"$text\"", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.toast_date_not_understood, text), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -290,7 +290,7 @@ fun ItemFormScreen(
                 if (photoPath != null) {
                     AsyncImage(
                         model = photoPath,
-                        contentDescription = "Photo du produit",
+                        contentDescription = stringResource(R.string.cd_item_photo),
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop
                     )
@@ -311,7 +311,7 @@ fun ItemFormScreen(
             ) {
                 Icon(Icons.Default.QrCodeScanner, contentDescription = null)
                 Spacer(modifier = Modifier.width(8.dp))
-                Text(if (barcode == null) "Scanner un code-barres" else "Code : $barcode")
+                Text(if (barcode == null) stringResource(R.string.btn_scan_barcode) else stringResource(R.string.label_barcode_value, barcode ?: ""))
                 if (isLoadingProduct) {
                     Spacer(modifier = Modifier.width(8.dp))
                     CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
@@ -399,7 +399,7 @@ fun ItemFormScreen(
             }
 
             if (filteredStorages.isEmpty()) {
-                Text(if (domicileId == null) stringResource(R.string.msg_no_storage_defined) else "Aucun rangement dans ce domicile.", fontSize = 11.sp, color = MaterialTheme.colorScheme.error)
+                Text(if (domicileId == null) stringResource(R.string.msg_no_storage_defined) else stringResource(R.string.msg_no_storage_in_domicile), fontSize = 11.sp, color = MaterialTheme.colorScheme.error)
             }
             Row(modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 filteredStorages.forEach { storage ->
@@ -464,14 +464,14 @@ fun ItemFormScreen(
                             }
                         }) {
                             Icon(
-                                Icons.Default.Mic, 
-                                contentDescription = "Dicter la date",
+                                Icons.Default.Mic,
+                                contentDescription = stringResource(R.string.cd_dictate_date),
                                 tint = if (isListening) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.graphicsLayer { alpha = if (isListening) micAlpha else 1f }
                             )
                         }
                         IconButton(onClick = { showDatePicker = true }) {
-                            Icon(Icons.Default.CalendarToday, contentDescription = "Choisir une date")
+                            Icon(Icons.Default.CalendarToday, contentDescription = stringResource(R.string.cd_pick_date))
                         }
                     }
                 },

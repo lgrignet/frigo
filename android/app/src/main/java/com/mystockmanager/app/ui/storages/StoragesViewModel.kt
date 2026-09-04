@@ -1,7 +1,9 @@
 package com.mystockmanager.app.ui.storages
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.mystockmanager.app.R
 import com.mystockmanager.app.core.SessionManager
 import com.mystockmanager.app.data.local.entities.DomicileEntity
 import com.mystockmanager.app.data.local.entities.ShopEntity
@@ -10,12 +12,14 @@ import com.mystockmanager.app.data.local.entities.UnitEntity
 import com.mystockmanager.app.data.repository.PrefsRepository
 import com.mystockmanager.app.data.repository.StockRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class StoragesViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val stockRepository: StockRepository,
     private val prefsRepository: PrefsRepository,
     private val sessionManager: SessionManager
@@ -39,8 +43,9 @@ class StoragesViewModel @Inject constructor(
         .map { it?.activeDomicileId }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
-    private val _error = MutableSharedFlow<String>()
-    val error = _error.asSharedFlow()
+    /** Émet un identifiant de ressource string (@StringRes) à afficher en Snackbar. */
+    private val _error = MutableSharedFlow<Int>()
+    val error: SharedFlow<Int> = _error.asSharedFlow()
 
     private fun isDuplicate(name: String, type: String, domicileId: String?, excludeId: String? = null): Boolean {
         return storages.value.any { 
@@ -72,13 +77,22 @@ class StoragesViewModel @Inject constructor(
 
     fun deleteDomicile(domicile: DomicileEntity) {
         viewModelScope.launch {
+            // Détacher les rangements liés pour éviter un domicileId pendouillant sur un domicile supprimé.
+            storages.value.filter { it.domicileId == domicile.id }.forEach {
+                stockRepository.addStorage(it.copy(domicileId = null))
+            }
+            // Réinitialiser le domicile actif s'il pointait sur celui qu'on supprime.
+            val prefs = prefsRepository.getPrefs(userId).first()
+            if (prefs?.activeDomicileId == domicile.id) {
+                prefsRepository.savePrefs(prefs.copy(activeDomicileId = null))
+            }
             stockRepository.deleteDomicile(domicile)
         }
     }
 
     fun createStorage(name: String, icon: String, type: String, domicileId: String?) {
         if (isDuplicate(name, type, domicileId)) {
-            viewModelScope.launch { _error.emit("Un rangement avec ce nom et ce type existe déjà pour ce domicile.") }
+            viewModelScope.launch { _error.emit(R.string.error_storage_duplicate) }
             return
         }
         
@@ -98,7 +112,7 @@ class StoragesViewModel @Inject constructor(
 
     fun updateStorage(storage: StorageEntity) {
         if (isDuplicate(storage.name, storage.type, storage.domicileId, storage.id)) {
-            viewModelScope.launch { _error.emit("Un rangement avec ce nom et ce type existe déjà pour ce domicile.") }
+            viewModelScope.launch { _error.emit(R.string.error_storage_duplicate) }
             return
         }
 
@@ -172,17 +186,14 @@ class StoragesViewModel @Inject constructor(
             }
 
             val defaults = listOf(
-                "unit_piece" to ("pièce(s)" to "pièce(s)"),
-                "unit_kg" to ("Kilogramme" to "kg"),
-                "unit_g" to ("Gramme" to "g"),
-                "unit_l" to ("Litre" to "L"),
-                "unit_packet" to ("Paquet" to "paquet(s)")
+                UnitEntity("unit_piece", userId, context.getString(R.string.unit_piece_name), context.getString(R.string.unit_piece_label)),
+                UnitEntity("unit_kg", userId, context.getString(R.string.unit_kg_name), context.getString(R.string.unit_kg_label)),
+                UnitEntity("unit_g", userId, context.getString(R.string.unit_g_name), context.getString(R.string.unit_g_label)),
+                UnitEntity("unit_l", userId, context.getString(R.string.unit_l_name), context.getString(R.string.unit_l_label)),
+                UnitEntity("unit_packet", userId, context.getString(R.string.unit_packet_name), context.getString(R.string.unit_packet_label))
             )
 
-            defaults.forEach { (fixedId, data) ->
-                val (name, label) = data
-                stockRepository.addUnit(UnitEntity(fixedId, userId, name, label))
-            }
+            defaults.forEach { stockRepository.addUnit(it) }
 
             val currentDomiciles = domiciles.first()
             if (currentDomiciles.isEmpty()) {
@@ -190,7 +201,7 @@ class StoragesViewModel @Inject constructor(
                 val mainDomicile = DomicileEntity(
                     id = defaultDomId,
                     userId = userId,
-                    name = "Maison",
+                    name = context.getString(R.string.seed_domicile_home),
                     syncGuid = sessionManager.getSyncGuid() ?: "",
                     createdAt = java.time.Instant.now().toString()
                 )

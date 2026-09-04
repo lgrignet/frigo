@@ -23,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -47,11 +48,12 @@ fun StoragesScreen(
     val activeDomicileId by viewModel.activeDomicileId.collectAsState()
     
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         viewModel.addDefaultDataIfEmpty()
-        viewModel.error.collect { msg ->
-            snackbarHostState.showSnackbar(msg)
+        viewModel.error.collect { msgRes ->
+            snackbarHostState.showSnackbar(context.getString(msgRes))
         }
     }
     
@@ -349,6 +351,8 @@ fun StoragesScreen(
 
 @Composable
 fun DomicileItem(domicile: DomicileEntity, onDelete: () -> Unit, onClick: () -> Unit) {
+    var showDeleteConfirm by remember { mutableStateOf(false) }
+
     Card(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
@@ -363,10 +367,31 @@ fun DomicileItem(domicile: DomicileEntity, onDelete: () -> Unit, onClick: () -> 
             Icon(Icons.Default.Home, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
             Spacer(modifier = Modifier.width(12.dp))
             Text(domicile.name, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f))
-            IconButton(onClick = onDelete) {
+            IconButton(onClick = { showDeleteConfirm = true }) {
                 Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.btn_delete), tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f), modifier = Modifier.size(20.dp))
             }
         }
+    }
+
+    if (showDeleteConfirm) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirm = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    onDelete()
+                    showDeleteConfirm = false
+                }) {
+                    Text(stringResource(R.string.btn_delete), color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirm = false }) {
+                    Text(stringResource(R.string.btn_cancel))
+                }
+            },
+            title = { Text(stringResource(R.string.confirm_delete_domicile_title)) },
+            text = { Text(stringResource(R.string.confirm_delete_domicile_msg, domicile.name)) }
+        )
     }
 }
 
@@ -458,16 +483,16 @@ fun AddUnitDialog(
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
-                    value = name, 
-                    onValueChange = { name = InputValidator.filterAlphanumericSpace(it) }, 
-                    label = { Text(stringResource(R.string.label_name) + " (ex: Kilogramme)") }, 
+                    value = name,
+                    onValueChange = { name = InputValidator.filterAlphanumericSpace(it) },
+                    label = { Text(stringResource(R.string.label_unit_full_name)) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(14.dp)
                 )
                 OutlinedTextField(
-                    value = label, 
-                    onValueChange = { label = InputValidator.filterAlphanumericSpace(it) }, 
-                    label = { Text(stringResource(R.string.label_unit) + " (ex: kg)") }, 
+                    value = label,
+                    onValueChange = { label = InputValidator.filterAlphanumericSpace(it) },
+                    label = { Text(stringResource(R.string.label_unit_abbrev)) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(14.dp)
                 )

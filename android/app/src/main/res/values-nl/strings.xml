@@ -34,7 +34,6 @@
     <string name="label_password">Wachtwoord</string>
     <string name="label_confirm_password">Wachtwoord bevestigen</string>
     <string name="label_none">Geen</string>
-    <string name="label_date_format_hint">(DD/MM/JJJJ)</string>
     <string name="msg_empty_list">Je lijst is leeg 🛒</string>
     <string name="msg_all_fresh">Alles is vers! ✅</string>
     <string name="msg_no_results">Geen resultaten</string>
@@ -62,6 +61,8 @@
     <string name="confirm_delete_storage_msg">Wil je \'%1$s\' verwijderen? Dit verwijdert de producten erin niet.</string>
     <string name="confirm_delete_shop_title">Winkel verwijderen?</string>
     <string name="confirm_delete_shop_msg">Wil je \'%1$s\' verwijderen?</string>
+    <string name="confirm_delete_domicile_title">Domicilie verwijderen?</string>
+    <string name="confirm_delete_domicile_msg">Wil je \'%1$s\' verwijderen? De eraan gekoppelde opslaglocaties blijven zonder domicilie achter.</string>
     <string name="setting_lang">Interfacetaal</string>
     <string name="setting_date_format">Datumformaat</string>
     <string name="setting_expiry_warning">Vervalwaarschuwing</string>
@@ -101,4 +102,90 @@
     <string name="login_btn_signin">Inloggen</string>
     <string name="login_btn_signup">Mijn account aanmaken</string>
     <string name="login_msg_register_success">Account aangemaakt! Noteer je code:</string>
+    <string name="login_link_forgot_password">Wachtwoord vergeten?</string>
+    <string name="recovery_title">Wachtwoord opnieuw instellen</string>
+    <string name="recovery_subtitle">Gebruik je herstelcode om een nieuw wachtwoord in te stellen</string>
+    <string name="label_recovery_code">Herstelcode</string>
+    <string name="label_new_password">Nieuw wachtwoord</string>
+    <string name="recovery_btn_submit">Opnieuw instellen</string>
+    <string name="recovery_link_back_to_login">Terug naar aanmelden</string>
+
+    <!-- ===== i18n pass: categorie A (zichtbare UI-tekst) ===== -->
+    <string name="prefs_section_profile">Mijn profiel</string>
+    <string name="btn_save_profile">Profiel opslaan</string>
+    <string name="setting_notifications">Waarschuwingsmeldingen</string>
+    <string name="state_enabled">Ingeschakeld</string>
+    <string name="state_disabled">Uitgeschakeld</string>
+    <string name="date_format_european_label">DD/MM/JJJJ</string>
+    <string name="date_format_iso_label">JJJJ-MM-DD</string>
+    <string name="btn_scan_barcode">Streepjescode scannen</string>
+    <string name="label_barcode_value">Code: %1$s</string>
+    <string name="msg_no_storage_in_domicile">Geen opslag in dit domicilie.</string>
+    <string name="label_read_only">Alleen-lezen</string>
+    <string name="label_unit_full_name">Naam (bijv. Kilogram)</string>
+    <string name="label_unit_abbrev">Afkorting (bijv. kg)</string>
+    <string name="shopping_section_to_buy">Te kopen</string>
+    <string name="shopping_section_bought">Gekocht</string>
+    <string name="label_target_storage_section">Doelopslag</string>
+    <string name="label_target_domicile">Doeldomicilie</string>
+    <string name="title_choose_storage">Waar dit product opbergen?</string>
+    <string name="label_place">Locatie:</string>
+    <string name="filter_all">Alle</string>
+    <string name="msg_no_storage_found">Geen opslag gevonden.</string>
+    <string name="msg_camera_permission_required">Cameramachtiging vereist</string>
+    <string name="btn_back">Terug</string>
+
+    <!-- ===== i18n pass: categorie B (strings uit ViewModels / Worker / managers) ===== -->
+    <string name="error_invalid_credentials">E-mail of wachtwoord ongeldig</string>
+    <string name="error_email_exists">Er bestaat al een account met dit e-mailadres</string>
+    <string name="error_generic">Er is een fout opgetreden</string>
+    <string name="error_registration_failed">Registratie mislukt</string>
+    <string name="error_recovery_invalid">Ongeldig e-mailadres of herstelcode</string>
+    <string name="error_password_mismatch">Wachtwoorden komen niet overeen</string>
+    <string name="error_invalid_email">Ongeldig e-mailadres</string>
+    <string name="error_storage_duplicate">Er bestaat al een opslag met deze naam en dit type voor dit domicilie.</string>
+    <string name="toast_mic_permission_granted">Machtiging verleend. Tik nogmaals op de microfoon.</string>
+    <string name="toast_date_understood">Datum begrepen: %1$s</string>
+    <string name="toast_date_not_understood">Niet begrepen: \"%1$s\"</string>
+    <string name="voice_error_unavailable">Spraakherkenning is niet beschikbaar op dit apparaat.</string>
+    <string name="voice_error_audio">Audiofout</string>
+    <string name="voice_error_client">Clientfout</string>
+    <string name="voice_error_permission">Ontbrekende machtiging</string>
+    <string name="voice_error_network">Netwerkfout</string>
+    <string name="voice_error_network_timeout">Netwerktime-out</string>
+    <string name="voice_error_no_match">Niet begrepen</string>
+    <string name="voice_error_busy">Herkenning bezig</string>
+    <string name="voice_error_server">Serverfout</string>
+    <string name="voice_error_speech_timeout">Geen spraak gedetecteerd</string>
+    <string name="voice_error_unknown">Onbekende fout (%1$d)</string>
+    <string name="voice_error_start_failed">Kan luisteren niet starten</string>
+    <string name="notif_channel_expiry_description">Meldingen over productvervaldatum</string>
+    <string name="notif_expiry_title">Let op: producten verlopen binnenkort</string>
+    <string name="notif_expiry_single">\'%1$s\' verloopt binnenkort.</string>
+    <string name="notif_expiry_multiple">%1$d producten verlopen binnenkort.</string>
+
+    <!-- ===== i18n pass: categorie C (inhoudsbeschrijvingen / toegankelijkheid) ===== -->
+    <string name="cd_show_qr">QR-code tonen</string>
+    <string name="cd_qr_code">QR-code</string>
+    <string name="cd_item_photo">Productfoto</string>
+    <string name="cd_dictate_date">Datum inspreken</string>
+    <string name="cd_pick_date">Kies een datum</string>
+    <string name="cd_toggle_aggregation">Groepering wisselen</string>
+    <string name="cd_store_item">Opbergen</string>
+
+    <!-- ===== i18n pass: ontbrekende sleutels (voorheen alleen EN-fallback) ===== -->
+    <string name="tab_domiciles">Domicilies</string>
+    <string name="label_domicile">Domicilie</string>
+    <string name="my_domiciles">Mijn Domicilies</string>
+    <string name="title_new_domicile">Nieuw domicilie</string>
+    <string name="title_edit_domicile">Domicilie wijzigen</string>
+    <string name="title_new_unit">Nieuwe eenheid</string>
+    <string name="title_edit_unit">Eenheid wijzigen</string>
+    <string name="setting_active_domicile">Actief domicilie</string>
+
+    <!-- ===== i18n pass: seed-data (standaardnamen voor een nieuw account) ===== -->
+    <string name="seed_storage_fridge">Koelkast</string>
+    <string name="seed_storage_freezer">Vriezer</string>
+    <string name="seed_storage_cupboard">Kast</string>
+    <string name="seed_domicile_home">Thuis</string>
 </resources>

@@ -19,10 +19,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import com.mystockmanager.app.R
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
@@ -119,9 +121,9 @@ fun QRScanner(
                 modifier = Modifier.align(Alignment.Center),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text("Permission caméra requise", color = Color.White)
+                Text(stringResource(R.string.msg_camera_permission_required), color = Color.White)
                 Spacer(modifier = Modifier.height(16.dp))
-                Button(onClick = onClose) { Text("Retour") }
+                Button(onClick = onClose) { Text(stringResource(R.string.btn_back)) }
             }
         }
 

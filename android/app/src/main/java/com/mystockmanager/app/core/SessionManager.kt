@@ -38,6 +38,13 @@ class SessionManager @Inject constructor(
         prefs.edit().putString("sync_guid", guid).apply()
     }
 
+    /** Jeton d'appareil renvoyé par api.noshi.be (register/login/migrate). */
+    fun setDeviceToken(token: String?) {
+        prefs.edit().putString("device_token", token).apply()
+    }
+
+    fun getDeviceToken(): String? = prefs.getString("device_token", null)
+
     fun clearSession() {
         prefs.edit().clear().apply()
     }

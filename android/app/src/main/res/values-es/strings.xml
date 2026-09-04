@@ -34,7 +34,6 @@
     <string name="label_password">Contraseña</string>
     <string name="label_confirm_password">Confirmar contraseña</string>
     <string name="label_none">Ninguno</string>
-    <string name="label_date_format_hint">(DD/MM/AAAA)</string>
     <string name="msg_empty_list">Tu lista está vacía 🛒</string>
     <string name="msg_all_fresh">¡Todo está fresco! ✅</string>
     <string name="msg_no_results">Sin resultados</string>
@@ -59,6 +58,8 @@
     <string name="confirm_delete_storage_msg">¿Quieres eliminar \'%1$s\'? Esto no eliminará los productos de su interior.</string>
     <string name="confirm_delete_shop_title">¿Eliminar tienda?</string>
     <string name="confirm_delete_shop_msg">¿Quieres eliminar \'%1$s\'?</string>
+    <string name="confirm_delete_domicile_title">¿Eliminar domicilio?</string>
+    <string name="confirm_delete_domicile_msg">¿Quieres eliminar \'%1$s\'? Los almacenamientos vinculados quedarán sin domicilio.</string>
     <string name="setting_lang">Idioma de la interfaz</string>
     <string name="setting_date_format">Formato de fecha</string>
     <string name="setting_expiry_warning">Aviso de caducidad</string>
@@ -98,4 +99,90 @@
     <string name="login_btn_signin">Iniciar sesión</string>
     <string name="login_btn_signup">Crear mi cuenta</string>
     <string name="login_msg_register_success">¡Cuenta creada! Anota tu código:</string>
+    <string name="login_link_forgot_password">¿Olvidaste tu contraseña?</string>
+    <string name="recovery_title">Restablecer contraseña</string>
+    <string name="recovery_subtitle">Usa tu código de recuperación para definir una nueva contraseña</string>
+    <string name="label_recovery_code">Código de recuperación</string>
+    <string name="label_new_password">Nueva contraseña</string>
+    <string name="recovery_btn_submit">Restablecer</string>
+    <string name="recovery_link_back_to_login">Volver al inicio de sesión</string>
+
+    <!-- ===== i18n pass: categoría A (texto de UI visible) ===== -->
+    <string name="prefs_section_profile">Mi perfil</string>
+    <string name="btn_save_profile">Guardar perfil</string>
+    <string name="setting_notifications">Notificaciones de alerta</string>
+    <string name="state_enabled">Activadas</string>
+    <string name="state_disabled">Desactivadas</string>
+    <string name="date_format_european_label">DD/MM/AAAA</string>
+    <string name="date_format_iso_label">AAAA-MM-DD</string>
+    <string name="btn_scan_barcode">Escanear un código de barras</string>
+    <string name="label_barcode_value">Código: %1$s</string>
+    <string name="msg_no_storage_in_domicile">No hay almacenamiento en este domicilio.</string>
+    <string name="label_read_only">Solo lectura</string>
+    <string name="label_unit_full_name">Nombre (p. ej. Kilogramo)</string>
+    <string name="label_unit_abbrev">Abreviatura (p. ej. kg)</string>
+    <string name="shopping_section_to_buy">Por comprar</string>
+    <string name="shopping_section_bought">Comprado</string>
+    <string name="label_target_storage_section">Destino de almacenamiento</string>
+    <string name="label_target_domicile">Domicilio de destino</string>
+    <string name="title_choose_storage">¿Dónde guardar este producto?</string>
+    <string name="label_place">Lugar:</string>
+    <string name="filter_all">Todos</string>
+    <string name="msg_no_storage_found">No se encontró almacenamiento.</string>
+    <string name="msg_camera_permission_required">Se requiere permiso de cámara</string>
+    <string name="btn_back">Volver</string>
+
+    <!-- ===== i18n pass: categoría B (cadenas de ViewModels / Worker / managers) ===== -->
+    <string name="error_invalid_credentials">Correo o contraseña incorrectos</string>
+    <string name="error_email_exists">Ya existe una cuenta con este correo</string>
+    <string name="error_generic">Se produjo un error</string>
+    <string name="error_registration_failed">Error en el registro</string>
+    <string name="error_recovery_invalid">Correo o código de recuperación no válido</string>
+    <string name="error_password_mismatch">Las contraseñas no coinciden</string>
+    <string name="error_invalid_email">Dirección de correo no válida</string>
+    <string name="error_storage_duplicate">Ya existe un almacenamiento con este nombre y tipo para este domicilio.</string>
+    <string name="toast_mic_permission_granted">Permiso concedido. Toca de nuevo el micrófono.</string>
+    <string name="toast_date_understood">Fecha entendida: %1$s</string>
+    <string name="toast_date_not_understood">No entendido: \"%1$s\"</string>
+    <string name="voice_error_unavailable">El reconocimiento de voz no está disponible en este dispositivo.</string>
+    <string name="voice_error_audio">Error de audio</string>
+    <string name="voice_error_client">Error de cliente</string>
+    <string name="voice_error_permission">Permiso faltante</string>
+    <string name="voice_error_network">Error de red</string>
+    <string name="voice_error_network_timeout">Tiempo de red agotado</string>
+    <string name="voice_error_no_match">No entendido</string>
+    <string name="voice_error_busy">Reconocimiento ocupado</string>
+    <string name="voice_error_server">Error del servidor</string>
+    <string name="voice_error_speech_timeout">No se detectó voz</string>
+    <string name="voice_error_unknown">Error desconocido (%1$d)</string>
+    <string name="voice_error_start_failed">No se pudo iniciar la escucha</string>
+    <string name="notif_channel_expiry_description">Alertas de caducidad de productos</string>
+    <string name="notif_expiry_title">Atención: productos por caducar pronto</string>
+    <string name="notif_expiry_single">\'%1$s\' caduca pronto.</string>
+    <string name="notif_expiry_multiple">%1$d productos caducarán pronto.</string>
+
+    <!-- ===== i18n pass: categoría C (descripciones de contenido / accesibilidad) ===== -->
+    <string name="cd_show_qr">Mostrar código QR</string>
+    <string name="cd_qr_code">Código QR</string>
+    <string name="cd_item_photo">Foto del producto</string>
+    <string name="cd_dictate_date">Dictar la fecha</string>
+    <string name="cd_pick_date">Elegir una fecha</string>
+    <string name="cd_toggle_aggregation">Alternar agrupación</string>
+    <string name="cd_store_item">Guardar</string>
+
+    <!-- ===== i18n pass: claves faltantes (antes solo con fallback EN) ===== -->
+    <string name="tab_domiciles">Domicilios</string>
+    <string name="label_domicile">Domicilio</string>
+    <string name="my_domiciles">Mis Domicilios</string>
+    <string name="title_new_domicile">Nuevo domicilio</string>
+    <string name="title_edit_domicile">Editar domicilio</string>
+    <string name="setting_active_domicile">Domicilio activo</string>
+    <string name="filter_all_domiciles">Todos los domicilios</string>
+    <string name="filter_all_storages">Todos los almacenamientos</string>
+
+    <!-- ===== i18n pass: datos seed (nombres por defecto creados para una cuenta nueva) ===== -->
+    <string name="seed_storage_fridge">Nevera</string>
+    <string name="seed_storage_freezer">Congelador</string>
+    <string name="seed_storage_cupboard">Armario</string>
+    <string name="seed_domicile_home">Casa</string>
 </resources>

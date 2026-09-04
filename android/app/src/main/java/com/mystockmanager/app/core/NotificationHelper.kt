@@ -29,7 +29,7 @@ class NotificationHelper @Inject constructor(
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val name = context.getString(R.string.app_name)
-            val descriptionText = "Alertes de péremption de produits"
+            val descriptionText = context.getString(R.string.notif_channel_expiry_description)
             val importance = NotificationManager.IMPORTANCE_DEFAULT
             val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
                 description = descriptionText

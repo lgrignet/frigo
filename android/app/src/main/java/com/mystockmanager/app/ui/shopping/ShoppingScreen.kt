@@ -74,7 +74,7 @@ fun ShoppingScreen(
                 IconButton(onClick = { viewModel.toggleAggregation() }) {
                     Icon(
                         if (isAggregated) Icons.Default.Groups else Icons.Default.Person,
-                        contentDescription = "Basculer l'agrégation",
+                        contentDescription = stringResource(R.string.cd_toggle_aggregation),
                         tint = MaterialTheme.colorScheme.primary
                     )
                 }
@@ -144,7 +144,7 @@ fun ShoppingScreen(
             ) {
                 if (toBuy.isNotEmpty()) {
                     item {
-                        SectionHeader("À acheter")
+                        SectionHeader(stringResource(R.string.shopping_section_to_buy))
                     }
                     items(toBuy, key = { it.id }) { item ->
                         ShoppingItemRow(
@@ -176,7 +176,7 @@ fun ShoppingScreen(
 
                 if (bought.isNotEmpty()) {
                     item {
-                        SectionHeader("Acheté")
+                        SectionHeader(stringResource(R.string.shopping_section_bought))
                     }
                     items(bought, key = { it.id }) { item ->
                         ShoppingItemRow(
@@ -334,7 +334,7 @@ fun ShoppingItemRow(
 
             if (item.checked) {
                 IconButton(onClick = onStore) {
-                    Icon(Icons.Default.Inventory, contentDescription = "Ranger", tint = Accent)
+                    Icon(Icons.Default.Inventory, contentDescription = stringResource(R.string.cd_store_item), tint = Accent)
                 }
             }
 
@@ -356,9 +356,10 @@ fun ShoppingItemDialog(
     onDismiss: () -> Unit,
     onConfirm: (String, String, String, String?, String?) -> Unit
 ) {
+    val defaultUnit = stringResource(R.string.unit_piece_label)
     var name by remember { mutableStateOf(existingItem?.name ?: "") }
     var qty by remember { mutableStateOf(existingItem?.quantity ?: "1") }
-    var unit by remember { mutableStateOf(existingItem?.unit ?: "pièce(s)") }
+    var unit by remember { mutableStateOf(existingItem?.unit ?: defaultUnit) }
     var shopId by remember { mutableStateOf(existingItem?.shopId) }
     
     var targetStorageId by remember { mutableStateOf(existingItem?.targetStorageId) }
@@ -451,7 +452,7 @@ fun ShoppingItemDialog(
                 }
 
                 HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-                Text("Cible de rangement", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
+                Text(stringResource(R.string.label_target_storage_section), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
 
                 // Domicile Selection for Target
                 ExposedDropdownMenuBox(
@@ -464,7 +465,7 @@ fun ShoppingItemDialog(
                         value = currentDomName,
                         onValueChange = {},
                         readOnly = true,
-                        label = { Text("Domicile cible") },
+                        label = { Text(stringResource(R.string.label_target_domicile)) },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = domicileExpanded) },
                         colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
                         modifier = Modifier.menuAnchor().fillMaxWidth(),
@@ -533,16 +534,16 @@ fun StorageSelectionDialog(
         dismissButton = {
             TextButton(onClick = onDismiss) { Text(stringResource(R.string.btn_cancel)) }
         },
-        title = { Text("Où ranger ce produit ?") },
+        title = { Text(stringResource(R.string.title_choose_storage)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 // Domicile selector inside store dialog
-                Text("Lieu :", style = MaterialTheme.typography.labelSmall)
+                Text(stringResource(R.string.label_place), style = MaterialTheme.typography.labelSmall)
                 Row(modifier = Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     FilterChip(
                         selected = selectedDomicileId == null,
                         onClick = { selectedDomicileId = null },
-                        label = { Text("Tous") }
+                        label = { Text(stringResource(R.string.filter_all)) }
                     )
                     domiciles.forEach { dom ->
                         FilterChip(
@@ -559,7 +560,7 @@ fun StorageSelectionDialog(
                                else storages.filter { it.domicileId == selectedDomicileId }
 
                 if (filtered.isEmpty()) {
-                    Text("Aucun rangement trouvé.", color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
+                    Text(stringResource(R.string.msg_no_storage_found), color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
                 }
                 
                 Column(modifier = Modifier.verticalScroll(rememberScrollState())) {

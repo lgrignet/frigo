@@ -1,7 +1,9 @@
 package com.mystockmanager.app.ui.login
 
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.mystockmanager.app.R
 import com.mystockmanager.app.data.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,10 +27,10 @@ class LoginViewModel @Inject constructor(
                 if (success) {
                     _uiState.value = LoginUiState.Success
                 } else {
-                    _uiState.value = LoginUiState.Error("Invalid credentials")
+                    _uiState.value = LoginUiState.Error(R.string.error_invalid_credentials)
                 }
             } catch (e: Exception) {
-                _uiState.value = LoginUiState.Error(e.message ?: "Unknown error")
+                _uiState.value = LoginUiState.Error(R.string.error_generic)
             }
         }
     }
@@ -40,9 +42,32 @@ class LoginViewModel @Inject constructor(
                 val recoveryCode = authRepository.register(email, password, firstName, lastName)
                 _uiState.value = LoginUiState.RegisterSuccess(recoveryCode)
             } catch (e: Exception) {
-                _uiState.value = LoginUiState.Error(e.message ?: "Registration failed")
+                _uiState.value = LoginUiState.Error(
+                    if (e.message == "EMAIL_EXISTS") R.string.error_email_exists
+                    else R.string.error_registration_failed
+                )
             }
         }
+    }
+
+    fun recoverPassword(email: String, recoveryCode: String, newPassword: String) {
+        viewModelScope.launch {
+            _uiState.value = LoginUiState.Loading
+            try {
+                val success = authRepository.recoverPassword(email, recoveryCode, newPassword)
+                _uiState.value = if (success) {
+                    LoginUiState.Success
+                } else {
+                    LoginUiState.Error(R.string.error_recovery_invalid)
+                }
+            } catch (e: Exception) {
+                _uiState.value = LoginUiState.Error(R.string.error_generic)
+            }
+        }
+    }
+
+    fun resetState() {
+        _uiState.value = LoginUiState.Idle
     }
 }
 
@@ -51,5 +76,5 @@ sealed class LoginUiState {
     object Loading : LoginUiState()
     object Success : LoginUiState()
     data class RegisterSuccess(val recoveryCode: String) : LoginUiState()
-    data class Error(val message: String) : LoginUiState()
+    data class Error(@StringRes val messageRes: Int) : LoginUiState()
 }
