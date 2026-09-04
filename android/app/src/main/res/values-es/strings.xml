@@ -177,6 +177,7 @@
     <string name="label_verification_code">Código de verificación</string>
     <string name="error_verification_code_invalid">Código no válido o caducado</string>
     <string name="verify_email_resend_link">Reenviar el código</string>
+    <string name="error_household_change_failed">No se pudo cambiar de hogar. Comprueba tu conexión e inténtalo de nuevo.</string>
 
     <!-- ===== i18n pass: claves faltantes (antes solo con fallback EN) ===== -->
     <string name="tab_domiciles">Domicilios</string>

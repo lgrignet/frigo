@@ -204,6 +204,7 @@
     <string name="label_verification_code">Verification code</string>
     <string name="error_verification_code_invalid">Invalid or expired code</string>
     <string name="verify_email_resend_link">Resend the code</string>
+    <string name="error_household_change_failed">Could not change household. Check your connection and try again.</string>
 
     <!-- ===== i18n pass: seed data (default names created for a new account) ===== -->
     <string name="seed_storage_fridge">Fridge</string>

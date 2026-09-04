@@ -17,4 +17,7 @@ interface ShopDao {
 
     @Query("SELECT * FROM shops WHERE id = :id")
     suspend fun getShopById(id: String): ShopEntity?
+
+    @Query("DELETE FROM shops WHERE userId = :userId")
+    suspend fun deleteAllForUser(userId: String)
 }

@@ -204,6 +204,7 @@
     <string name="label_verification_code">Code de vérification</string>
     <string name="error_verification_code_invalid">Code invalide ou expiré</string>
     <string name="verify_email_resend_link">Renvoyer le code</string>
+    <string name="error_household_change_failed">Impossible de changer de foyer. Vérifiez votre connexion et réessayez.</string>
 
     <!-- ===== i18n pass : données seed (noms par défaut créés pour un nouveau compte) ===== -->
     <string name="seed_storage_fridge">Frigo</string>

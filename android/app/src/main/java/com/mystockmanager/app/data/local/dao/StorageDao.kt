@@ -17,4 +17,7 @@ interface StorageDao {
 
     @Query("SELECT * FROM storages WHERE id = :id")
     suspend fun getStorageById(id: String): StorageEntity?
+
+    @Query("DELETE FROM storages WHERE userId = :userId")
+    suspend fun deleteAllForUser(userId: String)
 }

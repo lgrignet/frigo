@@ -81,4 +81,19 @@ class StockRepository @Inject constructor(
         domicileDao.deleteDomicile(domicile)
         syncManager.syncDomicile(domicile, "delete")
     }
+
+    /**
+     * Purge tout le contenu du foyer (articles, rangements, magasins, unités,
+     * domiciles) avant de rejoindre un autre salon de synchronisation — appelée
+     * par un changement de foyer (§11 du cahier des charges), jamais en usage
+     * normal. Purement locale, ne déclenche aucun message de sync (l'ancien salon
+     * n'a pas à savoir que cet appareil part).
+     */
+    suspend fun wipeHouseholdData(userId: String) {
+        itemDao.deleteAllForUser(userId)
+        storageDao.deleteAllForUser(userId)
+        shopDao.deleteAllForUser(userId)
+        unitDao.deleteAllForUser(userId)
+        domicileDao.deleteAllForUser(userId)
+    }
 }

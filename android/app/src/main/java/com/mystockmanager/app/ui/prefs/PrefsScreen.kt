@@ -46,6 +46,8 @@ fun PrefsScreen(
 
     var showQrDialog by remember { mutableStateOf(false) }
     var showScanner by remember { mutableStateOf(false) }
+    var isChangingHousehold by remember { mutableStateOf(false) }
+    var householdChangeError by remember { mutableStateOf(false) }
     var showVerifyDialog by remember { mutableStateOf(false) }
     var verifyCode by remember { mutableStateOf("") }
     var langExpanded by remember { mutableStateOf(false) }
@@ -103,8 +105,13 @@ fun PrefsScreen(
     if (showScanner) {
         QRScanner(
             onScan = { code ->
-                viewModel.updateSyncGuid(code)
                 showScanner = false
+                isChangingHousehold = true
+                householdChangeError = false
+                viewModel.updateSyncGuid(code) { ok ->
+                    isChangingHousehold = false
+                    householdChangeError = !ok
+                }
             },
             onClose = { showScanner = false }
         )
@@ -358,9 +365,21 @@ fun PrefsScreen(
                         Icon(Icons.Default.QrCode, contentDescription = stringResource(R.string.cd_show_qr), tint = MaterialTheme.colorScheme.primary)
                     }
 
-                    IconButton(onClick = { showScanner = true }) {
-                        Icon(Icons.Default.QrCodeScanner, contentDescription = stringResource(R.string.btn_scan), tint = MaterialTheme.colorScheme.primary)
+                    if (isChangingHousehold) {
+                        CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                    } else {
+                        IconButton(onClick = { showScanner = true }) {
+                            Icon(Icons.Default.QrCodeScanner, contentDescription = stringResource(R.string.btn_scan), tint = MaterialTheme.colorScheme.primary)
+                        }
                     }
+                }
+                if (householdChangeError) {
+                    Text(
+                        text = stringResource(R.string.error_household_change_failed),
+                        color = MaterialTheme.colorScheme.error,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
                 }
             }
         }

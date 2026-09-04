@@ -246,6 +246,23 @@ class AuthRepository @Inject constructor(
         }
     }
 
+    /**
+     * Change le foyer (guid) rattaché au compte côté serveur. Purement l'appel
+     * réseau + mise à jour locale du champ ; la purge des données de l'ancien
+     * foyer et le redémarrage de la sync sont orchestrés par l'appelant
+     * (PrefsViewModel.updateSyncGuid), car ils touchent d'autres repositories.
+     */
+    suspend fun changeHousehold(newGuid: String): Boolean {
+        val token = sessionManager.getDeviceToken() ?: return false
+        return try {
+            val remote = accountApi.changeHousehold(token, newGuid)
+            userDao.getUserById(sessionManager.getUserId())?.let { userDao.updateUser(it.copy(syncChannelGuid = remote.guid)) }
+            true
+        } catch (e: AccountApiException) {
+            false
+        }
+    }
+
     /** Redemande l'envoi d'un code de vérification (best-effort, ne fait jamais échouer l'appelant). */
     suspend fun resendVerificationCode() {
         val email = sessionManager.getEmail() ?: return

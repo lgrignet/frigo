@@ -26,4 +26,7 @@ interface ShoppingDao {
 
     @Query("SELECT * FROM shopping_list WHERE userId = :userId AND itemId = :itemId AND source = 'auto' LIMIT 1")
     suspend fun getAutoEntryForItem(userId: String, itemId: String): ShoppingEntity?
+
+    @Query("DELETE FROM shopping_list WHERE userId = :userId")
+    suspend fun deleteAllForUser(userId: String)
 }

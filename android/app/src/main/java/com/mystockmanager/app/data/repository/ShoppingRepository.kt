@@ -119,4 +119,9 @@ class ShoppingRepository @Inject constructor(
             }
         }
     }
+
+    /** Purge la liste de courses locale — pendant d'un changement de foyer, voir StockRepository.wipeHouseholdData. */
+    suspend fun wipeHouseholdData(userId: String) {
+        shoppingDao.deleteAllForUser(userId)
+    }
 }

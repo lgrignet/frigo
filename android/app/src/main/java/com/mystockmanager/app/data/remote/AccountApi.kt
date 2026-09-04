@@ -77,6 +77,12 @@ private data class ResendVerificationRequest(val email: String)
 data class OkResponse(val ok: Boolean)
 
 @Serializable
+private data class ChangeHouseholdRequest(val guid: String)
+
+@Serializable
+data class ChangeHouseholdResponse(val guid: String)
+
+@Serializable
 private data class MigrateRequest(
     val email: String,
     val nom: String? = null,
@@ -157,6 +163,10 @@ class AccountApi @Inject constructor() {
             guid = guid, deviceName = deviceName
         )
     )
+
+    /** Change le foyer (guid) rattaché au compte de cet appareil — Authorization: Bearer requis. */
+    suspend fun changeHousehold(deviceToken: String, guid: String): ChangeHouseholdResponse =
+        post("/account/household", ChangeHouseholdRequest(guid), bearerToken = deviceToken)
 
     suspend fun verifyEmail(email: String, code: String): VerifyEmailResponse =
         post("/account/verify-email", VerifyEmailRequest(email, code))

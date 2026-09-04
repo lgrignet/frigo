@@ -180,6 +180,7 @@
     <string name="label_verification_code">Bestätigungscode</string>
     <string name="error_verification_code_invalid">Ungültiger oder abgelaufener Code</string>
     <string name="verify_email_resend_link">Code erneut senden</string>
+    <string name="error_household_change_failed">Haushalt konnte nicht gewechselt werden. Verbindung prüfen und erneut versuchen.</string>
 
     <!-- ===== i18n pass: fehlende Schlüssel (vorher nur EN-Fallback) ===== -->
     <string name="tab_domiciles">Wohnsitze</string>

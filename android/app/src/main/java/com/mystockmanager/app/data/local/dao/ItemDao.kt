@@ -20,4 +20,7 @@ interface ItemDao {
 
     @Query("SELECT * FROM items WHERE userId = :userId AND restockThreshold > 0 AND quantity <= restockThreshold")
     fun getLowStockItems(userId: String): Flow<List<ItemEntity>>
+
+    @Query("DELETE FROM items WHERE userId = :userId")
+    suspend fun deleteAllForUser(userId: String)
 }

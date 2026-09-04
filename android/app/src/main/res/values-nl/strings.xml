@@ -180,6 +180,7 @@
     <string name="label_verification_code">Verificatiecode</string>
     <string name="error_verification_code_invalid">Ongeldige of verlopen code</string>
     <string name="verify_email_resend_link">Code opnieuw versturen</string>
+    <string name="error_household_change_failed">Kon niet van huishouden wisselen. Controleer je verbinding en probeer opnieuw.</string>
 
     <!-- ===== i18n pass: ontbrekende sleutels (voorheen alleen EN-fallback) ===== -->
     <string name="tab_domiciles">Domicilies</string>

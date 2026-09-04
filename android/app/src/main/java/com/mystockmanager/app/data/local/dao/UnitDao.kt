@@ -17,4 +17,7 @@ interface UnitDao {
 
     @Delete
     suspend fun deleteUnit(unit: UnitEntity)
+
+    @Query("DELETE FROM units WHERE userId = :userId")
+    suspend fun deleteAllForUser(userId: String)
 }
