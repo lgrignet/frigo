@@ -1,5 +1,6 @@
 # Android local secrets — IDs AdMob de production, jamais dans un dépôt public
-/android/app/src/main/res/values/admob.xml
+# (les IDs de test, eux, sont trackés dans app/src/debug/)
+/android/app/src/release/res/values/admob.xml
 
 # Local Android signing/config files
 /android/local.properties
