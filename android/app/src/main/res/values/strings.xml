@@ -1,0 +1,205 @@
+<resources>
+    <string name="app_name">MyStockManager</string>
+
+    <!-- Tabs -->
+    <string name="tab_expiring">Expiring</string>
+    <string name="tab_products">Products</string>
+    <string name="tab_shopping">Shopping</string>
+    <string name="tab_storages">Places</string>
+    <string name="tab_domiciles">Domiciles</string>
+    <string name="tab_settings">Settings</string>
+    <string name="tab_units">Units</string>
+
+    <!-- Buttons -->
+    <string name="btn_logout">Log out</string>
+    <string name="btn_cancel">Cancel</string>
+    <string name="btn_save">Save</string>
+    <string name="btn_add">Add</string>
+    <string name="btn_modify">Modify</string>
+    <string name="btn_delete">Delete</string>
+    <string name="btn_close">Close</string>
+    <string name="btn_copy">Copy</string>
+    <string name="btn_scan">Scan QR</string>
+    <string name="btn_minus">Minus</string>
+    <string name="btn_plus">Plus</string>
+    <string name="btn_add_to_shopping">Add to shopping list</string>
+    <string name="btn_continue">Continue</string>
+
+    <!-- Labels -->
+    <string name="label_name">Name</string>
+    <string name="label_quantity">Quantity</string>
+    <string name="label_unit">Unit</string>
+    <string name="label_storage">Storage</string>
+    <string name="label_shop">Shop</string>
+    <string name="label_domicile">Domicile</string>
+    <string name="label_expiry">Expiry</string>
+    <string name="label_restock">Restock threshold</string>
+    <string name="label_restock_quantity">Quantity to buy</string>
+    <string name="label_notes">Notes</string>
+    <string name="label_first_name">First Name</string>
+    <string name="label_last_name">Last Name</string>
+    <string name="label_storage_type">Storage type</string>
+    <string name="label_email">Email address</string>
+    <string name="label_password">Password</string>
+    <string name="label_confirm_password">Confirm password</string>
+    <string name="label_none">None</string>
+
+    <!-- Messages -->
+    <string name="msg_empty_list">Your list is empty 🛒</string>
+    <string name="msg_all_fresh">Everything is fresh! ✅</string>
+    <string name="msg_no_results">No results</string>
+    <string name="msg_added_to_shopping">Product added to shopping list</string>
+    <string name="msg_search_placeholder">Search for a product...</string>
+    <string name="msg_no_storage_defined">No storage defined. Create one in the Places tab.</string>
+
+    <!-- Filters -->
+    <string name="filter_all_domiciles">All Domiciles</string>
+    <string name="filter_all_storages">All Storages</string>
+
+    <!-- Titles -->
+    <string name="title_new_product">New product</string>
+    <string name="title_edit_product">Edit product</string>
+    <string name="title_new_storage">New storage</string>
+    <string name="title_edit_storage">Edit storage</string>
+    <string name="title_new_shop">New shop</string>
+    <string name="title_edit_shop">Edit shop</string>
+    <string name="title_new_domicile">New domicile</string>
+    <string name="title_edit_domicile">Edit domicile</string>
+    <string name="title_new_unit">New unit</string>
+    <string name="title_edit_unit">Edit unit</string>
+    <string name="title_new_shopping_item">New item</string>
+    <string name="title_edit_shopping_item">Edit item</string>
+    <string name="title_qr_code">Your sync QR Code</string>
+    <string name="manage_places_title">Manage places</string>
+    <string name="my_storages">My Storages</string>
+    <string name="my_shops">My Shops</string>
+    <string name="my_domiciles">My Domiciles</string>
+
+    <!-- Confirmation -->
+    <string name="confirm_delete_storage_title">Delete storage?</string>
+    <string name="confirm_delete_storage_msg">Do you want to delete \'%1$s\'? This will not delete the products inside.</string>
+    <string name="confirm_delete_shop_title">Delete shop?</string>
+    <string name="confirm_delete_shop_msg">Do you want to delete \'%1$s\'?</string>
+    <string name="confirm_delete_domicile_title">Delete domicile?</string>
+    <string name="confirm_delete_domicile_msg">Do you want to delete \'%1$s\'? Its linked storages will be left without a domicile.</string>
+
+    <!-- Settings -->
+    <string name="setting_lang">Interface language</string>
+    <string name="setting_date_format">Date format</string>
+    <string name="setting_expiry_warning">Expiry warning</string>
+    <string name="setting_theme">Theme</string>
+    <string name="setting_active_domicile">Active Domicile</string>
+    <string name="setting_sync_channel">Sync channel GUID</string>
+
+    <string name="prefs_section_general">General</string>
+    <string name="prefs_section_sync">Synchronization</string>
+
+    <!-- Other -->
+    <string name="storage_type_sec">Dry</string>
+    <string name="storage_type_frais">Cold</string>
+    <string name="storage_type_congele">Frozen</string>
+    <string name="expiry_label_prefix">Expires on:</string>
+    <string name="theme_dark">Dark Mode</string>
+    <string name="theme_light">Light Mode</string>
+    <string name="lang_fr">French</string>
+    <string name="lang_en">English</string>
+    <string name="lang_nl">Dutch</string>
+    <string name="lang_de">German</string>
+    <string name="lang_es">Spanish</string>
+
+    <!-- Units -->
+    <string name="unit_piece_name">Piece(s)</string>
+    <string name="unit_piece_label">pc</string>
+    <string name="unit_kg_name">Kilogram</string>
+    <string name="unit_kg_label">kg</string>
+    <string name="unit_g_name">Gram</string>
+    <string name="unit_g_label">g</string>
+    <string name="unit_l_name">Liter</string>
+    <string name="unit_l_label">L</string>
+    <string name="unit_packet_name">Packet(s)</string>
+    <string name="unit_packet_label">pkt</string>
+
+    <!-- Login -->
+    <string name="login_subtitle">Manage your stock intelligently</string>
+    <string name="login_tab_signin">Sign In</string>
+    <string name="login_tab_signup">Create account</string>
+    <string name="login_btn_signin">Sign In</string>
+    <string name="login_btn_signup">Create my account</string>
+    <string name="login_msg_register_success">Account created! Note your code:</string>
+    <string name="login_link_forgot_password">Forgot password?</string>
+    <string name="recovery_title">Reset password</string>
+    <string name="recovery_subtitle">Use your recovery code to set a new password</string>
+    <string name="label_recovery_code">Recovery code</string>
+    <string name="label_new_password">New password</string>
+    <string name="recovery_btn_submit">Reset password</string>
+    <string name="recovery_link_back_to_login">Back to sign in</string>
+
+    <!-- ===== i18n pass: category A (visible UI text) ===== -->
+    <string name="prefs_section_profile">My Profile</string>
+    <string name="btn_save_profile">Save profile</string>
+    <string name="setting_notifications">Alert notifications</string>
+    <string name="state_enabled">Enabled</string>
+    <string name="state_disabled">Disabled</string>
+    <string name="date_format_european_label">DD/MM/YYYY</string>
+    <string name="date_format_iso_label">YYYY-MM-DD</string>
+    <string name="btn_scan_barcode">Scan a barcode</string>
+    <string name="label_barcode_value">Code: %1$s</string>
+    <string name="msg_no_storage_in_domicile">No storage in this domicile.</string>
+    <string name="label_read_only">Read-only</string>
+    <string name="label_unit_full_name">Name (e.g. Kilogram)</string>
+    <string name="label_unit_abbrev">Abbreviation (e.g. kg)</string>
+    <string name="shopping_section_to_buy">To buy</string>
+    <string name="shopping_section_bought">Bought</string>
+    <string name="label_target_storage_section">Storage target</string>
+    <string name="label_target_domicile">Target domicile</string>
+    <string name="title_choose_storage">Where to store this product?</string>
+    <string name="label_place">Place:</string>
+    <string name="filter_all">All</string>
+    <string name="msg_no_storage_found">No storage found.</string>
+    <string name="msg_camera_permission_required">Camera permission required</string>
+    <string name="btn_back">Back</string>
+
+    <!-- ===== i18n pass: category B (strings from ViewModels / Worker / managers) ===== -->
+    <string name="error_invalid_credentials">Invalid email or password</string>
+    <string name="error_email_exists">An account already exists with this email</string>
+    <string name="error_generic">An error occurred</string>
+    <string name="error_registration_failed">Registration failed</string>
+    <string name="error_recovery_invalid">Invalid email or recovery code</string>
+    <string name="error_password_mismatch">Passwords do not match</string>
+    <string name="error_invalid_email">Invalid email address</string>
+    <string name="error_storage_duplicate">A storage with this name and type already exists for this domicile.</string>
+    <string name="toast_mic_permission_granted">Permission granted. Tap the mic again.</string>
+    <string name="toast_date_understood">Date understood: %1$s</string>
+    <string name="toast_date_not_understood">Not understood: \"%1$s\"</string>
+    <string name="voice_error_unavailable">Voice recognition is not available on this device.</string>
+    <string name="voice_error_audio">Audio error</string>
+    <string name="voice_error_client">Client error</string>
+    <string name="voice_error_permission">Missing permission</string>
+    <string name="voice_error_network">Network error</string>
+    <string name="voice_error_network_timeout">Network timeout</string>
+    <string name="voice_error_no_match">Not understood</string>
+    <string name="voice_error_busy">Recognizer busy</string>
+    <string name="voice_error_server">Server error</string>
+    <string name="voice_error_speech_timeout">No speech detected</string>
+    <string name="voice_error_unknown">Unknown error (%1$d)</string>
+    <string name="voice_error_start_failed">Could not start listening</string>
+    <string name="notif_channel_expiry_description">Product expiry alerts</string>
+    <string name="notif_expiry_title">Warning: products expiring soon</string>
+    <string name="notif_expiry_single">\'%1$s\' is expiring soon.</string>
+    <string name="notif_expiry_multiple">%1$d products are expiring soon.</string>
+
+    <!-- ===== i18n pass: category C (content descriptions / accessibility) ===== -->
+    <string name="cd_show_qr">Show QR code</string>
+    <string name="cd_qr_code">QR code</string>
+    <string name="cd_item_photo">Product photo</string>
+    <string name="cd_dictate_date">Dictate the date</string>
+    <string name="cd_pick_date">Choose a date</string>
+    <string name="cd_toggle_aggregation">Toggle grouping</string>
+    <string name="cd_store_item">Put away</string>
+
+    <!-- ===== i18n pass: seed data (default names created for a new account) ===== -->
+    <string name="seed_storage_fridge">Fridge</string>
+    <string name="seed_storage_freezer">Freezer</string>
+    <string name="seed_storage_cupboard">Cupboard</string>
+    <string name="seed_domicile_home">Home</string>
+</resources>
