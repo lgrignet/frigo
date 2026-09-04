@@ -416,6 +416,30 @@ app.post('/account/logout', requireDeviceToken, h(async (req, res) => {
     res.json({ ok: true });
 }));
 
+// --- POST /account/household ---
+// Change le foyer (guid) rattaché au compte de l'appareil authentifié (Bearer
+// device_token) — que ce soit pour en créer un nouveau ou en rejoindre un existant
+// (guid scanné/saisi depuis un autre appareil). Remplace l'ancien comportement où
+// /account/login refusait tout guid différent (409) sans offrir de solution.
+app.post('/account/household', requireDeviceToken, h(async (req, res) => {
+    const { guid } = req.body || {};
+    if (!isNonEmptyString(guid)) {
+        return res.status(400).json({ error: 'guid requis.' });
+    }
+
+    const { rows } = await pool.query(
+        `SELECT compte_id FROM device_tokens WHERE token = $1 AND revoked_at IS NULL`,
+        [req.deviceToken],
+    );
+    const deviceRow = rows[0];
+    if (!deviceRow) return res.status(401).json({ error: 'Non authentifié.' });
+
+    const newGuid = guid.trim();
+    await query(`UPDATE comptes SET guid = $1 WHERE id = $2`, [newGuid, deviceRow.compte_id]);
+
+    res.json({ guid: newGuid });
+}));
+
 // --- POST /internal/token/check ---
 // Appelée uniquement par le relais de sync (sync.noshi.be) pour vérifier un
 // device_token avant d'accepter une connexion WebSocket sur un salon. Protégée
