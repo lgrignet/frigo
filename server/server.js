@@ -17,6 +17,41 @@ if (!fs.existsSync(DATA_DIR)) {
 const PORT = 3000;
 const wss = new WebSocketServer({ port: PORT });
 
+// --- Authentification des connexions (device_token délivré par api.noshi.be) ---
+// Le token est vérifié auprès du service de comptes avant d'accepter une room ;
+// résultat mis en cache brièvement pour ne pas le solliciter à chaque reconnexion.
+const ACCOUNT_SERVICE_URL = process.env.ACCOUNT_SERVICE_URL || 'http://127.0.0.1:3001';
+const INTERNAL_SHARED_SECRET = process.env.INTERNAL_SHARED_SECRET;
+const TOKEN_CACHE_TTL_MS = 60 * 1000;
+const tokenCache = new Map(); // token -> { validUntil, compteId, guid }
+
+async function validateToken(token) {
+    if (!token) return null;
+
+    const cached = tokenCache.get(token);
+    if (cached && cached.validUntil > Date.now()) return cached;
+
+    try {
+        const res = await fetch(`${ACCOUNT_SERVICE_URL}/internal/token/check`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Internal-Secret': INTERNAL_SHARED_SECRET ?? '' },
+            body: JSON.stringify({ token }),
+        });
+        if (!res.ok) return null;
+        const data = await res.json();
+        if (!data.valid) return null;
+
+        const entry = { validUntil: Date.now() + TOKEN_CACHE_TTL_MS, compteId: data.compte_id, guid: data.guid };
+        tokenCache.set(token, entry);
+        return entry;
+    } catch (e) {
+        // Échec réseau vers le service de comptes -> on refuse (fail-closed), pas
+        // de repli permissif : mieux vaut un canal indisponible qu'un canal ouvert.
+        console.error('[auth] vérification du token échouée (account-service injoignable ?)', e.message);
+        return null;
+    }
+}
+
 function loadRoomData(roomId) {
     const filePath = path.join(DATA_DIR, `${roomId}.json`);
     if (fs.existsSync(filePath)) {
@@ -34,9 +69,20 @@ function saveRoomData(roomId, data) {
     fs.writeFileSync(filePath, JSON.stringify(data));
 }
 
-wss.on('connection', (ws, req) => {
-    const urlParts = req.url.split('?')[0];
-    const room = urlParts.replace('/', '') || 'default';
+wss.on('connection', async (ws, req) => {
+    const parsedUrl = new URL(req.url, 'http://internal');
+    const room = parsedUrl.pathname.replace('/', '') || 'default';
+    const token = parsedUrl.searchParams.get('token');
+
+    const auth = await validateToken(token);
+    if (!auth) {
+        ws.close(4401, 'unauthorized');
+        return;
+    }
+    if (auth.guid !== room) {
+        ws.close(4401, 'guid mismatch');
+        return;
+    }
 
     if (!rooms.has(room)) {
         rooms.set(room, new Set());
