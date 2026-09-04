@@ -11,6 +11,11 @@ const PORT = Number(process.env.PORT) || 3001;
 const HOST = process.env.HOST || '127.0.0.1';
 const VERIFICATION_TTL_MS = 15 * 60 * 1000; // 15 minutes
 
+// Secret partagé avec le relais de synchronisation (sync.noshi.be), pour lui
+// permettre de vérifier un device_token via /internal/token/check. À définir de
+// façon identique dans l'environnement des deux services (jamais commité).
+const INTERNAL_SHARED_SECRET = process.env.INTERNAL_SHARED_SECRET;
+
 const app = express();
 
 // Le service tourne derrière nginx (un seul proxy) : on fait confiance au 1er hop
@@ -50,6 +55,27 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 async function findCompteByEmail(email, client = pool) {
     const { rows } = await client.query('SELECT * FROM comptes WHERE email = $1', [email]);
     return rows[0] || null;
+}
+
+// Middleware pour les routes internes (appelées uniquement par sync.noshi.be, pas
+// exposées au public autrement que par ce secret).
+function requireInternalSecret(req, res, next) {
+    if (!INTERNAL_SHARED_SECRET || req.get('X-Internal-Secret') !== INTERNAL_SHARED_SECRET) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+    next();
+}
+
+// Middleware pour les routes publiques nécessitant un appareil authentifié
+// (Authorization: Bearer <device_token>).
+function requireDeviceToken(req, res, next) {
+    const auth = req.get('Authorization') || '';
+    const token = auth.startsWith('Bearer ') ? auth.slice(7).trim() : null;
+    if (!isNonEmptyString(token)) {
+        return res.status(401).json({ error: 'Non authentifié.' });
+    }
+    req.deviceToken = token;
+    next();
 }
 
 async function createDeviceToken(client, compteId, deviceName) {
@@ -212,6 +238,75 @@ app.post('/account/register', h(async (req, res) => {
     res.status(201).json(result);
 }));
 
+// --- POST /account/verify-email ---
+// Consomme le code à 6 chiffres envoyé par email lors de /account/register.
+app.post('/account/verify-email', h(async (req, res) => {
+    const { email, code } = req.body || {};
+    const GENERIC_401 = { error: 'Code invalide ou expiré.' };
+
+    if (!isNonEmptyString(email) || !isNonEmptyString(code)) {
+        return res.status(401).json(GENERIC_401);
+    }
+
+    const normEmail = normalizeEmail(email);
+    const compte = await findCompteByEmail(normEmail);
+    if (!compte) return res.status(401).json(GENERIC_401);
+    if (compte.email_verifie) return res.json({ email_verifie: true });
+
+    const { rows } = await pool.query(
+        `SELECT * FROM codes_verification
+         WHERE compte_id = $1 AND type = 'email_verification' AND used_at IS NULL AND expires_at > now()
+         ORDER BY created_at DESC LIMIT 1`,
+        [compte.id],
+    );
+    const pending = rows[0];
+    if (!pending || !verifyPassword(code.trim(), pending.code_salt, pending.code_hash)) {
+        return res.status(401).json(GENERIC_401);
+    }
+
+    await withTransaction(async (client) => {
+        await client.query(`UPDATE comptes SET email_verifie = true WHERE id = $1`, [compte.id]);
+        await client.query(`UPDATE codes_verification SET used_at = now() WHERE id = $1`, [pending.id]);
+    });
+
+    res.json({ email_verifie: true });
+}));
+
+// --- POST /account/verify-email/resend ---
+// Régénère et renvoie un code de vérification. Réponse identique que le compte
+// existe ou non / soit déjà vérifié, pour ne pas révéler les emails enregistrés.
+app.post('/account/verify-email/resend', h(async (req, res) => {
+    const { email } = req.body || {};
+    if (!isNonEmptyString(email) || !EMAIL_RE.test(email.trim())) {
+        return res.status(400).json({ error: 'Email invalide.' });
+    }
+
+    const normEmail = normalizeEmail(email);
+    const compte = await findCompteByEmail(normEmail);
+    if (!compte || compte.email_verifie) {
+        return res.json({ ok: true });
+    }
+
+    const code = sixDigitCode();
+    const codeSaltHex = generateSaltHex();
+    const codeHashB64 = hashPassword(code, codeSaltHex);
+    const expiresAt = new Date(Date.now() + VERIFICATION_TTL_MS);
+
+    await query(
+        `INSERT INTO codes_verification (compte_id, code_hash, code_salt, type, expires_at)
+         VALUES ($1, $2, $3, 'email_verification', $4)`,
+        [compte.id, codeHashB64, codeSaltHex, expiresAt],
+    );
+
+    try {
+        await sendVerificationEmail(normEmail, code);
+    } catch (mailErr) {
+        console.error('[verify-email/resend] échec envoi email', mailErr);
+    }
+
+    res.json({ ok: true });
+}));
+
 // --- POST /account/login ---
 app.post('/account/login', h(async (req, res) => {
     const { email, password, guid, device_name } = req.body || {};
@@ -312,6 +407,36 @@ app.post('/account/password/recover', h(async (req, res) => {
     });
 
     res.json(result);
+}));
+
+// --- POST /account/logout ---
+// Révoque le device_token de l'appareil courant (Authorization: Bearer <token>).
+app.post('/account/logout', requireDeviceToken, h(async (req, res) => {
+    await query(`UPDATE device_tokens SET revoked_at = now() WHERE token = $1 AND revoked_at IS NULL`, [req.deviceToken]);
+    res.json({ ok: true });
+}));
+
+// --- POST /internal/token/check ---
+// Appelée uniquement par le relais de sync (sync.noshi.be) pour vérifier un
+// device_token avant d'accepter une connexion WebSocket sur un salon. Protégée
+// par un secret partagé, pas par le rate-limiter public (hors préfixe /account).
+app.post('/internal/token/check', requireInternalSecret, h(async (req, res) => {
+    const { token } = req.body || {};
+    if (!isNonEmptyString(token)) return res.status(401).json({ valid: false });
+
+    const { rows } = await pool.query(
+        `SELECT dt.compte_id, c.guid
+         FROM device_tokens dt
+         JOIN comptes c ON c.id = dt.compte_id
+         WHERE dt.token = $1 AND dt.revoked_at IS NULL`,
+        [token],
+    );
+    const row = rows[0];
+    if (!row) return res.status(401).json({ valid: false });
+
+    await query(`UPDATE device_tokens SET last_active_at = now() WHERE token = $1`, [token]);
+
+    res.json({ valid: true, compte_id: row.compte_id, guid: row.guid });
 }));
 
 app.use((req, res) => res.status(404).json({ error: 'Route inconnue.' }));
