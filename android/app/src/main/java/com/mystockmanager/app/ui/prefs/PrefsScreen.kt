@@ -1,5 +1,6 @@
 package com.mystockmanager.app.ui.prefs
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -38,13 +39,66 @@ fun PrefsScreen(
     
     val firstName by viewModel.firstName.collectAsState()
     val lastName by viewModel.lastName.collectAsState()
-    
+    val emailVerified by viewModel.emailVerified.collectAsState()
+    val verifyCodeError by viewModel.verifyCodeError.collectAsState()
+
     val clipboardManager = LocalClipboardManager.current
-    
+
     var showQrDialog by remember { mutableStateOf(false) }
     var showScanner by remember { mutableStateOf(false) }
+    var showVerifyDialog by remember { mutableStateOf(false) }
+    var verifyCode by remember { mutableStateOf("") }
     var langExpanded by remember { mutableStateOf(false) }
     var domExpanded by remember { mutableStateOf(false) }
+
+    if (showVerifyDialog) {
+        AlertDialog(
+            onDismissRequest = { showVerifyDialog = false },
+            title = { Text(stringResource(R.string.verify_email_dialog_title)) },
+            text = {
+                Column {
+                    Text(stringResource(R.string.verify_email_dialog_subtitle), fontSize = 13.sp)
+                    Spacer(modifier = Modifier.height(12.dp))
+                    OutlinedTextField(
+                        value = verifyCode,
+                        onValueChange = { verifyCode = it.filter { c -> c.isDigit() }.take(6) },
+                        label = { Text(stringResource(R.string.label_verification_code)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(14.dp)
+                    )
+                    if (verifyCodeError) {
+                        Text(
+                            text = stringResource(R.string.error_verification_code_invalid),
+                            color = MaterialTheme.colorScheme.error,
+                            fontSize = 12.sp,
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
+                    }
+                    Text(
+                        text = stringResource(R.string.verify_email_resend_link),
+                        color = MaterialTheme.colorScheme.primary,
+                        fontSize = 12.sp,
+                        modifier = Modifier
+                            .padding(top = 12.dp)
+                            .clickable { viewModel.resendVerificationCode() }
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.verifyEmail(verifyCode) { ok ->
+                        if (ok) {
+                            showVerifyDialog = false
+                            verifyCode = ""
+                        }
+                    }
+                }) { Text(stringResource(R.string.btn_verify)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showVerifyDialog = false }) { Text(stringResource(R.string.btn_cancel)) }
+            }
+        )
+    }
 
     if (showScanner) {
         QRScanner(
@@ -97,6 +151,24 @@ fun PrefsScreen(
                 Icon(Icons.Default.Save, contentDescription = null)
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(stringResource(R.string.btn_save_profile))
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = stringResource(if (emailVerified) R.string.email_verified else R.string.email_not_verified),
+                    fontSize = 13.sp,
+                    color = if (emailVerified) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                if (!emailVerified) {
+                    TextButton(onClick = { showVerifyDialog = true }) {
+                        Text(stringResource(R.string.btn_verify))
+                    }
+                }
             }
         }
 

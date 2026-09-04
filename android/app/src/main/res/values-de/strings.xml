@@ -172,6 +172,14 @@
     <string name="cd_pick_date">Datum auswählen</string>
     <string name="cd_toggle_aggregation">Gruppierung umschalten</string>
     <string name="cd_store_item">Einräumen</string>
+    <string name="email_verified">E-Mail bestätigt</string>
+    <string name="email_not_verified">E-Mail nicht bestätigt</string>
+    <string name="btn_verify">Bestätigen</string>
+    <string name="verify_email_dialog_title">E-Mail bestätigen</string>
+    <string name="verify_email_dialog_subtitle">Geben Sie den 6-stelligen Code ein, den wir Ihnen per E-Mail gesendet haben.</string>
+    <string name="label_verification_code">Bestätigungscode</string>
+    <string name="error_verification_code_invalid">Ungültiger oder abgelaufener Code</string>
+    <string name="verify_email_resend_link">Code erneut senden</string>
 
     <!-- ===== i18n pass: fehlende Schlüssel (vorher nur EN-Fallback) ===== -->
     <string name="tab_domiciles">Wohnsitze</string>

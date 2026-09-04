@@ -8,7 +8,8 @@ import javax.inject.Singleton
 
 @Singleton
 class SessionManager @Inject constructor(
-    @ApplicationContext context: Context
+    @ApplicationContext context: Context,
+    private val tokenCipher: DeviceTokenCipher
 ) {
     private val prefs: SharedPreferences = context.getSharedPreferences("msm_session", Context.MODE_PRIVATE)
 
@@ -38,12 +39,18 @@ class SessionManager @Inject constructor(
         prefs.edit().putString("sync_guid", guid).apply()
     }
 
-    /** Jeton d'appareil renvoyé par api.noshi.be (register/login/migrate). */
+    /** Jeton d'appareil renvoyé par api.noshi.be (register/login/migrate/recover) — chiffré au repos (Keystore). */
     fun setDeviceToken(token: String?) {
-        prefs.edit().putString("device_token", token).apply()
+        prefs.edit().putString("device_token_enc", tokenCipher.encrypt(token)).apply()
     }
 
-    fun getDeviceToken(): String? = prefs.getString("device_token", null)
+    fun getDeviceToken(): String? = tokenCipher.decrypt(prefs.getString("device_token_enc", null))
+
+    fun setEmailVerified(verified: Boolean) {
+        prefs.edit().putBoolean("email_verifie", verified).apply()
+    }
+
+    fun getEmailVerified(): Boolean = prefs.getBoolean("email_verifie", false)
 
     fun clearSession() {
         prefs.edit().clear().apply()

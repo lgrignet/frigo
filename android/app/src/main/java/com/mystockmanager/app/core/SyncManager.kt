@@ -44,9 +44,12 @@ class SyncManager @Inject constructor(
         scope.launch {
             while (isActive) {
                 try {
-                    client.webSocket("wss://sync.noshi.be/$guid?device=android_native") {
+                    // Le device_token (§4.4/§5.4 du cahier des charges) permet au relais de
+                    // vérifier l'appareil avant d'accepter la connexion sur ce salon.
+                    val token = sessionManager.getDeviceToken().orEmpty()
+                    client.webSocket("wss://sync.noshi.be/$guid?device=android_native&token=$token") {
                         Log.i("Sync", "--- CONNECTÉ EN KOTLIN NATIF ---")
-                        
+
                         val sendJob = launch {
                             for (message in outgoingChannel) {
                                 try {
@@ -69,13 +72,17 @@ class SyncManager @Inject constructor(
                                 handleIncomingMessage(frame.readText())
                             }
                         }
-                        
+
                         heartbeatJob.cancel()
                         sendJob.cancel()
                     }
                 } catch (e: Exception) {
-                    delay(5000)
+                    Log.w("Sync", "Connexion perdue : ${e.message}")
                 }
+                // Délai systématique avant de retenter, que la connexion précédente se
+                // soit terminée normalement (ex. token refusé par le relais) ou en erreur —
+                // évite une boucle de reconnexion immédiate en cas de rejet d'authentification.
+                delay(5000)
             }
         }
     }

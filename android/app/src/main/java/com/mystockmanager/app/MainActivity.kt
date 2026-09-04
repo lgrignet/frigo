@@ -141,8 +141,8 @@ class MainActivity : AppCompatActivity() {
                         if (isLoggedIn) {
                             MainScreen(onLogout = {
                                 syncManager.stopSync()
-                                sessionManager.clearSession()
                                 isLoggedIn = false
+                                lifecycleScope.launch { authRepository.logout() }
                             })
                         } else {
                             LoginScreen(onLoginSuccess = {

@@ -172,6 +172,14 @@
     <string name="cd_pick_date">Kies een datum</string>
     <string name="cd_toggle_aggregation">Groepering wisselen</string>
     <string name="cd_store_item">Opbergen</string>
+    <string name="email_verified">E-mail geverifieerd</string>
+    <string name="email_not_verified">E-mail niet geverifieerd</string>
+    <string name="btn_verify">Verifiëren</string>
+    <string name="verify_email_dialog_title">Verifieer je e-mailadres</string>
+    <string name="verify_email_dialog_subtitle">Voer de 6-cijferige code in die we je per e-mail hebben gestuurd.</string>
+    <string name="label_verification_code">Verificatiecode</string>
+    <string name="error_verification_code_invalid">Ongeldige of verlopen code</string>
+    <string name="verify_email_resend_link">Code opnieuw versturen</string>
 
     <!-- ===== i18n pass: ontbrekende sleutels (voorheen alleen EN-fallback) ===== -->
     <string name="tab_domiciles">Domicilies</string>

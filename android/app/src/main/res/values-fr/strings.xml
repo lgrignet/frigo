@@ -196,6 +196,14 @@
     <string name="cd_pick_date">Choisir une date</string>
     <string name="cd_toggle_aggregation">Basculer le regroupement</string>
     <string name="cd_store_item">Ranger</string>
+    <string name="email_verified">Email vérifié</string>
+    <string name="email_not_verified">Email non vérifié</string>
+    <string name="btn_verify">Vérifier</string>
+    <string name="verify_email_dialog_title">Vérifier votre email</string>
+    <string name="verify_email_dialog_subtitle">Entrez le code à 6 chiffres reçu par email.</string>
+    <string name="label_verification_code">Code de vérification</string>
+    <string name="error_verification_code_invalid">Code invalide ou expiré</string>
+    <string name="verify_email_resend_link">Renvoyer le code</string>
 
     <!-- ===== i18n pass : données seed (noms par défaut créés pour un nouveau compte) ===== -->
     <string name="seed_storage_fridge">Frigo</string>

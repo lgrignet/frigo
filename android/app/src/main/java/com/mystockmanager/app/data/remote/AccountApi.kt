@@ -4,10 +4,12 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
@@ -61,6 +63,18 @@ private data class RecoverPasswordRequest(
     val guid: String? = null,
     @SerialName("device_name") val deviceName: String? = null
 )
+
+@Serializable
+private data class VerifyEmailRequest(val email: String, val code: String)
+
+@Serializable
+data class VerifyEmailResponse(@SerialName("email_verifie") val emailVerifie: Boolean)
+
+@Serializable
+private data class ResendVerificationRequest(val email: String)
+
+@Serializable
+data class OkResponse(val ok: Boolean)
 
 @Serializable
 private data class MigrateRequest(
@@ -144,10 +158,31 @@ class AccountApi @Inject constructor() {
         )
     )
 
-    private suspend inline fun <reified TReq> post(path: String, body: TReq): AccountAuthResponse {
+    suspend fun verifyEmail(email: String, code: String): VerifyEmailResponse =
+        post("/account/verify-email", VerifyEmailRequest(email, code))
+
+    suspend fun resendVerificationCode(email: String): OkResponse =
+        post("/account/verify-email/resend", ResendVerificationRequest(email))
+
+    /** Révoque le device_token courant côté serveur (Authorization: Bearer, pas de corps). */
+    suspend fun logout(deviceToken: String): OkResponse {
+        val response: HttpResponse = client.post("$baseUrl/account/logout") {
+            header(HttpHeaders.Authorization, "Bearer $deviceToken")
+        }
+        if (response.status.isSuccess()) return response.body()
+        val message = try {
+            response.body<ApiErrorBody>().error
+        } catch (e: Exception) {
+            null
+        }
+        throw AccountApiException(message ?: "HTTP_${response.status.value}", response.status.value)
+    }
+
+    private suspend inline fun <reified TReq, reified TRes> post(path: String, body: TReq, bearerToken: String? = null): TRes {
         val response: HttpResponse = client.post("$baseUrl$path") {
             contentType(ContentType.Application.Json)
             setBody(body)
+            if (bearerToken != null) header(HttpHeaders.Authorization, "Bearer $bearerToken")
         }
         if (response.status.isSuccess()) {
             return response.body()

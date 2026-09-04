@@ -81,6 +81,7 @@ class AuthRepository @Inject constructor(
 
         sessionManager.setSession(userId, normalized, user.syncChannelGuid, firstName, lastName)
         sessionManager.setDeviceToken(remote.token)
+        sessionManager.setEmailVerified(remote.emailVerifie)
 
         return recoveryCode
     }
@@ -187,6 +188,7 @@ class AuthRepository @Inject constructor(
 
         sessionManager.setSession(userId, user.email, user.syncChannelGuid, user.firstName, user.lastName)
         sessionManager.setDeviceToken(remote.token)
+        sessionManager.setEmailVerified(remote.emailVerifie)
     }
 
     /**
@@ -223,6 +225,7 @@ class AuthRepository @Inject constructor(
                 )
             )
             sessionManager.setDeviceToken(remote.token)
+            sessionManager.setEmailVerified(remote.emailVerifie)
         } catch (e: AccountApiException) {
             Log.w("AuthRepository", "Migration vers api.noshi.be différée (${e.httpStatus}) : ${e.message}")
         } catch (e: Exception) {
@@ -230,7 +233,39 @@ class AuthRepository @Inject constructor(
         }
     }
 
-    fun logout() {
+    /** Vérifie l'email du compte connecté avec le code à 6 chiffres reçu (§4.6 du cahier des charges). */
+    suspend fun verifyEmail(code: String): Boolean {
+        val email = sessionManager.getEmail() ?: return false
+        return try {
+            accountApi.verifyEmail(email, code.trim())
+            sessionManager.setEmailVerified(true)
+            userDao.getUserById(sessionManager.getUserId())?.let { userDao.updateUser(it.copy(emailVerifie = true)) }
+            true
+        } catch (e: AccountApiException) {
+            if (e.httpStatus == 401) false else throw e
+        }
+    }
+
+    /** Redemande l'envoi d'un code de vérification (best-effort, ne fait jamais échouer l'appelant). */
+    suspend fun resendVerificationCode() {
+        val email = sessionManager.getEmail() ?: return
+        try {
+            accountApi.resendVerificationCode(email)
+        } catch (e: Exception) {
+            Log.w("AuthRepository", "Renvoi du code de vérification impossible (réseau ?)", e)
+        }
+    }
+
+    /** Révoque le device_token côté serveur (best-effort) puis efface la session locale. */
+    suspend fun logout() {
+        val token = sessionManager.getDeviceToken()
+        if (token != null) {
+            try {
+                accountApi.logout(token)
+            } catch (e: Exception) {
+                Log.w("AuthRepository", "Révocation du device_token impossible (réseau ?)", e)
+            }
+        }
         sessionManager.clearSession()
     }
 

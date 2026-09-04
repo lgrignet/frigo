@@ -196,6 +196,14 @@
     <string name="cd_pick_date">Choose a date</string>
     <string name="cd_toggle_aggregation">Toggle grouping</string>
     <string name="cd_store_item">Put away</string>
+    <string name="email_verified">Email verified</string>
+    <string name="email_not_verified">Email not verified</string>
+    <string name="btn_verify">Verify</string>
+    <string name="verify_email_dialog_title">Verify your email</string>
+    <string name="verify_email_dialog_subtitle">Enter the 6-digit code we sent to your email address.</string>
+    <string name="label_verification_code">Verification code</string>
+    <string name="error_verification_code_invalid">Invalid or expired code</string>
+    <string name="verify_email_resend_link">Resend the code</string>
 
     <!-- ===== i18n pass: seed data (default names created for a new account) ===== -->
     <string name="seed_storage_fridge">Fridge</string>

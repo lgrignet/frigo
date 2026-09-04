@@ -169,6 +169,14 @@
     <string name="cd_pick_date">Elegir una fecha</string>
     <string name="cd_toggle_aggregation">Alternar agrupación</string>
     <string name="cd_store_item">Guardar</string>
+    <string name="email_verified">Correo verificado</string>
+    <string name="email_not_verified">Correo no verificado</string>
+    <string name="btn_verify">Verificar</string>
+    <string name="verify_email_dialog_title">Verifica tu correo</string>
+    <string name="verify_email_dialog_subtitle">Introduce el código de 6 dígitos que te hemos enviado por correo.</string>
+    <string name="label_verification_code">Código de verificación</string>
+    <string name="error_verification_code_invalid">Código no válido o caducado</string>
+    <string name="verify_email_resend_link">Reenviar el código</string>
 
     <!-- ===== i18n pass: claves faltantes (antes solo con fallback EN) ===== -->
     <string name="tab_domiciles">Domicilios</string>

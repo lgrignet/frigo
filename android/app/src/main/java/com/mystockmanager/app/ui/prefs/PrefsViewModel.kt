@@ -29,6 +29,8 @@ class PrefsViewModel @Inject constructor(
 
     val firstName = MutableStateFlow(sessionManager.getFirstName())
     val lastName = MutableStateFlow(sessionManager.getLastName())
+    val emailVerified = MutableStateFlow(sessionManager.getEmailVerified())
+    val verifyCodeError = MutableStateFlow(false)
 
     val prefs: StateFlow<PreferenceEntity> = prefsRepository.getPrefs(userId)
         .map { it ?: PreferenceEntity(userId) }
@@ -89,6 +91,19 @@ class PrefsViewModel @Inject constructor(
         viewModelScope.launch {
             prefsRepository.savePrefs(prefs.value.copy(isShoppingAggregated = aggregated))
         }
+    }
+
+    fun verifyEmail(code: String, onDone: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            val ok = authRepository.verifyEmail(code)
+            verifyCodeError.value = !ok
+            if (ok) emailVerified.value = true
+            onDone(ok)
+        }
+    }
+
+    fun resendVerificationCode() {
+        viewModelScope.launch { authRepository.resendVerificationCode() }
     }
 
     fun saveProfile() {
