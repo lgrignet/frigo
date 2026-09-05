@@ -14,9 +14,10 @@ import com.mystockmanager.app.data.local.entities.*
         ShoppingEntity::class,
         PreferenceEntity::class,
         UnitEntity::class,
-        DomicileEntity::class
+        DomicileEntity::class,
+        ExpiryHistoryEntity::class
     ],
-    version = 6,
+    version = 7,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -28,4 +29,5 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun preferenceDao(): PreferenceDao
     abstract fun unitDao(): UnitDao
     abstract fun domicileDao(): DomicileDao
+    abstract fun expiryHistoryDao(): ExpiryHistoryDao
 }

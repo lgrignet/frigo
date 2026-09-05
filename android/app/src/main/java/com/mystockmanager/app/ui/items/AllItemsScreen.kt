@@ -47,15 +47,34 @@ fun AllItemsScreen(
     val selectedDomId by viewModel.selectedDomicileId.collectAsState()
     val selectedStorId by viewModel.selectedStorageId.collectAsState()
 
+    val recentExpiryClears by viewModel.recentExpiryClears.collectAsState()
+    val dateFormatPref by viewModel.dateFormat.collectAsState()
+
     var domExpanded by remember { mutableStateOf(false) }
     var storExpanded by remember { mutableStateOf(false) }
+    var showHistoryDialog by remember { mutableStateOf(false) }
 
     val snackbarHostState = remember { SnackbarHostState() }
     val addedMessage = stringResource(R.string.msg_added_to_shopping)
+    val expiryClearedMessage = stringResource(R.string.msg_expiry_cleared_suffix)
+    val undoLabel = stringResource(R.string.action_undo)
 
     LaunchedEffect(Unit) {
         viewModel.message.collect { productName ->
             snackbarHostState.showSnackbar("$productName : $addedMessage")
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.expiryCleared.collect { cleared ->
+            val result = snackbarHostState.showSnackbar(
+                message = "${cleared.itemName} : $expiryClearedMessage",
+                actionLabel = undoLabel,
+                duration = SnackbarDuration.Long
+            )
+            if (result == SnackbarResult.ActionPerformed) {
+                viewModel.restoreExpiry(cleared)
+            }
         }
     }
 
@@ -70,13 +89,87 @@ fun AllItemsScreen(
         containerColor = Color.Transparent
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp)) {
-            Text(
-                text = stringResource(R.string.tab_products),
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Black,
-                color = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(R.string.tab_products),
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Black,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                if (recentExpiryClears.isNotEmpty()) {
+                    IconButton(onClick = { showHistoryDialog = true }) {
+                        Icon(
+                            Icons.Default.History,
+                            contentDescription = stringResource(R.string.cd_expiry_history),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+            }
+
+            if (showHistoryDialog) {
+                val dateFormatter = remember(dateFormatPref) {
+                    if (dateFormatPref == "iso") DateTimeFormatter.ofPattern("yyyy-MM-dd")
+                    else DateTimeFormatter.ofPattern("dd/MM/yyyy")
+                }
+                AlertDialog(
+                    onDismissRequest = { showHistoryDialog = false },
+                    title = { Text(stringResource(R.string.expiry_history_dialog_title)) },
+                    text = {
+                        if (recentExpiryClears.isEmpty()) {
+                            Text(stringResource(R.string.expiry_history_empty))
+                        } else {
+                            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                recentExpiryClears.forEach { entry ->
+                                    val formattedDate = try {
+                                        val date = if (entry.previousExpiryDate.contains("-")) LocalDate.parse(entry.previousExpiryDate)
+                                                    else LocalDate.parse(entry.previousExpiryDate, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                                        date.format(dateFormatter)
+                                    } catch (e: Exception) { entry.previousExpiryDate }
+
+                                    val minutesAgo = try {
+                                        ChronoUnit.MINUTES.between(java.time.Instant.parse(entry.clearedAt), java.time.Instant.now())
+                                    } catch (e: Exception) { 0L }
+
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(entry.itemName, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                                            Text(
+                                                stringResource(R.string.expiry_history_previous_date, formattedDate),
+                                                fontSize = 12.sp,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                            Text(
+                                                if (minutesAgo < 1) stringResource(R.string.expiry_history_cleared_now)
+                                                else stringResource(R.string.expiry_history_cleared_ago, minutesAgo.toInt()),
+                                                fontSize = 11.sp,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+                                        TextButton(onClick = {
+                                            viewModel.restoreExpiry(entry)
+                                            if (recentExpiryClears.size <= 1) showHistoryDialog = false
+                                        }) {
+                                            Text(stringResource(R.string.btn_restore))
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    confirmButton = {
+                        TextButton(onClick = { showHistoryDialog = false }) { Text(stringResource(R.string.btn_close)) }
+                    }
+                )
+            }
 
             OutlinedTextField(
                 value = searchQuery,

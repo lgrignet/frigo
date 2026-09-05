@@ -19,6 +19,7 @@
     <string name="btn_delete">Delete</string>
     <string name="btn_close">Close</string>
     <string name="btn_copy">Copy</string>
+    <string name="btn_paste">Paste</string>
     <string name="btn_scan">Scan QR</string>
     <string name="btn_minus">Minus</string>
     <string name="btn_plus">Plus</string>
@@ -49,6 +50,14 @@
     <string name="msg_all_fresh">Everything is fresh! ✅</string>
     <string name="msg_no_results">No results</string>
     <string name="msg_added_to_shopping">Product added to shopping list</string>
+    <string name="msg_expiry_cleared_suffix">expiry date cleared (stock at 0)</string>
+    <string name="action_undo">Undo</string>
+    <string name="expiry_history_dialog_title">Recently cleared expiry dates</string>
+    <string name="expiry_history_empty">No expiry date cleared recently.</string>
+    <string name="expiry_history_previous_date">Was expiring on %1$s</string>
+    <string name="expiry_history_cleared_ago">%1$d min ago</string>
+    <string name="expiry_history_cleared_now">Just now</string>
+    <string name="btn_restore">Restore</string>
     <string name="msg_search_placeholder">Search for a product...</string>
     <string name="msg_no_storage_defined">No storage defined. Create one in the Places tab.</string>
 
@@ -196,6 +205,7 @@
     <string name="cd_pick_date">Choose a date</string>
     <string name="cd_toggle_aggregation">Toggle grouping</string>
     <string name="cd_store_item">Put away</string>
+    <string name="cd_expiry_history">Cleared expiry dates history</string>
     <string name="email_verified">Email verified</string>
     <string name="email_not_verified">Email not verified</string>
     <string name="btn_verify">Verify</string>

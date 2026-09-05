@@ -19,6 +19,7 @@
     <string name="btn_delete">Supprimer</string>
     <string name="btn_close">Fermer</string>
     <string name="btn_copy">Copier</string>
+    <string name="btn_paste">Coller</string>
     <string name="btn_scan">Scanner</string>
     <string name="btn_minus">Moins</string>
     <string name="btn_plus">Plus</string>
@@ -49,6 +50,14 @@
     <string name="msg_all_fresh">Tout est frais ! ✅</string>
     <string name="msg_no_results">Aucun résultat</string>
     <string name="msg_added_to_shopping">Produit ajouté à la liste de courses</string>
+    <string name="msg_expiry_cleared_suffix">date de péremption effacée (stock à 0)</string>
+    <string name="action_undo">Annuler</string>
+    <string name="expiry_history_dialog_title">Dates de péremption effacées récemment</string>
+    <string name="expiry_history_empty">Aucune date effacée récemment.</string>
+    <string name="expiry_history_previous_date">Expirait le %1$s</string>
+    <string name="expiry_history_cleared_ago">Il y a %1$d min</string>
+    <string name="expiry_history_cleared_now">À l\'instant</string>
+    <string name="btn_restore">Restaurer</string>
     <string name="msg_search_placeholder">Rechercher un produit...</string>
     <string name="msg_no_storage_defined">Aucun rangement défini. Créez-en un dans l\'onglet Lieux.</string>
 
@@ -196,6 +205,7 @@
     <string name="cd_pick_date">Choisir une date</string>
     <string name="cd_toggle_aggregation">Basculer le regroupement</string>
     <string name="cd_store_item">Ranger</string>
+    <string name="cd_expiry_history">Historique des dates effacées</string>
     <string name="email_verified">Email vérifié</string>
     <string name="email_not_verified">Email non vérifié</string>
     <string name="btn_verify">Vérifier</string>

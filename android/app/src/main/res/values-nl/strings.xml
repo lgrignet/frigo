@@ -13,6 +13,7 @@
     <string name="btn_delete">Verwijderen</string>
     <string name="btn_close">Sluiten</string>
     <string name="btn_copy">Kopiëren</string>
+    <string name="btn_paste">Plakken</string>
     <string name="btn_scan">Scannen</string>
     <string name="btn_minus">Min</string>
     <string name="btn_plus">Plus</string>
@@ -38,6 +39,14 @@
     <string name="msg_all_fresh">Alles is vers! ✅</string>
     <string name="msg_no_results">Geen resultaten</string>
     <string name="msg_added_to_shopping">Product aan boodschappenlijst toegevoegd</string>
+    <string name="msg_expiry_cleared_suffix">vervaldatum gewist (voorraad op 0)</string>
+    <string name="action_undo">Ongedaan maken</string>
+    <string name="expiry_history_dialog_title">Recent gewiste vervaldatums</string>
+    <string name="expiry_history_empty">Recent is geen vervaldatum gewist.</string>
+    <string name="expiry_history_previous_date">Verviel op %1$s</string>
+    <string name="expiry_history_cleared_ago">%1$d min. geleden</string>
+    <string name="expiry_history_cleared_now">Zojuist</string>
+    <string name="btn_restore">Herstellen</string>
     <string name="msg_search_placeholder">Zoek naar een product...</string>
 
     <!-- Filters -->
@@ -172,6 +181,7 @@
     <string name="cd_pick_date">Kies een datum</string>
     <string name="cd_toggle_aggregation">Groepering wisselen</string>
     <string name="cd_store_item">Opbergen</string>
+    <string name="cd_expiry_history">Geschiedenis van gewiste vervaldatums</string>
     <string name="email_verified">E-mail geverifieerd</string>
     <string name="email_not_verified">E-mail niet geverifieerd</string>
     <string name="btn_verify">Verifiëren</string>

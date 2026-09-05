@@ -4,9 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mystockmanager.app.core.SessionManager
 import com.mystockmanager.app.data.local.entities.DomicileEntity
+import com.mystockmanager.app.data.local.entities.ExpiryHistoryEntity
 import com.mystockmanager.app.data.local.entities.ItemEntity
 import com.mystockmanager.app.data.local.entities.ShoppingEntity
 import com.mystockmanager.app.data.local.entities.StorageEntity
+import com.mystockmanager.app.data.repository.ExpiryHistoryRepository
 import com.mystockmanager.app.data.repository.PrefsRepository
 import com.mystockmanager.app.data.repository.ShoppingRepository
 import com.mystockmanager.app.data.repository.StockRepository
@@ -22,12 +24,33 @@ class AllItemsViewModel @Inject constructor(
     private val stockRepository: StockRepository,
     private val shoppingRepository: ShoppingRepository,
     private val prefsRepository: PrefsRepository,
+    private val expiryHistoryRepository: ExpiryHistoryRepository,
     private val sessionManager: SessionManager
 ) : ViewModel() {
 
     private val userId = sessionManager.getUserId().toString()
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery
+
+    private val _expiryCleared = MutableSharedFlow<ExpiryHistoryEntity>()
+    /** Émis juste après qu'une date de péremption a été effacée (quantité tombée à 0) — pour un snackbar « Annuler » immédiat. */
+    val expiryCleared = _expiryCleared.asSharedFlow()
+
+    /** Dates de péremption effacées dans les 10 dernières minutes, restaurables. */
+    val recentExpiryClears: StateFlow<List<ExpiryHistoryEntity>> = expiryHistoryRepository.getRecent(userId)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val dateFormat: StateFlow<String> = prefsRepository.getPrefs(userId)
+        .map { it?.dateFormat ?: "european" }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "european")
+
+    init {
+        viewModelScope.launch { expiryHistoryRepository.purgeExpired(userId) }
+    }
+
+    fun restoreExpiry(entry: ExpiryHistoryEntity) {
+        viewModelScope.launch { expiryHistoryRepository.restore(entry) }
+    }
 
     private val _selectedDomicileId = MutableStateFlow<String?>(null)
     val selectedDomicileId = _selectedDomicileId.asStateFlow()
@@ -101,7 +124,10 @@ class AllItemsViewModel @Inject constructor(
             val newQuantity = (item.quantity + delta).coerceAtLeast(0.0)
             if (newQuantity != item.quantity) {
                 val updatedItem = item.copy(quantity = newQuantity)
-                stockRepository.addItem(updatedItem)
+                val cleared = stockRepository.addItem(updatedItem)
+                if (cleared != null) {
+                    _expiryCleared.emit(cleared)
+                }
             }
         }
     }

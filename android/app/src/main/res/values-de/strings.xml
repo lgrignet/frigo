@@ -13,6 +13,7 @@
     <string name="btn_delete">Löschen</string>
     <string name="btn_close">Schließen</string>
     <string name="btn_copy">Kopieren</string>
+    <string name="btn_paste">Einfügen</string>
     <string name="btn_scan">Scannen</string>
     <string name="btn_minus">Minus</string>
     <string name="btn_plus">Plus</string>
@@ -38,6 +39,14 @@
     <string name="msg_all_fresh">Alles ist frisch! ✅</string>
     <string name="msg_no_results">Keine Ergebnisse</string>
     <string name="msg_added_to_shopping">Produkt zur Einkaufsliste hinzugefügt</string>
+    <string name="msg_expiry_cleared_suffix">Ablaufdatum gelöscht (Bestand bei 0)</string>
+    <string name="action_undo">Rückgängig</string>
+    <string name="expiry_history_dialog_title">Kürzlich gelöschte Ablaufdaten</string>
+    <string name="expiry_history_empty">Kürzlich wurde kein Ablaufdatum gelöscht.</string>
+    <string name="expiry_history_previous_date">Lief ab am %1$s</string>
+    <string name="expiry_history_cleared_ago">Vor %1$d Min.</string>
+    <string name="expiry_history_cleared_now">Gerade eben</string>
+    <string name="btn_restore">Wiederherstellen</string>
     <string name="msg_search_placeholder">Nach einem Produkt suchen...</string>
 
     <!-- Filters -->
@@ -172,6 +181,7 @@
     <string name="cd_pick_date">Datum auswählen</string>
     <string name="cd_toggle_aggregation">Gruppierung umschalten</string>
     <string name="cd_store_item">Einräumen</string>
+    <string name="cd_expiry_history">Verlauf gelöschter Ablaufdaten</string>
     <string name="email_verified">E-Mail bestätigt</string>
     <string name="email_not_verified">E-Mail nicht bestätigt</string>
     <string name="btn_verify">Bestätigen</string>

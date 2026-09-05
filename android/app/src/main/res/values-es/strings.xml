@@ -13,6 +13,7 @@
     <string name="btn_delete">Eliminar</string>
     <string name="btn_close">Cerrar</string>
     <string name="btn_copy">Copiar</string>
+    <string name="btn_paste">Pegar</string>
     <string name="btn_scan">Escanear</string>
     <string name="btn_minus">Menos</string>
     <string name="btn_plus">Más</string>
@@ -38,6 +39,14 @@
     <string name="msg_all_fresh">¡Todo está fresco! ✅</string>
     <string name="msg_no_results">Sin resultados</string>
     <string name="msg_added_to_shopping">Producto añadido a la lista de la compra</string>
+    <string name="msg_expiry_cleared_suffix">fecha de caducidad borrada (stock a 0)</string>
+    <string name="action_undo">Deshacer</string>
+    <string name="expiry_history_dialog_title">Fechas de caducidad borradas recientemente</string>
+    <string name="expiry_history_empty">No se ha borrado ninguna fecha recientemente.</string>
+    <string name="expiry_history_previous_date">Caducaba el %1$s</string>
+    <string name="expiry_history_cleared_ago">Hace %1$d min</string>
+    <string name="expiry_history_cleared_now">Ahora mismo</string>
+    <string name="btn_restore">Restaurar</string>
     <string name="msg_search_placeholder">Buscar un producto...</string>
     <string name="msg_no_storage_defined">No hay almacenamiento definido. Crea uno en la pestaña Lugares.</string>
     <string name="title_new_product">Nuevo producto</string>
@@ -169,6 +178,7 @@
     <string name="cd_pick_date">Elegir una fecha</string>
     <string name="cd_toggle_aggregation">Alternar agrupación</string>
     <string name="cd_store_item">Guardar</string>
+    <string name="cd_expiry_history">Historial de fechas de caducidad borradas</string>
     <string name="email_verified">Correo verificado</string>
     <string name="email_not_verified">Correo no verificado</string>
     <string name="btn_verify">Verificar</string>

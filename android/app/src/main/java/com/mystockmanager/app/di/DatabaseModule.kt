@@ -32,6 +32,24 @@ object DatabaseModule {
         }
     }
 
+    /** Nouvelle table pour l'historique des dates de péremption effacées (voir ExpiryHistoryEntity) — additive. */
+    private val MIGRATION_6_7 = object : Migration(6, 7) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS expiry_history (
+                    id TEXT NOT NULL PRIMARY KEY,
+                    userId TEXT NOT NULL,
+                    itemId TEXT NOT NULL,
+                    itemName TEXT NOT NULL,
+                    previousExpiryDate TEXT NOT NULL,
+                    clearedAt TEXT NOT NULL
+                )
+                """.trimIndent()
+            )
+        }
+    }
+
     @Provides
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): AppDatabase {
@@ -39,7 +57,7 @@ object DatabaseModule {
             context,
             AppDatabase::class.java,
             "mystockmanager_native.db"
-        ).addMigrations(MIGRATION_5_6)
+        ).addMigrations(MIGRATION_5_6, MIGRATION_6_7)
             .fallbackToDestructiveMigration()
             .build()
     }
@@ -67,4 +85,7 @@ object DatabaseModule {
 
     @Provides
     fun provideDomicileDao(db: AppDatabase): DomicileDao = db.domicileDao()
+
+    @Provides
+    fun provideExpiryHistoryDao(db: AppDatabase): ExpiryHistoryDao = db.expiryHistoryDao()
 }
