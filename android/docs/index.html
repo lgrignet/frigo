@@ -2,65 +2,92 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>MyStockManager – Captures d'écran</title>
+  <title>MyStockManager – Galerie & Documentation</title>
   <style>
-    body { font-family: sans-serif; margin: 20px; }
-    .gallery { display: flex; flex-wrap: wrap; gap: 16px; }
+    body { font-family: 'Segoe UI', sans-serif; margin: 24px; background: #0f1115; color: #e0e0e0; }
+    h1 { color: #00E676; margin-bottom: 8px; }
+    p.subtitle { color: #888; margin-bottom: 24px; }
+    a.guide-btn {
+      display: inline-block;
+      background: #00E676;
+      color: #000;
+      padding: 10px 20px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: bold;
+      margin-bottom: 30px;
+    }
+    .gallery { display: flex; flex-wrap: wrap; gap: 20px; }
     .thumb {
-      width: 220px;
-      cursor: pointer;
-      border: 1px solid #ccc;
-      padding: 8px;
-      border-radius: 4px;
-      background: #f9f9f9;
+      width: 240px;
+      border: 1px solid #333;
+      padding: 12px;
+      border-radius: 12px;
+      background: #1a1d24;
+      transition: transform 0.2s, border-color 0.2s;
     }
-    .thumb img { width: 100%; height: auto; display: block; }
-    .thumb-title { margin-top: 6px; font-size: 0.9rem; font-weight: bold; }
-
-    .details {
-      margin-top: 30px;
-      padding: 16px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      background: #fafafa;
-    }
-    .details h2 { margin-top: 0; }
-    .details-placeholder {
-      color: #777;
-      font-style: italic;
-    }
+    .thumb:hover { transform: translateY(-4px); border-color: #00E676; }
+    .thumb img { width: 100%; height: auto; display: block; border-radius: 8px; }
+    .thumb-title { margin-top: 10px; font-size: 0.95rem; font-weight: bold; color: #fff; }
+    .thumb-desc { margin-top: 4px; font-size: 0.8rem; color: #aaa; }
   </style>
 </head>
 <body>
 
-  <h1>MyStockManager – Documentation sommaire</h1>
+  <h1>MyStockManager – Captures d'écran & Documentation</h1>
+  <p class="subtitle">Visuels récents de l'application Android v1.25</p>
+
+  <a class="guide-btn" href="USER_GUIDE.html">📖 Consulter le Guide Utilisateur Complet</a>
 
   <div class="gallery">
-    <!-- Exemple de vignette 1 -->
     <div class="thumb">
-      <img src="screenshots/ecran-liste-produits.png" alt="Liste des produits">
-      <div class="thumb-title">Liste des produits</div>
+      <img src="screenshots/dashboard.png" alt="Tableau de bord">
+      <div class="thumb-title">1. Péremption</div>
+      <div class="thumb-desc">Alerte des produits arrivant à expiration.</div>
     </div>
 
-    <!-- Exemple de vignette 2 -->
     <div class="thumb">
-      <img src="screenshots/ecran-detail-produit.png" alt="Détail d'un produit">
-      <div class="thumb-title">Détail d'un produit</div>
+      <img src="screenshots/products.png" alt="Liste des produits">
+      <div class="thumb-title">2. Liste des Produits</div>
+      <div class="thumb-desc">Filtres compacts (Domicile/Rangement) & cartes aérées.</div>
     </div>
 
-    <!-- Ajoute ici autant de blocs .thumb que nécessaire,
-         en adaptant le src et le titre -->
-  </div>
+    <div class="thumb">
+      <img src="screenshots/add_product.png" alt="Formulaire produit">
+      <div class="thumb-title">3. Fiche Produit</div>
+      <div class="thumb-desc">Ajout/édition de produit avec photo et seuil réassort.</div>
+    </div>
 
-  <div class="details">
-    <h2>Détails de la capture</h2>
-    <!-- Zone pour détailler chaque capture -->
-    <p class="details-placeholder">
-      Sélectionne une capture dans la galerie ci-dessus, puis décris ici :
-      fonctionnalités montrées, cas d’usage, choix UX, etc.
-    </p>
-    <!-- Tu peux remplacer ce paragraphe par du texte statique
-         ou le remplir dynamiquement en JS si tu veux aller plus loin. -->
+    <div class="thumb">
+      <img src="screenshots/scanner.png" alt="Scanner de code barre">
+      <div class="thumb-title">4. Scanner Code-Barres</div>
+      <div class="thumb-desc">Intégration Open Food Facts automatique.</div>
+    </div>
+
+    <div class="thumb">
+      <img src="screenshots/shopping.png" alt="Liste de courses">
+      <div class="thumb-title">5. Liste de Courses</div>
+      <div class="thumb-desc">Achats groupés, ajout direct et rangement en stock.</div>
+    </div>
+
+    <div class="thumb">
+      <img src="screenshots/places.png" alt="Gestion des lieux">
+      <div class="thumb-title">6. Gestion des Lieux</div>
+      <div class="thumb-desc">Domiciles, rangements, magasins et unités.</div>
+    </div>
+
+    <div class="thumb">
+      <img src="screenshots/settings.png" alt="Paramètres">
+      <div class="thumb-title">7. Paramètres & Sync</div>
+      <div class="thumb-desc">Saisis/Collage manuel du GUID & préférences.</div>
+    </div>
+
+    <div class="thumb">
+      <img src="screenshots/share_qr.png" alt="QR Code">
+      <div class="thumb-title">8. Partage QR Code</div>
+      <div class="thumb-desc">Partage instantané de l'inventaire en foyer.</div>
+    </div>
   </div>
 
 </body>
+</html>

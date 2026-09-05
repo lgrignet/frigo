@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.Save
@@ -343,10 +344,17 @@ fun PrefsScreen(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    var localGuid by remember(syncGuid) { mutableStateOf(syncGuid) }
+
                     OutlinedTextField(
-                        value = syncGuid,
-                        onValueChange = {},
-                        readOnly = true,
+                        value = localGuid,
+                        onValueChange = { newValue ->
+                            localGuid = newValue
+                            if (newValue.trim() != syncGuid) {
+                                viewModel.updateSyncGuid(newValue.trim())
+                            }
+                        },
+                        readOnly = false,
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(10.dp),
                         textStyle = LocalTextStyle.current.copy(
@@ -359,6 +367,16 @@ fun PrefsScreen(
                         clipboardManager.setText(AnnotatedString(syncGuid))
                     }) {
                         Icon(Icons.Default.ContentCopy, contentDescription = stringResource(R.string.btn_copy), tint = MaterialTheme.colorScheme.primary)
+                    }
+
+                    IconButton(onClick = {
+                        val clipText = clipboardManager.getText()?.text?.trim()
+                        if (!clipText.isNullOrBlank()) {
+                            localGuid = clipText
+                            viewModel.updateSyncGuid(clipText)
+                        }
+                    }) {
+                        Icon(Icons.Default.ContentPaste, contentDescription = stringResource(R.string.btn_paste), tint = MaterialTheme.colorScheme.primary)
                     }
                     
                     IconButton(onClick = { showQrDialog = true }) {
