@@ -16,3 +16,4 @@ frigo.zip
 /API/node_modules/
 /API/.env
 API/src/server.js.bak.20260831-200851
+android/.idea/deploymentTargetSelector.xml
