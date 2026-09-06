@@ -273,6 +273,37 @@ router.post('/:id/choose', requireDevice, h(async (req, res) => {
     res.json({ ok: true });
 }));
 
+// --- GET /recipes/mine?language=fr ---
+// Recettes déjà choisies par ce foyer, les plus récentes d'abord — enregistrées
+// via /recipes/:id/choose. DOIT rester déclarée avant /:id (sinon Express
+// interprète "mine" comme une valeur de :id).
+router.get('/mine', requireDevice, h(async (req, res) => {
+    const language = req.query.language;
+    if (!SUPPORTED_LANGUAGES.includes(language)) {
+        return res.status(400).json({ error: `language invalide (${SUPPORTED_LANGUAGES.join(', ')}).` });
+    }
+    const limit = Math.min(Number(req.query.limit) || 30, 100);
+
+    const { rows } = await pool.query(
+        `SELECT r.id, r.cuisine_type, r.servings, r.image_emoji, rt.titre, rt.ingredients, rt.etapes, latest.chosen_at
+         FROM (
+             SELECT recette_id, MAX(chosen_at) AS chosen_at
+             FROM recettes_choisies_foyer
+             WHERE guid = $1
+             GROUP BY recette_id
+         ) latest
+         JOIN recettes r ON r.id = latest.recette_id
+         JOIN recettes_traductions rt ON rt.recette_id = r.id AND rt.langue = $2
+         ORDER BY latest.chosen_at DESC
+         LIMIT $3`,
+        [req.guid, language, limit],
+    );
+
+    res.json({
+        recipes: rows.map((row) => ({ ...rowToRecipe(row), chosenAt: row.chosen_at })),
+    });
+}));
+
 // --- GET /recipes/:id?language=fr ---
 router.get('/:id', requireDevice, h(async (req, res) => {
     const language = req.query.language;
