@@ -196,6 +196,7 @@
     <string name="btn_search_recipes">Rezepte finden</string>
     <string name="selection_count">%1$d ausgewählt</string>
     <string name="recipes_cuisine_picker_title">Küche wählen</string>
+    <string name="recipes_cuisine_picker_hint">Wähle eine oder mehrere Küchen — du erhältst eine Mischung passender Rezepte.</string>
     <string name="recipes_results_title">Rezepte</string>
     <string name="recipes_servings">%1$d Portion(en)</string>
     <string name="recipes_ingredients_title">Zutaten</string>

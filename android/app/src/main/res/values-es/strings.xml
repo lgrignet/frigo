@@ -193,6 +193,7 @@
     <string name="btn_search_recipes">Buscar recetas</string>
     <string name="selection_count">%1$d seleccionado(s)</string>
     <string name="recipes_cuisine_picker_title">Elige un tipo de cocina</string>
+    <string name="recipes_cuisine_picker_hint">Elige uno o varios tipos — obtendrás una mezcla de recetas correspondientes.</string>
     <string name="recipes_results_title">Recetas</string>
     <string name="recipes_servings">%1$d ración(es)</string>
     <string name="recipes_ingredients_title">Ingredientes</string>

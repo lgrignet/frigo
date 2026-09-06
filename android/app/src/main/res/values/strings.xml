@@ -220,6 +220,7 @@
     <string name="btn_search_recipes">Find recipes</string>
     <string name="selection_count">%1$d selected</string>
     <string name="recipes_cuisine_picker_title">Choose a cuisine</string>
+    <string name="recipes_cuisine_picker_hint">Choose one or more cuisines — you\'ll get a mix of matching recipes.</string>
     <string name="recipes_results_title">Recipes</string>
     <string name="recipes_servings">%1$d serving(s)</string>
     <string name="recipes_ingredients_title">Ingredients</string>

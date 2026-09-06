@@ -26,15 +26,15 @@ import com.mystockmanager.app.data.remote.RecipeDto
 @Composable
 fun RecipeResultsScreen(
     itemIds: List<String>,
-    cuisineType: String,
+    cuisineTypes: List<String>,
     onRecipeSelected: (String) -> Unit,
     onBack: () -> Unit,
     viewModel: RecipeResultsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    LaunchedEffect(itemIds, cuisineType) {
-        viewModel.search(itemIds, cuisineType)
+    LaunchedEffect(itemIds, cuisineTypes) {
+        viewModel.search(itemIds, cuisineTypes)
     }
 
     Scaffold(

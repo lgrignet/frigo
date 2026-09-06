@@ -196,6 +196,7 @@
     <string name="btn_search_recipes">Recepten zoeken</string>
     <string name="selection_count">%1$d geselecteerd</string>
     <string name="recipes_cuisine_picker_title">Kies een keuken</string>
+    <string name="recipes_cuisine_picker_hint">Kies een of meer keukens — je krijgt een mix van bijpassende recepten.</string>
     <string name="recipes_results_title">Recepten</string>
     <string name="recipes_servings">%1$d portie(s)</string>
     <string name="recipes_ingredients_title">Ingrediënten</string>

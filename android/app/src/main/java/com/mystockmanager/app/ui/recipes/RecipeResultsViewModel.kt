@@ -36,7 +36,7 @@ class RecipeResultsViewModel @Inject constructor(
     private var searched = false
 
     /** [itemIds] : produits sélectionnés/en priorité — le reste du stock complète le pool d'ingrédients disponibles. */
-    fun search(itemIds: List<String>, cuisineType: String) {
+    fun search(itemIds: List<String>, cuisineTypes: List<String>) {
         if (searched) return
         searched = true
 
@@ -52,7 +52,7 @@ class RecipeResultsViewModel @Inject constructor(
                 val response = recipeRepository.searchRecipes(
                     ingredients = poolNames,
                     priorityIngredients = priorityNames,
-                    cuisineType = cuisineType,
+                    cuisineTypes = cuisineTypes,
                     language = lang
                 )
                 _uiState.value = RecipeResultsUiState.Success(response.recipes, response.degraded)

@@ -54,7 +54,7 @@ class RecipeApiException(message: String, val httpStatus: Int) : Exception(messa
 private data class RecipeSearchRequest(
     val ingredients: List<String>,
     val priorityIngredients: List<String>,
-    val cuisineType: String,
+    val cuisineTypes: List<String>,
     val language: String,
     val count: Int = 5
 )
@@ -78,12 +78,12 @@ class RecipeApi @Inject constructor() {
         deviceToken: String,
         ingredients: List<String>,
         priorityIngredients: List<String>,
-        cuisineType: String,
+        cuisineTypes: List<String>,
         language: String,
         count: Int = 5
     ): RecipeSearchResponse = post(
         "/recipes/search",
-        RecipeSearchRequest(ingredients, priorityIngredients, cuisineType, language, count),
+        RecipeSearchRequest(ingredients, priorityIngredients, cuisineTypes, language, count),
         bearerToken = deviceToken
     )
 

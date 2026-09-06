@@ -282,18 +282,18 @@ fun MainScreen(onLogout: () -> Unit) {
             composable(Screen.CuisineTypePicker.route) { backStackEntry ->
                 val itemIds = backStackEntry.arguments?.getString("itemIds")?.split(",") ?: emptyList()
                 CuisineTypePickerScreen(
-                    onCuisineSelected = { cuisine ->
-                        navController.navigate(Screen.RecipeResults.createRoute(itemIds, cuisine.code))
+                    onConfirm = { cuisines ->
+                        navController.navigate(Screen.RecipeResults.createRoute(itemIds, cuisines.map { it.code }))
                     },
                     onBack = { navController.popBackStack() }
                 )
             }
             composable(Screen.RecipeResults.route) { backStackEntry ->
                 val itemIds = backStackEntry.arguments?.getString("itemIds")?.split(",") ?: emptyList()
-                val cuisineType = backStackEntry.arguments?.getString("cuisineType") ?: ""
+                val cuisineTypes = backStackEntry.arguments?.getString("cuisineTypes")?.split(",") ?: emptyList()
                 RecipeResultsScreen(
                     itemIds = itemIds,
-                    cuisineType = cuisineType,
+                    cuisineTypes = cuisineTypes,
                     onRecipeSelected = { recipeId ->
                         navController.navigate(Screen.RecipeDetail.createRoute(recipeId))
                     },

@@ -16,12 +16,12 @@ class RecipeRepository @Inject constructor(
     suspend fun searchRecipes(
         ingredients: List<String>,
         priorityIngredients: List<String>,
-        cuisineType: String,
+        cuisineTypes: List<String>,
         language: String,
         count: Int = 5
     ): RecipeSearchResponse {
         val token = sessionManager.getDeviceToken() ?: throw RecipeApiException("Non authentifié.", 401)
-        return recipeApi.search(token, ingredients, priorityIngredients, cuisineType, language, count)
+        return recipeApi.search(token, ingredients, priorityIngredients, cuisineTypes, language, count)
     }
 
     /** Marque une recette comme choisie (best-effort — ne bloque pas l'utilisateur si le réseau flanche). */
