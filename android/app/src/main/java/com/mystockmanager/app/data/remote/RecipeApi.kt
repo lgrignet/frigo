@@ -36,13 +36,20 @@ data class RecipeDto(
     val servings: Int? = null,
     val ingredients: List<RecipeIngredientDto>,
     val steps: List<String>,
-    val imageEmoji: String? = null
+    val imageEmoji: String? = null,
+    /** Renseigné uniquement par /recipes/mine — date à laquelle ce foyer a choisi cette recette. */
+    val chosenAt: String? = null
 )
 
 @Serializable
 data class RecipeSearchResponse(
     val recipes: List<RecipeDto>,
     val degraded: Boolean
+)
+
+@Serializable
+data class MyRecipesResponse(
+    val recipes: List<RecipeDto>
 )
 
 /** Erreur renvoyée par l'API recettes (statut HTTP non 2xx). */
@@ -99,6 +106,17 @@ class RecipeApi @Inject constructor() {
         val response: HttpResponse = client.get("$baseUrl/recipes/$recipeId") {
             header(HttpHeaders.Authorization, "Bearer $deviceToken")
             parameter("language", language)
+        }
+        if (response.status.isSuccess()) return response.body()
+        throw errorFrom(response)
+    }
+
+    /** Recettes déjà choisies par ce foyer (les plus récentes d'abord). */
+    suspend fun getMine(deviceToken: String, language: String, limit: Int = 30): MyRecipesResponse {
+        val response: HttpResponse = client.get("$baseUrl/recipes/mine") {
+            header(HttpHeaders.Authorization, "Bearer $deviceToken")
+            parameter("language", language)
+            parameter("limit", limit)
         }
         if (response.status.isSuccess()) return response.body()
         throw errorFrom(response)

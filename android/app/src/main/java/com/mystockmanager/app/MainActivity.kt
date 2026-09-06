@@ -41,6 +41,7 @@ import com.mystockmanager.app.ui.login.LoginScreen
 import com.mystockmanager.app.ui.navigation.Screen
 import com.mystockmanager.app.ui.prefs.PrefsScreen
 import com.mystockmanager.app.ui.recipes.CuisineTypePickerScreen
+import com.mystockmanager.app.ui.recipes.MyRecipesScreen
 import com.mystockmanager.app.ui.recipes.RecipeDetailScreen
 import com.mystockmanager.app.ui.recipes.RecipeResultsScreen
 import com.mystockmanager.app.ui.shopping.ShoppingScreen
@@ -172,6 +173,7 @@ class MainActivity : AppCompatActivity() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(onLogout: () -> Unit) {
     val navController = rememberNavController()
@@ -184,6 +186,19 @@ fun MainScreen(onLogout: () -> Unit) {
     )
 
     Scaffold(
+        topBar = {
+            // Barre minimale, sans titre (chaque écran garde le sien) — juste l'accès
+            // global aux recettes déjà choisies, visible depuis n'importe quel onglet.
+            TopAppBar(
+                title = {},
+                actions = {
+                    IconButton(onClick = { navController.navigate(Screen.MyRecipes.route) }) {
+                        Text("📖", fontSize = 20.sp)
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+            )
+        },
         bottomBar = {
             Column {
                 NavigationBar(
@@ -305,11 +320,21 @@ fun MainScreen(onLogout: () -> Unit) {
                 RecipeDetailScreen(
                     recipeId = recipeId,
                     onDone = {
-                        // Revient à l'onglet d'origine (Tous les produits ou Bientôt périmé)
-                        // selon le point d'entrée emprunté pour cette recherche de recette.
-                        if (!navController.popBackStack(Screen.AllItems.route, false)) {
-                            navController.popBackStack(Screen.Expiring.route, false)
+                        // Revient à l'onglet/écran d'origine (Tous les produits, Bientôt
+                        // périmé, ou Mes recettes) selon le point d'entrée emprunté.
+                        if (!navController.popBackStack(Screen.AllItems.route, false) &&
+                            !navController.popBackStack(Screen.Expiring.route, false)
+                        ) {
+                            navController.popBackStack()
                         }
+                    },
+                    onBack = { navController.popBackStack() }
+                )
+            }
+            composable(Screen.MyRecipes.route) {
+                MyRecipesScreen(
+                    onRecipeSelected = { recipeId ->
+                        navController.navigate(Screen.RecipeDetail.createRoute(recipeId))
                     },
                     onBack = { navController.popBackStack() }
                 )

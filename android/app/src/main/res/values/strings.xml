@@ -243,6 +243,11 @@
     <string name="cuisine_americain">American</string>
     <string name="cuisine_autre">Other</string>
 
+    <string name="my_recipes_title">My recipes</string>
+    <string name="my_recipes_empty">No recipe chosen yet. Find one and confirm it to see it here.</string>
+    <string name="my_recipes_chosen_today">Chosen today</string>
+    <string name="my_recipes_chosen_days_ago">Chosen %1$d day(s) ago</string>
+
     <!-- ===== i18n pass: seed data (default names created for a new account) ===== -->
     <string name="seed_storage_fridge">Fridge</string>
     <string name="seed_storage_freezer">Freezer</string>

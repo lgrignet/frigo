@@ -1,6 +1,7 @@
 package com.mystockmanager.app.data.repository
 
 import com.mystockmanager.app.core.SessionManager
+import com.mystockmanager.app.data.remote.MyRecipesResponse
 import com.mystockmanager.app.data.remote.RecipeApi
 import com.mystockmanager.app.data.remote.RecipeApiException
 import com.mystockmanager.app.data.remote.RecipeDto
@@ -37,5 +38,10 @@ class RecipeRepository @Inject constructor(
     suspend fun getRecipe(recipeId: String, language: String): RecipeDto {
         val token = sessionManager.getDeviceToken() ?: throw RecipeApiException("Non authentifié.", 401)
         return recipeApi.getRecipe(token, recipeId, language)
+    }
+
+    suspend fun getMyRecipes(language: String, limit: Int = 30): MyRecipesResponse {
+        val token = sessionManager.getDeviceToken() ?: throw RecipeApiException("Non authentifié.", 401)
+        return recipeApi.getMine(token, language, limit)
     }
 }

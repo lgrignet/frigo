@@ -219,6 +219,11 @@
     <string name="cuisine_americain">Amerikanisch</string>
     <string name="cuisine_autre">Andere</string>
 
+    <string name="my_recipes_title">Meine Rezepte</string>
+    <string name="my_recipes_empty">Noch kein Rezept gewählt. Suche eines und bestätige es, um es hier zu sehen.</string>
+    <string name="my_recipes_chosen_today">Heute gewählt</string>
+    <string name="my_recipes_chosen_days_ago">Vor %1$d Tag(en) gewählt</string>
+
     <!-- ===== i18n pass: fehlende Schlüssel (vorher nur EN-Fallback) ===== -->
     <string name="tab_domiciles">Wohnsitze</string>
     <string name="label_domicile">Wohnsitz</string>

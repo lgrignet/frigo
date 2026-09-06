@@ -219,6 +219,11 @@
     <string name="cuisine_americain">Amerikaans</string>
     <string name="cuisine_autre">Anders</string>
 
+    <string name="my_recipes_title">Mijn recepten</string>
+    <string name="my_recipes_empty">Nog geen recept gekozen. Zoek er een en bevestig het om het hier te zien.</string>
+    <string name="my_recipes_chosen_today">Vandaag gekozen</string>
+    <string name="my_recipes_chosen_days_ago">%1$d dag(en) geleden gekozen</string>
+
     <!-- ===== i18n pass: ontbrekende sleutels (voorheen alleen EN-fallback) ===== -->
     <string name="tab_domiciles">Domicilies</string>
     <string name="label_domicile">Domicilie</string>

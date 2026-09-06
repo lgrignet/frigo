@@ -243,6 +243,11 @@
     <string name="cuisine_americain">Américaine</string>
     <string name="cuisine_autre">Autre</string>
 
+    <string name="my_recipes_title">Mes recettes</string>
+    <string name="my_recipes_empty">Aucune recette choisie pour l\'instant. Cherchez-en une et validez-la pour la retrouver ici.</string>
+    <string name="my_recipes_chosen_today">Choisie aujourd\'hui</string>
+    <string name="my_recipes_chosen_days_ago">Choisie il y a %1$d jour(s)</string>
+
     <!-- ===== i18n pass : données seed (noms par défaut créés pour un nouveau compte) ===== -->
     <string name="seed_storage_fridge">Frigo</string>
     <string name="seed_storage_freezer">Congélateur</string>

@@ -21,4 +21,5 @@ sealed class Screen(val route: String, val icon: String = "") {
     object RecipeDetail : Screen("recipe_detail/{recipeId}") {
         fun createRoute(recipeId: String) = "recipe_detail/$recipeId"
     }
+    object MyRecipes : Screen("my_recipes")
 }
