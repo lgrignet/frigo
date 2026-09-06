@@ -192,6 +192,32 @@
     <string name="verify_email_resend_link">Code opnieuw versturen</string>
     <string name="error_household_change_failed">Kon niet van huishouden wisselen. Controleer je verbinding en probeer opnieuw.</string>
 
+    <!-- Recepten (AI) -->
+    <string name="btn_search_recipes">Recepten zoeken</string>
+    <string name="selection_count">%1$d geselecteerd</string>
+    <string name="recipes_cuisine_picker_title">Kies een keuken</string>
+    <string name="recipes_results_title">Recepten</string>
+    <string name="recipes_servings">%1$d portie(s)</string>
+    <string name="recipes_ingredients_title">Ingrediënten</string>
+    <string name="recipes_missing_hint">Aangevinkte ingrediënten worden aan je boodschappenlijst toegevoegd</string>
+    <string name="recipes_in_stock">Op voorraad</string>
+    <string name="recipes_steps_title">Bereiding</string>
+    <string name="recipes_confirm_button">Dit recept kiezen</string>
+    <string name="msg_ai_unavailable">Recepten zoeken is nu niet beschikbaar. Probeer het later opnieuw.</string>
+    <string name="msg_no_recipes_found">Geen recept gevonden voor deze selectie.</string>
+    <string name="msg_recipes_degraded">Minder recepten dan gebruikelijk — de AI-dienst is tijdelijk niet beschikbaar.</string>
+
+    <string name="cuisine_francais">Frans</string>
+    <string name="cuisine_italien">Italiaans</string>
+    <string name="cuisine_chinois">Chinees</string>
+    <string name="cuisine_japonais">Japans</string>
+    <string name="cuisine_indien">Indiaas</string>
+    <string name="cuisine_thailandais">Thais</string>
+    <string name="cuisine_mexicain">Mexicaans</string>
+    <string name="cuisine_mediterraneen">Mediterraans</string>
+    <string name="cuisine_americain">Amerikaans</string>
+    <string name="cuisine_autre">Anders</string>
+
     <!-- ===== i18n pass: ontbrekende sleutels (voorheen alleen EN-fallback) ===== -->
     <string name="tab_domiciles">Domicilies</string>
     <string name="label_domicile">Domicilie</string>

@@ -189,6 +189,32 @@
     <string name="verify_email_resend_link">Reenviar el código</string>
     <string name="error_household_change_failed">No se pudo cambiar de hogar. Comprueba tu conexión e inténtalo de nuevo.</string>
 
+    <!-- Recetas (IA) -->
+    <string name="btn_search_recipes">Buscar recetas</string>
+    <string name="selection_count">%1$d seleccionado(s)</string>
+    <string name="recipes_cuisine_picker_title">Elige un tipo de cocina</string>
+    <string name="recipes_results_title">Recetas</string>
+    <string name="recipes_servings">%1$d ración(es)</string>
+    <string name="recipes_ingredients_title">Ingredientes</string>
+    <string name="recipes_missing_hint">Los ingredientes marcados se añadirán a la lista de la compra</string>
+    <string name="recipes_in_stock">En stock</string>
+    <string name="recipes_steps_title">Preparación</string>
+    <string name="recipes_confirm_button">Elegir esta receta</string>
+    <string name="msg_ai_unavailable">La búsqueda de recetas no está disponible ahora. Inténtalo más tarde.</string>
+    <string name="msg_no_recipes_found">No se encontró ninguna receta para esta selección.</string>
+    <string name="msg_recipes_degraded">Menos recetas de lo habitual — el servicio de IA no está disponible temporalmente.</string>
+
+    <string name="cuisine_francais">Francesa</string>
+    <string name="cuisine_italien">Italiana</string>
+    <string name="cuisine_chinois">China</string>
+    <string name="cuisine_japonais">Japonesa</string>
+    <string name="cuisine_indien">India</string>
+    <string name="cuisine_thailandais">Tailandesa</string>
+    <string name="cuisine_mexicain">Mexicana</string>
+    <string name="cuisine_mediterraneen">Mediterránea</string>
+    <string name="cuisine_americain">Americana</string>
+    <string name="cuisine_autre">Otra</string>
+
     <!-- ===== i18n pass: claves faltantes (antes solo con fallback EN) ===== -->
     <string name="tab_domiciles">Domicilios</string>
     <string name="label_domicile">Domicilio</string>

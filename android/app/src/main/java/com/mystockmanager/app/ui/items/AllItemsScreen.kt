@@ -1,7 +1,9 @@
 package com.mystockmanager.app.ui.items
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -36,9 +38,11 @@ import java.time.temporal.ChronoUnit
 @Composable
 fun AllItemsScreen(
     onEditItem: (String) -> Unit,
+    onSearchRecipes: (List<String>) -> Unit,
     viewModel: AllItemsViewModel = hiltViewModel()
 ) {
     val items by viewModel.items.collectAsState()
+    val selectedItemIds by viewModel.selectedItemIds.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
     val warningDays by viewModel.warningDays.collectAsState()
     val activeDomicileId by viewModel.activeDomicileId.collectAsState()
@@ -89,24 +93,51 @@ fun AllItemsScreen(
         containerColor = Color.Transparent
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = stringResource(R.string.tab_products),
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Black,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-                if (recentExpiryClears.isNotEmpty()) {
-                    IconButton(onClick = { showHistoryDialog = true }) {
-                        Icon(
-                            Icons.Default.History,
-                            contentDescription = stringResource(R.string.cd_expiry_history),
-                            tint = MaterialTheme.colorScheme.primary
+            if (selectedItemIds.isNotEmpty()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        IconButton(onClick = { viewModel.clearSelection() }) {
+                            Icon(Icons.Default.Close, contentDescription = stringResource(R.string.btn_cancel))
+                        }
+                        Text(
+                            stringResource(R.string.selection_count, selectedItemIds.size),
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp
                         )
+                    }
+                    Button(
+                        onClick = { onSearchRecipes(selectedItemIds.toList()) },
+                        shape = RoundedCornerShape(14.dp)
+                    ) {
+                        Icon(Icons.Default.Restaurant, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(stringResource(R.string.btn_search_recipes))
+                    }
+                }
+            } else {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = stringResource(R.string.tab_products),
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Black,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                    if (recentExpiryClears.isNotEmpty()) {
+                        IconButton(onClick = { showHistoryDialog = true }) {
+                            Icon(
+                                Icons.Default.History,
+                                contentDescription = stringResource(R.string.cd_expiry_history),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
                     }
                 }
             }
@@ -304,10 +335,14 @@ fun AllItemsScreen(
                             warningDays = warningDays,
                             canEdit = canEdit,
                             storageName = itemStorage?.let { "${it.icon} ${it.name}" },
+                            selectionMode = selectedItemIds.isNotEmpty(),
+                            isSelected = selectedItemIds.contains(item.id),
                             onDelete = { viewModel.deleteItem(item) },
                             onAdjustQuantity = { delta -> viewModel.adjustQuantity(item, delta) },
                             onAddToShopping = { viewModel.addToShoppingList(item) },
-                            onClick = { if (canEdit) onEditItem(item.id) }
+                            onClick = { if (canEdit) onEditItem(item.id) },
+                            onToggleSelect = { viewModel.toggleItemSelection(item.id) },
+                            onLongClick = { viewModel.toggleItemSelection(item.id) }
                         )
                     }
                 }
@@ -316,17 +351,21 @@ fun AllItemsScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun ItemRow(
     item: ItemEntity,
     warningDays: Int,
     canEdit: Boolean,
     storageName: String? = null,
+    selectionMode: Boolean = false,
+    isSelected: Boolean = false,
     onDelete: () -> Unit,
     onAdjustQuantity: (Double) -> Unit,
     onAddToShopping: () -> Unit = {},
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onToggleSelect: () -> Unit = {},
+    onLongClick: () -> Unit = {}
 ) {
     val borderColor = remember(item.expiryDate, warningDays) {
         val dateStr = item.expiryDate
@@ -349,20 +388,36 @@ fun ItemRow(
     }
 
     Card(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
-        enabled = canEdit,
+        modifier = Modifier
+            .fillMaxWidth()
+            .combinedClickable(
+                enabled = canEdit || selectionMode,
+                onClick = { if (selectionMode) onToggleSelect() else onClick() },
+                onLongClick = { if (!selectionMode) onLongClick() }
+            ),
         colors = CardDefaults.cardColors(
-            containerColor = if (canEdit) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
+            containerColor = when {
+                isSelected -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+                canEdit -> MaterialTheme.colorScheme.surface
+                else -> MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
+            }
         ),
         shape = RoundedCornerShape(16.dp),
-        border = if (borderColor != Color.Transparent) BorderStroke(2.dp, borderColor) 
+        border = if (isSelected) BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
+                 else if (borderColor != Color.Transparent) BorderStroke(2.dp, borderColor)
                  else AssistChipDefaults.assistChipBorder(enabled = true, borderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
     ) {
         Row(
             modifier = Modifier.padding(12.dp),
             verticalAlignment = Alignment.Top
         ) {
+            if (selectionMode) {
+                Checkbox(
+                    checked = isSelected,
+                    onCheckedChange = { onToggleSelect() },
+                    modifier = Modifier.padding(end = 4.dp)
+                )
+            }
             // Photo or initials
             Box(modifier = Modifier.size(60.dp)) {
                 Surface(

@@ -216,6 +216,32 @@
     <string name="verify_email_resend_link">Renvoyer le code</string>
     <string name="error_household_change_failed">Impossible de changer de foyer. Vérifiez votre connexion et réessayez.</string>
 
+    <!-- Recettes (IA) -->
+    <string name="btn_search_recipes">Chercher des recettes</string>
+    <string name="selection_count">%1$d sélectionné(s)</string>
+    <string name="recipes_cuisine_picker_title">Choisir un type de cuisine</string>
+    <string name="recipes_results_title">Recettes</string>
+    <string name="recipes_servings">%1$d portion(s)</string>
+    <string name="recipes_ingredients_title">Ingrédients</string>
+    <string name="recipes_missing_hint">Les ingrédients cochés seront ajoutés à la liste de courses</string>
+    <string name="recipes_in_stock">En stock</string>
+    <string name="recipes_steps_title">Préparation</string>
+    <string name="recipes_confirm_button">Choisir cette recette</string>
+    <string name="msg_ai_unavailable">La recherche de recettes est indisponible pour le moment. Réessayez plus tard.</string>
+    <string name="msg_no_recipes_found">Aucune recette trouvée pour cette sélection.</string>
+    <string name="msg_recipes_degraded">Moins de recettes que d\'habitude — le service IA est temporairement indisponible.</string>
+
+    <string name="cuisine_francais">Française</string>
+    <string name="cuisine_italien">Italienne</string>
+    <string name="cuisine_chinois">Chinoise</string>
+    <string name="cuisine_japonais">Japonaise</string>
+    <string name="cuisine_indien">Indienne</string>
+    <string name="cuisine_thailandais">Thaïlandaise</string>
+    <string name="cuisine_mexicain">Mexicaine</string>
+    <string name="cuisine_mediterraneen">Méditerranéenne</string>
+    <string name="cuisine_americain">Américaine</string>
+    <string name="cuisine_autre">Autre</string>
+
     <!-- ===== i18n pass : données seed (noms par défaut créés pour un nouveau compte) ===== -->
     <string name="seed_storage_fridge">Frigo</string>
     <string name="seed_storage_freezer">Congélateur</string>

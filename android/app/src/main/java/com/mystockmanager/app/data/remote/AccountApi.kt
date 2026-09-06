@@ -35,7 +35,7 @@ data class AccountAuthResponse(
 class AccountApiException(message: String, val httpStatus: Int) : Exception(message)
 
 @Serializable
-private data class ApiErrorBody(val error: String? = null)
+internal data class ApiErrorBody(val error: String? = null)
 
 @Serializable
 private data class RegisterRequest(

@@ -52,6 +52,22 @@ class AllItemsViewModel @Inject constructor(
         viewModelScope.launch { expiryHistoryRepository.restore(entry) }
     }
 
+    /** Mode sélection multiple (appui long) — utilisé pour lancer une recherche de recettes sur plusieurs produits. */
+    private val _selectedItemIds = MutableStateFlow<Set<String>>(emptySet())
+    val selectedItemIds: StateFlow<Set<String>> = _selectedItemIds
+
+    fun toggleItemSelection(itemId: String) {
+        _selectedItemIds.value = if (_selectedItemIds.value.contains(itemId)) {
+            _selectedItemIds.value - itemId
+        } else {
+            _selectedItemIds.value + itemId
+        }
+    }
+
+    fun clearSelection() {
+        _selectedItemIds.value = emptySet()
+    }
+
     private val _selectedDomicileId = MutableStateFlow<String?>(null)
     val selectedDomicileId = _selectedDomicileId.asStateFlow()
 

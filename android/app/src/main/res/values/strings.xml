@@ -216,6 +216,32 @@
     <string name="verify_email_resend_link">Resend the code</string>
     <string name="error_household_change_failed">Could not change household. Check your connection and try again.</string>
 
+    <!-- Recipes (AI) -->
+    <string name="btn_search_recipes">Find recipes</string>
+    <string name="selection_count">%1$d selected</string>
+    <string name="recipes_cuisine_picker_title">Choose a cuisine</string>
+    <string name="recipes_results_title">Recipes</string>
+    <string name="recipes_servings">%1$d serving(s)</string>
+    <string name="recipes_ingredients_title">Ingredients</string>
+    <string name="recipes_missing_hint">Checked items will be added to your shopping list</string>
+    <string name="recipes_in_stock">In stock</string>
+    <string name="recipes_steps_title">Steps</string>
+    <string name="recipes_confirm_button">Use this recipe</string>
+    <string name="msg_ai_unavailable">Recipe search is unavailable right now. Try again later.</string>
+    <string name="msg_no_recipes_found">No recipe found for this selection.</string>
+    <string name="msg_recipes_degraded">Fewer recipes than usual — the AI service is temporarily unavailable.</string>
+
+    <string name="cuisine_francais">French</string>
+    <string name="cuisine_italien">Italian</string>
+    <string name="cuisine_chinois">Chinese</string>
+    <string name="cuisine_japonais">Japanese</string>
+    <string name="cuisine_indien">Indian</string>
+    <string name="cuisine_thailandais">Thai</string>
+    <string name="cuisine_mexicain">Mexican</string>
+    <string name="cuisine_mediterraneen">Mediterranean</string>
+    <string name="cuisine_americain">American</string>
+    <string name="cuisine_autre">Other</string>
+
     <!-- ===== i18n pass: seed data (default names created for a new account) ===== -->
     <string name="seed_storage_fridge">Fridge</string>
     <string name="seed_storage_freezer">Freezer</string>

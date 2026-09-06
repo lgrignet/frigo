@@ -192,6 +192,32 @@
     <string name="verify_email_resend_link">Code erneut senden</string>
     <string name="error_household_change_failed">Haushalt konnte nicht gewechselt werden. Verbindung prüfen und erneut versuchen.</string>
 
+    <!-- Rezepte (KI) -->
+    <string name="btn_search_recipes">Rezepte finden</string>
+    <string name="selection_count">%1$d ausgewählt</string>
+    <string name="recipes_cuisine_picker_title">Küche wählen</string>
+    <string name="recipes_results_title">Rezepte</string>
+    <string name="recipes_servings">%1$d Portion(en)</string>
+    <string name="recipes_ingredients_title">Zutaten</string>
+    <string name="recipes_missing_hint">Angehakte Zutaten werden zur Einkaufsliste hinzugefügt</string>
+    <string name="recipes_in_stock">Vorrätig</string>
+    <string name="recipes_steps_title">Zubereitung</string>
+    <string name="recipes_confirm_button">Dieses Rezept wählen</string>
+    <string name="msg_ai_unavailable">Die Rezeptsuche ist gerade nicht verfügbar. Später erneut versuchen.</string>
+    <string name="msg_no_recipes_found">Kein Rezept für diese Auswahl gefunden.</string>
+    <string name="msg_recipes_degraded">Weniger Rezepte als gewöhnlich — der KI-Dienst ist vorübergehend nicht verfügbar.</string>
+
+    <string name="cuisine_francais">Französisch</string>
+    <string name="cuisine_italien">Italienisch</string>
+    <string name="cuisine_chinois">Chinesisch</string>
+    <string name="cuisine_japonais">Japanisch</string>
+    <string name="cuisine_indien">Indisch</string>
+    <string name="cuisine_thailandais">Thailändisch</string>
+    <string name="cuisine_mexicain">Mexikanisch</string>
+    <string name="cuisine_mediterraneen">Mediterran</string>
+    <string name="cuisine_americain">Amerikanisch</string>
+    <string name="cuisine_autre">Andere</string>
+
     <!-- ===== i18n pass: fehlende Schlüssel (vorher nur EN-Fallback) ===== -->
     <string name="tab_domiciles">Wohnsitze</string>
     <string name="label_domicile">Wohnsitz</string>
