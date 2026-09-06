@@ -107,3 +107,13 @@ CREATE TABLE IF NOT EXISTS ia_appels_log (
 );
 
 CREATE INDEX IF NOT EXISTS idx_ia_appels_log_guid_created_at ON ia_appels_log (guid, created_at);
+
+-- Bonus de quota gagné en regardant une pub récompensée (montant décidé serveur, jamais par le client)
+CREATE TABLE IF NOT EXISTS bonus_quota_foyer (
+    id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    guid        text NOT NULL,
+    montant     smallint NOT NULL,
+    created_at  timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_bonus_quota_foyer_guid_created_at ON bonus_quota_foyer (guid, created_at);

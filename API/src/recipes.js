@@ -9,6 +9,7 @@ const SUPPORTED_LANGUAGES = ['fr', 'en', 'es', 'de', 'nl'];
 const COOLDOWN_PROPOSED_HOURS = Number(process.env.RECIPE_COOLDOWN_PROPOSED_HOURS) || 24;
 const COOLDOWN_CHOSEN_DAYS = Number(process.env.RECIPE_COOLDOWN_CHOSEN_DAYS) || 30;
 const QUOTA_PER_FOYER_PER_DAY = Number(process.env.RECIPE_QUOTA_PER_FOYER_PER_DAY) || 20;
+const AD_BONUS = Number(process.env.RECIPE_AD_BONUS) || 1;
 
 // --- Rate limiting générique par IP (anti-abus), cohérent avec /account/* ---
 const recipesLimiter = rateLimit({
@@ -109,12 +110,15 @@ async function findCachedRecipes({ cuisineTypes, priorityKeys, guid, language, l
 
 async function quotaRemaining(guid) {
     const { rows } = await query(
-        `SELECT COALESCE(SUM(recettes_generees), 0)::int AS total
-         FROM ia_appels_log
-         WHERE guid = $1 AND succes = true AND created_at > now() - interval '1 day'`,
+        `SELECT
+             (SELECT COALESCE(SUM(recettes_generees), 0) FROM ia_appels_log
+              WHERE guid = $1 AND succes = true AND created_at > now() - interval '1 day') AS utilise,
+             (SELECT COALESCE(SUM(montant), 0) FROM bonus_quota_foyer
+              WHERE guid = $1 AND created_at > now() - interval '1 day') AS bonus`,
         [guid],
     );
-    return QUOTA_PER_FOYER_PER_DAY - (rows[0]?.total || 0);
+    const { utilise, bonus } = rows[0] || {};
+    return QUOTA_PER_FOYER_PER_DAY + Number(bonus || 0) - Number(utilise || 0);
 }
 
 async function logAiCall({ guid, cuisineTypes, language, generatedCount, success, error }) {
@@ -210,6 +214,7 @@ router.post('/search', requireDevice, h(async (req, res) => {
     });
 
     let degraded = false;
+    let degradedReason = null;
 
     if (recipes.length < wantedCount) {
         const remaining = wantedCount - recipes.length;
@@ -217,6 +222,7 @@ router.post('/search', requireDevice, h(async (req, res) => {
 
         if (remainingQuota <= 0) {
             degraded = true;
+            degradedReason = 'quota_exceeded';
         } else {
             try {
                 const generated = await aiGenerateRecipes({
@@ -238,6 +244,7 @@ router.post('/search', requireDevice, h(async (req, res) => {
             } catch (err) {
                 console.error('[recipes/search] échec appel IA', err);
                 degraded = true;
+                degradedReason = 'ai_unavailable';
                 await logAiCall({ guid: req.guid, cuisineTypes: cuisineTypesCapped, language, generatedCount: 0, success: false, error: String(err.message || err) });
             }
         }
@@ -257,7 +264,19 @@ router.post('/search', requireDevice, h(async (req, res) => {
         });
     }
 
-    res.json({ recipes, degraded });
+    res.json({ recipes, degraded, degradedReason });
+}));
+
+// --- POST /recipes/ad-bonus ---
+// Appelé après qu'une pub récompensée a été regardée jusqu'au bout (onUserEarnedReward
+// côté client). Le montant du bonus est décidé ici, jamais fourni par le client.
+router.post('/ad-bonus', requireDevice, h(async (req, res) => {
+    await query(
+        'INSERT INTO bonus_quota_foyer (guid, montant) VALUES ($1, $2)',
+        [req.guid, AD_BONUS],
+    );
+    const remaining = await quotaRemaining(req.guid);
+    res.json({ bonusGranted: AD_BONUS, quotaRemaining: remaining });
 }));
 
 // --- POST /recipes/:id/choose ---
