@@ -242,7 +242,13 @@ fun MainScreen(onLogout: () -> Unit) {
             startDestination = Screen.Expiring.route,
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable(Screen.Expiring.route) { DashboardScreen() }
+            composable(Screen.Expiring.route) {
+                DashboardScreen(
+                    onSearchRecipe = { itemId ->
+                        navController.navigate(Screen.CuisineTypePicker.createRoute(listOf(itemId)))
+                    }
+                )
+            }
             composable(Screen.AllItems.route) {
                 AllItemsScreen(
                     onEditItem = { itemId ->
@@ -298,7 +304,13 @@ fun MainScreen(onLogout: () -> Unit) {
                 val recipeId = backStackEntry.arguments?.getString("recipeId") ?: ""
                 RecipeDetailScreen(
                     recipeId = recipeId,
-                    onDone = { navController.popBackStack(Screen.AllItems.route, false) },
+                    onDone = {
+                        // Revient à l'onglet d'origine (Tous les produits ou Bientôt périmé)
+                        // selon le point d'entrée emprunté pour cette recherche de recette.
+                        if (!navController.popBackStack(Screen.AllItems.route, false)) {
+                            navController.popBackStack(Screen.Expiring.route, false)
+                        }
+                    },
                     onBack = { navController.popBackStack() }
                 )
             }

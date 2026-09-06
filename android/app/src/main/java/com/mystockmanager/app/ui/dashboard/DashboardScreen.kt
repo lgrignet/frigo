@@ -6,6 +6,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -26,6 +28,7 @@ import com.mystockmanager.app.data.local.entities.ItemEntity
 
 @Composable
 fun DashboardScreen(
+    onSearchRecipe: (String) -> Unit = {},
     viewModel: DashboardViewModel = hiltViewModel()
 ) {
     val items by viewModel.expiringItems.collectAsState()
@@ -45,8 +48,8 @@ fun DashboardScreen(
             }
         } else {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                items(items) { item ->
-                    ExpiringItemRow(item)
+                items(items, key = { it.id }) { item ->
+                    ExpiringItemRow(item, onSearchRecipe = { onSearchRecipe(item.id) })
                 }
             }
         }
@@ -54,7 +57,7 @@ fun DashboardScreen(
 }
 
 @Composable
-fun ExpiringItemRow(item: ItemEntity) {
+fun ExpiringItemRow(item: ItemEntity, onSearchRecipe: () -> Unit = {}) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -110,6 +113,13 @@ fun ExpiringItemRow(item: ItemEntity) {
                 Text("${stringResource(R.string.expiry_label_prefix)} ${item.expiryDate}", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Text("${item.quantity} ${UnitTranslator.translateLabel(item.unit)}", fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+            IconButton(onClick = onSearchRecipe) {
+                Icon(
+                    Icons.Default.Restaurant,
+                    contentDescription = stringResource(R.string.btn_search_recipes),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
         }
     }
 }
