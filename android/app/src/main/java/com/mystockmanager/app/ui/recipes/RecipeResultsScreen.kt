@@ -1,5 +1,6 @@
 package com.mystockmanager.app.ui.recipes
 
+import android.app.Activity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -12,8 +13,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -21,6 +24,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.mystockmanager.app.R
 import com.mystockmanager.app.data.remote.RecipeDto
+import com.mystockmanager.app.ui.components.RewardedAdManager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,9 +36,19 @@ fun RecipeResultsScreen(
     viewModel: RecipeResultsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+    val rewardedAdUnitId = stringResource(R.string.admob_rewarded_unit_id)
+    val rewardedAdManager = remember(rewardedAdUnitId) { RewardedAdManager(rewardedAdUnitId) }
 
     LaunchedEffect(itemIds, cuisineTypes) {
         viewModel.search(itemIds, cuisineTypes)
+    }
+
+    LaunchedEffect(uiState) {
+        val state = uiState
+        if (state is RecipeResultsUiState.Success && state.degradedReason == "quota_exceeded") {
+            rewardedAdManager.load(context)
+        }
     }
 
     Scaffold(
@@ -75,12 +89,30 @@ fun RecipeResultsScreen(
                                     color = MaterialTheme.colorScheme.errorContainer,
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
-                                    Text(
-                                        text = stringResource(R.string.msg_recipes_degraded),
-                                        color = MaterialTheme.colorScheme.onErrorContainer,
-                                        fontSize = 12.sp,
-                                        modifier = Modifier.padding(12.dp)
-                                    )
+                                    Column(modifier = Modifier.padding(12.dp)) {
+                                        Text(
+                                            text = stringResource(
+                                                if (state.degradedReason == "quota_exceeded") R.string.msg_recipes_quota_exceeded
+                                                else R.string.msg_recipes_degraded
+                                            ),
+                                            color = MaterialTheme.colorScheme.onErrorContainer,
+                                            fontSize = 12.sp
+                                        )
+                                        if (state.degradedReason == "quota_exceeded") {
+                                            Button(
+                                                onClick = {
+                                                    (context as? Activity)?.let { activity ->
+                                                        rewardedAdManager.show(activity) {
+                                                            viewModel.claimAdBonusAndRetry()
+                                                        }
+                                                    }
+                                                },
+                                                modifier = Modifier.padding(top = 8.dp)
+                                            ) {
+                                                Text(stringResource(R.string.btn_watch_ad_for_recipe))
+                                            }
+                                        }
+                                    }
                                 }
                             }
                             LazyColumn(

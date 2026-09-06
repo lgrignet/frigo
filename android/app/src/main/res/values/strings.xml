@@ -231,6 +231,8 @@
     <string name="msg_ai_unavailable">Recipe search is unavailable right now. Try again later.</string>
     <string name="msg_no_recipes_found">No recipe found for this selection.</string>
     <string name="msg_recipes_degraded">Fewer recipes than usual — the AI service is temporarily unavailable.</string>
+    <string name="msg_recipes_quota_exceeded">Daily recipe search limit reached.</string>
+    <string name="btn_watch_ad_for_recipe">Watch an ad for +1 search</string>
 
     <string name="cuisine_francais">French</string>
     <string name="cuisine_italien">Italian</string>

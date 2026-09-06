@@ -44,7 +44,14 @@ data class RecipeDto(
 @Serializable
 data class RecipeSearchResponse(
     val recipes: List<RecipeDto>,
-    val degraded: Boolean
+    val degraded: Boolean,
+    val degradedReason: String? = null
+)
+
+@Serializable
+data class AdBonusResponse(
+    val bonusGranted: Int,
+    val quotaRemaining: Int
 )
 
 @Serializable
@@ -93,6 +100,15 @@ class RecipeApi @Inject constructor() {
         RecipeSearchRequest(ingredients, priorityIngredients, cuisineTypes, language, count),
         bearerToken = deviceToken
     )
+
+    /** Appelé après visionnage complet d'une pub récompensée — le montant du bonus est décidé côté serveur. */
+    suspend fun adBonus(deviceToken: String): AdBonusResponse {
+        val response: HttpResponse = client.post("$baseUrl/recipes/ad-bonus") {
+            header(HttpHeaders.Authorization, "Bearer $deviceToken")
+        }
+        if (response.status.isSuccess()) return response.body()
+        throw errorFrom(response)
+    }
 
     suspend fun choose(deviceToken: String, recipeId: String): OkResponse {
         val response: HttpResponse = client.post("$baseUrl/recipes/$recipeId/choose") {

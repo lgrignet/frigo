@@ -207,6 +207,8 @@
     <string name="msg_ai_unavailable">Die Rezeptsuche ist gerade nicht verfügbar. Später erneut versuchen.</string>
     <string name="msg_no_recipes_found">Kein Rezept für diese Auswahl gefunden.</string>
     <string name="msg_recipes_degraded">Weniger Rezepte als gewöhnlich — der KI-Dienst ist vorübergehend nicht verfügbar.</string>
+    <string name="msg_recipes_quota_exceeded">Tägliches Limit für Rezeptsuchen erreicht.</string>
+    <string name="btn_watch_ad_for_recipe">Werbung ansehen für +1 Suche</string>
 
     <string name="cuisine_francais">Französisch</string>
     <string name="cuisine_italien">Italienisch</string>

@@ -17,7 +17,11 @@ import javax.inject.Inject
 sealed class RecipeResultsUiState {
     object Loading : RecipeResultsUiState()
     object Error : RecipeResultsUiState()
-    data class Success(val recipes: List<RecipeDto>, val degraded: Boolean) : RecipeResultsUiState()
+    data class Success(
+        val recipes: List<RecipeDto>,
+        val degraded: Boolean,
+        val degradedReason: String? = null
+    ) : RecipeResultsUiState()
 }
 
 @HiltViewModel
@@ -34,11 +38,15 @@ class RecipeResultsViewModel @Inject constructor(
     val uiState: StateFlow<RecipeResultsUiState> = _uiState
 
     private var searched = false
+    private var lastItemIds: List<String> = emptyList()
+    private var lastCuisineTypes: List<String> = emptyList()
 
     /** [itemIds] : produits sélectionnés/en priorité — le reste du stock complète le pool d'ingrédients disponibles. */
     fun search(itemIds: List<String>, cuisineTypes: List<String>) {
         if (searched) return
         searched = true
+        lastItemIds = itemIds
+        lastCuisineTypes = cuisineTypes
 
         viewModelScope.launch {
             _uiState.value = RecipeResultsUiState.Loading
@@ -55,9 +63,22 @@ class RecipeResultsViewModel @Inject constructor(
                     cuisineTypes = cuisineTypes,
                     language = lang
                 )
-                _uiState.value = RecipeResultsUiState.Success(response.recipes, response.degraded)
+                _uiState.value = RecipeResultsUiState.Success(response.recipes, response.degraded, response.degradedReason)
             } catch (e: Exception) {
                 _uiState.value = RecipeResultsUiState.Error
+            }
+        }
+    }
+
+    /** À appeler après qu'une pub récompensée a été regardée jusqu'au bout : réclame le bonus puis relance la recherche. */
+    fun claimAdBonusAndRetry() {
+        viewModelScope.launch {
+            try {
+                recipeRepository.claimAdBonus()
+                searched = false
+                search(lastItemIds, lastCuisineTypes)
+            } catch (e: Exception) {
+                // Best-effort : en cas d'échec, l'utilisateur reste sur l'état dégradé actuel et peut retenter la pub.
             }
         }
     }

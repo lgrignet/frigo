@@ -204,6 +204,8 @@
     <string name="msg_ai_unavailable">La búsqueda de recetas no está disponible ahora. Inténtalo más tarde.</string>
     <string name="msg_no_recipes_found">No se encontró ninguna receta para esta selección.</string>
     <string name="msg_recipes_degraded">Menos recetas de lo habitual — el servicio de IA no está disponible temporalmente.</string>
+    <string name="msg_recipes_quota_exceeded">Límite diario de búsquedas de recetas alcanzado.</string>
+    <string name="btn_watch_ad_for_recipe">Ver un anuncio para +1 búsqueda</string>
 
     <string name="cuisine_francais">Francesa</string>
     <string name="cuisine_italien">Italiana</string>

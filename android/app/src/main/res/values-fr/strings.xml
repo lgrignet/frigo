@@ -231,6 +231,8 @@
     <string name="msg_ai_unavailable">La recherche de recettes est indisponible pour le moment. Réessayez plus tard.</string>
     <string name="msg_no_recipes_found">Aucune recette trouvée pour cette sélection.</string>
     <string name="msg_recipes_degraded">Moins de recettes que d\'habitude — le service IA est temporairement indisponible.</string>
+    <string name="msg_recipes_quota_exceeded">Limite quotidienne de recherches de recettes atteinte.</string>
+    <string name="btn_watch_ad_for_recipe">Regarder une pub pour +1 recherche</string>
 
     <string name="cuisine_francais">Française</string>
     <string name="cuisine_italien">Italienne</string>

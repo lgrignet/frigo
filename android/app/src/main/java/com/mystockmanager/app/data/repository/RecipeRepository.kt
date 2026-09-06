@@ -1,6 +1,7 @@
 package com.mystockmanager.app.data.repository
 
 import com.mystockmanager.app.core.SessionManager
+import com.mystockmanager.app.data.remote.AdBonusResponse
 import com.mystockmanager.app.data.remote.MyRecipesResponse
 import com.mystockmanager.app.data.remote.RecipeApi
 import com.mystockmanager.app.data.remote.RecipeApiException
@@ -43,5 +44,11 @@ class RecipeRepository @Inject constructor(
     suspend fun getMyRecipes(language: String, limit: Int = 30): MyRecipesResponse {
         val token = sessionManager.getDeviceToken() ?: throw RecipeApiException("Non authentifié.", 401)
         return recipeApi.getMine(token, language, limit)
+    }
+
+    /** À appeler uniquement après qu'une pub récompensée a été regardée jusqu'au bout. */
+    suspend fun claimAdBonus(): AdBonusResponse {
+        val token = sessionManager.getDeviceToken() ?: throw RecipeApiException("Non authentifié.", 401)
+        return recipeApi.adBonus(token)
     }
 }

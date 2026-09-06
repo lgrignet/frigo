@@ -207,6 +207,8 @@
     <string name="msg_ai_unavailable">Recepten zoeken is nu niet beschikbaar. Probeer het later opnieuw.</string>
     <string name="msg_no_recipes_found">Geen recept gevonden voor deze selectie.</string>
     <string name="msg_recipes_degraded">Minder recepten dan gebruikelijk — de AI-dienst is tijdelijk niet beschikbaar.</string>
+    <string name="msg_recipes_quota_exceeded">Dagelijkse limiet voor receptzoekopdrachten bereikt.</string>
+    <string name="btn_watch_ad_for_recipe">Bekijk een advertentie voor +1 zoekopdracht</string>
 
     <string name="cuisine_francais">Frans</string>
     <string name="cuisine_italien">Italiaans</string>
