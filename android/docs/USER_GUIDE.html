@@ -115,43 +115,48 @@
 <body>
     <div class="container">
         <h1>Guide Utilisateur MyStockManager</h1>
-        <p>Bienvenue dans votre gestionnaire de stock intelligent. Cette application vous permet de gérer vos produits, vos courses et vos lieux de stockage de manière simple et synchronisée.</p>
+        <p>Bienvenue dans votre gestionnaire de stock intelligent. Cette application vous permet de gérer vos produits, vos courses, vos lieux de stockage ainsi que la génération de recettes par IA basées sur vos ingrédients.</p>
 
         <section id="dashboard">
-            <h2>1. Tableau de Bord (Péremption)</h2>
+            <h2>1. Tableau de Bord (Péremption) & Suggestions IA</h2>
             <p>L'écran d'accueil affiche les produits qui arrivent bientôt à expiration.</p>
             <ul>
-                <li>Les produits sont triés par date de péremption.</li>
-                <li>Une icône ⏰ indique l'urgence visuelle.</li>
+                <li>Les produits sont triés par date de péremption avec alerte visuelle ⏰.</li>
+                <li><span class="badge">Nouveau</span> <strong>Recettes IA :</strong> Cliquez sur l'icône de couverts 🍴 en face d'un produit pour trouver des recettes adaptées aux ingrédients périssables.</li>
                 <li>Le système vous envoie une notification quotidienne si des produits vont périmer (réglable dans les paramètres).</li>
             </ul>
             <div class="screenshot-container">
-                <img src="screenshots/dashboard.png" alt="Tableau de bord">
-                <span class="caption">Vue d'ensemble des produits arrivant à expiration</span>
+                <img src="screenshots/dashboard.png" alt="Tableau de bord avec déclencheur de recettes IA">
+                <span class="caption">Tableau de bord avec raccourci de recherche de recettes IA</span>
             </div>
         </section>
 
         <hr>
 
         <section id="products">
-            <h2>2. Gestion des Produits</h2>
-            <p>Cet onglet liste l'intégralité de votre stock actuel avec une lisibilité maximale.</p>
+            <h2>2. Gestion des Produits & Mode Sélection</h2>
+            <p>Cet onglet liste l'intégralité de votre stock actuel avec une ergonomie optimisée.</p>
             <ul>
-                <li><strong>Recherche :</strong> Barre de recherche ultra-rapide en haut de l'écran.</li>
-                <li><strong>Filtres compacts :</strong> Deux menus déroulants sur la même ligne (Domicile & Rangement) avec sélection automatique du domicile actif.</li>
-                <li><strong>Design aéré :</strong> Cartes produits optimisées avec nom en haut, détails en ligne 2, et boutons d'actions (+, -, courses, suppression) en bas.</li>
+                <li><strong>Recherche & Filtres :</strong> Barre de recherche rapide et filtres compacts (Domicile & Rangement).</li>
+                <li><strong>Cartes produits aérées :</strong> Nom en haut, quantité/rangement au milieu, actions (+, -, 🛒, 🗑️) en bas.</li>
+                <li><span class="badge">Nouveau</span> <strong>Mode Sélection Multi-Produits :</strong> Un appui long active la sélection multiple pour lancer une recherche de recettes IA combinant plusieurs ingrédients.</li>
             </ul>
-            <div class="screenshot-container">
-                <img src="screenshots/products.png" alt="Liste des produits">
-                <span class="caption">Liste des produits avec filtres compacts et carte retravaillée</span>
+            <div style="display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;">
+                <div class="screenshot-container" style="flex: 1; min-width: 300px;">
+                    <img src="screenshots/products.png" alt="Liste des produits">
+                    <span class="caption">Liste des produits avec filtres compacts</span>
+                </div>
+                <div class="screenshot-container" style="flex: 1; min-width: 300px;">
+                    <img src="screenshots/products_selection.png" alt="Mode sélection">
+                    <span class="caption">Mode sélection multi-ingrédients pour recettes IA</span>
+                </div>
             </div>
 
             <h3>Ajout et Modification</h3>
             <p>Saisissez manuellement ou gagnez du temps avec les outils natifs :</p>
             <ul>
-                <li><strong>Scanner de codes-barres :</strong> Interroge automatiquement l'API Open Food Facts pour remplir le nom.</li>
-                <li><strong>Photos :</strong> Prenez une photo du produit via l'appareil photo pour une identification visuelle rapide.</li>
-                <li><strong>Réassort :</strong> Définissez un seuil critique pour l'ajout automatique à la liste de courses.</li>
+                <li><strong>Scanner de codes-barres :</strong> Interroge automatiquement l'API Open Food Facts.</li>
+                <li><strong>Photos & Réassort :</strong> Prenez une photo et définissez un seuil pour la liste de courses automatique.</li>
             </ul>
             <div style="display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;">
                 <div class="screenshot-container" style="flex: 1; min-width: 300px;">
@@ -167,14 +172,45 @@
 
         <hr>
 
+        <section id="recipes">
+            <h2>3. Recherche de Recettes par IA & Mes Recettes</h2>
+            <p>Générez des recettes intelligentes selon vos ingrédients pour lutter contre le gaspillage.</p>
+            <ul>
+                <li><span class="badge">Bouton Global 📖</span> Accessible dans la barre supérieure sur tous les écrans pour consulter vos recettes à tout moment.</li>
+                <li><strong>Sélection du type de cuisine :</strong> Choisissez un ou plusieurs styles (Française, Italienne, Chinoise, Asiatique, Méditerranéenne...).</li>
+                <li><strong>Génération IA :</strong> Proposition de recettes sur-mesure avec affichage des ingrédients déjà en stock et instructions détaillées.</li>
+            </ul>
+            <div style="display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;">
+                <div class="screenshot-container" style="flex: 1; min-width: 300px;">
+                    <img src="screenshots/cuisine_picker.png" alt="Choix de la cuisine">
+                    <span class="caption">Sélection des types de cuisine</span>
+                </div>
+                <div class="screenshot-container" style="flex: 1; min-width: 300px;">
+                    <img src="screenshots/recipe_results.png" alt="Résultats IA">
+                    <span class="caption">Recettes générées par l'IA</span>
+                </div>
+            </div>
+            <div style="display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;">
+                <div class="screenshot-container" style="flex: 1; min-width: 300px;">
+                    <img src="screenshots/recipe_detail.png" alt="Détail recette">
+                    <span class="caption">Détail des ingrédients & préparation</span>
+                </div>
+                <div class="screenshot-container" style="flex: 1; min-width: 300px;">
+                    <img src="screenshots/my_recipes.png" alt="Mes recettes">
+                    <span class="caption">Bouton global 📖 & Mes recettes sauvegardées</span>
+                </div>
+            </div>
+        </section>
+
+        <hr>
+
         <section id="shopping">
-            <h2>3. Liste de Courses</h2>
+            <h2>4. Liste de Courses</h2>
             <p>Un assistant intelligent pour vos achats.</p>
             <ul>
                 <li><strong>Sections :</strong> Distinction nette entre "À acheter" et "Acheté".</li>
                 <li><strong>Ajout direct :</strong> Envoyez n'importe quel produit du stock vers les courses d'un seul clic via l'icône de panier.</li>
-                <li><strong>Filtres :</strong> Menu déroulant pour n'afficher que les courses d'un magasin spécifique.</li>
-                <li><strong>Rangement :</strong> Une icône 📦 apparaît sur les produits achetés pour les transférer directement dans le stock.</li>
+                <li><strong>Filtres & Rangement :</strong> Filtrage par magasin et réintégration instantanée au stock 📦.</li>
             </ul>
             <div class="screenshot-container">
                 <img src="screenshots/shopping.png" alt="Liste de courses">
@@ -185,12 +221,11 @@
         <hr>
 
         <section id="places">
-            <h2>4. Gestion des Lieux</h2>
+            <h2>5. Gestion des Lieux</h2>
             <p>Configurez votre environnement de stockage.</p>
             <ul>
-                <li><strong>Domiciles :</strong> Gérez vos résidences et foyers.</li>
-                <li><strong>Rangements :</strong> Définissez vos frigos, congélateurs ou placards avec icônes adaptées et domicile rattaché.</li>
-                <li><strong>Magasins & Unités :</strong> Enregistrez vos enseignes et vos unités personnalisées.</li>
+                <li><strong>Domiciles & Rangements :</strong> Gérez vos foyers et vos lieux de conservation (frigo, congélateur, placard).</li>
+                <li><strong>Magasins & Unités :</strong> Personnalisez vos enseignes et unités de mesure.</li>
             </ul>
             <div class="screenshot-container">
                 <img src="screenshots/places.png" alt="Gestion des lieux">
@@ -201,13 +236,12 @@
         <hr>
 
         <section id="settings">
-            <h2>5. Paramètres et Synchronisation</h2>
+            <h2>6. Paramètres et Synchronisation</h2>
             <p>Adaptez l'application à vos besoins.</p>
             <ul>
-                <li><strong>Profil & Domicile actif :</strong> Choisissez votre domicile principal et renseignez vos informations.</li>
-                <li><strong>Multilingue :</strong> Support du Français, Anglais, Néerlandais, Allemand et Espagnol.</li>
-                <li><strong>Thèmes :</strong> Support complet du Mode Sombre et du Mode Clair.</li>
-                <li><span class="badge">Nouveau</span> <strong>Synchronisation & GUID :</strong> Édition manuelle du GUID, bouton de copie 📋 et bouton de **collage rapide** 📋 depuis le presse-papier, ou scan par QR Code.</li>
+                <li><strong>Profil & Domicile actif :</strong> Sélectionnez votre foyer principal.</li>
+                <li><strong>Multilingue & Thèmes :</strong> Support 5 langues et Mode Sombre / Clair.</li>
+                <li><strong>Synchronisation GUID :</strong> Édition manuelle, bouton Copier 📋, bouton **Coller** 📋 et partage par QR Code.</li>
             </ul>
             <div style="display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;">
                 <div class="screenshot-container" style="flex: 1; min-width: 300px;">
