@@ -12,6 +12,7 @@ const RECIPE_SCHEMA = {
                 type: 'OBJECT',
                 properties: {
                     title: { type: 'STRING' },
+                    cuisineType: { type: 'STRING' },
                     servings: { type: 'INTEGER' },
                     ingredients: {
                         type: 'ARRAY',
@@ -28,7 +29,7 @@ const RECIPE_SCHEMA = {
                     steps: { type: 'ARRAY', items: { type: 'STRING' } },
                     imageEmoji: { type: 'STRING' },
                 },
-                required: ['title', 'ingredients', 'steps'],
+                required: ['title', 'cuisineType', 'ingredients', 'steps'],
             },
         },
     },
@@ -77,11 +78,12 @@ async function callGemini(prompt) {
     }
 }
 
-function buildSearchPrompt({ ingredients, priorityIngredients, cuisineType, language, count, excludeTitles }) {
+function buildSearchPrompt({ ingredients, priorityIngredients, cuisineTypes, language, count, excludeTitles }) {
     const langName = LANG_NAMES[language] || 'français';
     const lines = [
         `Tu es un assistant culinaire. Réponds uniquement en ${langName}, y compris les noms d'ingrédients et les étapes.`,
-        `Propose exactement ${count} recette(s) de cuisine "${cuisineType}".`,
+        `Propose exactement ${count} recette(s), chacune appartenant à L'UN de ces types de cuisine (mélange autorisé entre les recettes) : ${cuisineTypes.join(', ')}.`,
+        `Pour chaque recette, indique dans le champ "cuisineType" exactement lequel de ces mots tu as utilisé (recopie-le tel quel, sans le traduire) : ${cuisineTypes.join(', ')}.`,
         `Ingrédients à utiliser en priorité (chaque recette doit utiliser au moins un de ceux-ci) : ${priorityIngredients.join(', ')}.`,
         `Autres ingrédients disponibles à utiliser si pertinent, sans obligation : ${ingredients.join(', ')}.`,
         `Pour chaque recette : un titre, le nombre de portions, la liste complète des ingrédients avec quantité numérique et unité, les étapes de préparation dans l'ordre, et un seul emoji représentatif du plat (imageEmoji).`,
@@ -104,8 +106,8 @@ function buildTranslatePrompt({ titre, ingredients, etapes, targetLanguage }) {
     ].join('\n');
 }
 
-export async function generateRecipes({ ingredients, priorityIngredients, cuisineType, language, count, excludeTitles }) {
-    const prompt = buildSearchPrompt({ ingredients, priorityIngredients, cuisineType, language, count, excludeTitles });
+export async function generateRecipes({ ingredients, priorityIngredients, cuisineTypes, language, count, excludeTitles }) {
+    const prompt = buildSearchPrompt({ ingredients, priorityIngredients, cuisineTypes, language, count, excludeTitles });
     return callGemini(prompt);
 }
 

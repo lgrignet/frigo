@@ -85,13 +85,13 @@ function rowToRecipe(row) {
     };
 }
 
-/** Recettes déjà en cache pour ce foyer/cuisine/langue, hors cooldowns (court + long). */
-async function findCachedRecipes({ cuisineType, priorityKeys, guid, language, limit }) {
+/** Recettes déjà en cache pour ce foyer/cuisines/langue, hors cooldowns (court + long). */
+async function findCachedRecipes({ cuisineTypes, priorityKeys, guid, language, limit }) {
     const { rows } = await pool.query(
         `SELECT r.id, r.cuisine_type, r.servings, r.image_emoji, rt.titre, rt.ingredients, rt.etapes
          FROM recettes r
          JOIN recettes_traductions rt ON rt.recette_id = r.id AND rt.langue = $1
-         WHERE r.cuisine_type = $2
+         WHERE r.cuisine_type = ANY($2::text[])
            AND r.ingredients_cles && $3::text[]
            AND r.id NOT IN (
                SELECT recette_id FROM recettes_proposees_foyer
@@ -102,7 +102,7 @@ async function findCachedRecipes({ cuisineType, priorityKeys, guid, language, li
            )
          ORDER BY random()
          LIMIT $7`,
-        [language, cuisineType, priorityKeys, guid, COOLDOWN_PROPOSED_HOURS, COOLDOWN_CHOSEN_DAYS, limit],
+        [language, cuisineTypes, priorityKeys, guid, COOLDOWN_PROPOSED_HOURS, COOLDOWN_CHOSEN_DAYS, limit],
     );
     return rows.map(rowToRecipe);
 }
@@ -117,11 +117,11 @@ async function quotaRemaining(guid) {
     return QUOTA_PER_FOYER_PER_DAY - (rows[0]?.total || 0);
 }
 
-async function logAiCall({ guid, cuisineType, language, generatedCount, success, error }) {
+async function logAiCall({ guid, cuisineTypes, language, generatedCount, success, error }) {
     await query(
         `INSERT INTO ia_appels_log (provider, guid, cuisine_type, langue, recettes_generees, succes, erreur)
          VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-        [process.env.AI_PROVIDER || 'gemini', guid, cuisineType, language, generatedCount, success, error || null],
+        [process.env.AI_PROVIDER || 'gemini', guid, cuisineTypes.join(','), language, generatedCount, success, error || null],
     );
 }
 
@@ -129,9 +129,12 @@ async function logAiCall({ guid, cuisineType, language, generatedCount, success,
  * Insère une recette générée par l'IA en base, en réutilisant une recette
  * existante (dédup exacte par cuisine + ingrédient principal + ensemble
  * d'ingrédients normalisés) si elle existe déjà — on ajoute alors juste la
- * traduction dans cette langue si elle manquait.
+ * traduction dans cette langue si elle manquait. [cuisineTypes] est l'ensemble
+ * demandé ; la recette est classée sous celui que l'IA a effectivement choisi
+ * (recipe.cuisineType), avec repli sur le premier demandé si absent/invalide.
  */
-async function saveGeneratedRecipe({ recipe, cuisineType, language, priorityKeys }) {
+async function saveGeneratedRecipe({ recipe, cuisineTypes, language, priorityKeys }) {
+    const effectiveCuisineType = cuisineTypes.includes(recipe.cuisineType) ? recipe.cuisineType : cuisineTypes[0];
     const ingredientNames = (recipe.ingredients || []).map((i) => i.name);
     const ingredientsCles = normalizedSortedKeys(ingredientNames);
     const ingredientPrincipal = priorityKeys.find((k) => ingredientsCles.includes(k)) || null;
@@ -143,7 +146,7 @@ async function saveGeneratedRecipe({ recipe, cuisineType, language, priorityKeys
                AND ingredient_principal IS NOT DISTINCT FROM $2
                AND ingredients_cles = $3::text[]
              LIMIT 1`,
-            [cuisineType, ingredientPrincipal, ingredientsCles],
+            [effectiveCuisineType, ingredientPrincipal, ingredientsCles],
         );
 
         let recetteId = existingRows[0]?.id;
@@ -153,7 +156,7 @@ async function saveGeneratedRecipe({ recipe, cuisineType, language, priorityKeys
                 `INSERT INTO recettes (cuisine_type, langue_origine, ingredient_principal, ingredients_cles, servings, image_emoji)
                  VALUES ($1, $2, $3, $4, $5, $6)
                  RETURNING id`,
-                [cuisineType, language, ingredientPrincipal, ingredientsCles, recipe.servings || null, recipe.imageEmoji || null],
+                [effectiveCuisineType, language, ingredientPrincipal, ingredientsCles, recipe.servings || null, recipe.imageEmoji || null],
             );
             recetteId = rows[0].id;
         }
@@ -168,7 +171,7 @@ async function saveGeneratedRecipe({ recipe, cuisineType, language, priorityKeys
         return {
             id: recetteId,
             title: recipe.title,
-            cuisineType,
+            cuisineType: effectiveCuisineType,
             servings: recipe.servings || null,
             ingredients: recipe.ingredients || [],
             steps: recipe.steps || [],
@@ -179,7 +182,7 @@ async function saveGeneratedRecipe({ recipe, cuisineType, language, priorityKeys
 
 // --- POST /recipes/search ---
 router.post('/search', requireDevice, h(async (req, res) => {
-    const { ingredients, priorityIngredients, cuisineType, language, count } = req.body || {};
+    const { ingredients, priorityIngredients, cuisineTypes, language, count } = req.body || {};
 
     if (!isStringArray(ingredients)) {
         return res.status(400).json({ error: 'ingredients requis (tableau de chaînes non vide).' });
@@ -187,18 +190,19 @@ router.post('/search', requireDevice, h(async (req, res) => {
     if (!isStringArray(priorityIngredients)) {
         return res.status(400).json({ error: 'priorityIngredients requis (tableau de chaînes non vide).' });
     }
-    if (!isNonEmptyString(cuisineType)) {
-        return res.status(400).json({ error: 'cuisineType requis.' });
+    if (!isStringArray(cuisineTypes)) {
+        return res.status(400).json({ error: 'cuisineTypes requis (tableau de chaînes non vide).' });
     }
     if (!SUPPORTED_LANGUAGES.includes(language)) {
         return res.status(400).json({ error: `language invalide (${SUPPORTED_LANGUAGES.join(', ')}).` });
     }
     const wantedCount = Number.isInteger(count) && count > 0 && count <= 10 ? count : 5;
+    const cuisineTypesCapped = cuisineTypes.slice(0, 5);
 
     const priorityKeys = normalizedSortedKeys(priorityIngredients);
 
     let recipes = await findCachedRecipes({
-        cuisineType,
+        cuisineTypes: cuisineTypesCapped,
         priorityKeys,
         guid: req.guid,
         language,
@@ -218,7 +222,7 @@ router.post('/search', requireDevice, h(async (req, res) => {
                 const generated = await aiGenerateRecipes({
                     ingredients: ingredients.map(String),
                     priorityIngredients,
-                    cuisineType,
+                    cuisineTypes: cuisineTypesCapped,
                     language,
                     count: Math.min(remaining, remainingQuota),
                     excludeTitles: recipes.map((r) => r.title),
@@ -226,15 +230,15 @@ router.post('/search', requireDevice, h(async (req, res) => {
 
                 const saved = [];
                 for (const recipe of generated) {
-                    saved.push(await saveGeneratedRecipe({ recipe, cuisineType, language, priorityKeys }));
+                    saved.push(await saveGeneratedRecipe({ recipe, cuisineTypes: cuisineTypesCapped, language, priorityKeys }));
                 }
                 recipes = recipes.concat(saved);
 
-                await logAiCall({ guid: req.guid, cuisineType, language, generatedCount: saved.length, success: true });
+                await logAiCall({ guid: req.guid, cuisineTypes: cuisineTypesCapped, language, generatedCount: saved.length, success: true });
             } catch (err) {
                 console.error('[recipes/search] échec appel IA', err);
                 degraded = true;
-                await logAiCall({ guid: req.guid, cuisineType, language, generatedCount: 0, success: false, error: String(err.message || err) });
+                await logAiCall({ guid: req.guid, cuisineTypes: cuisineTypesCapped, language, generatedCount: 0, success: false, error: String(err.message || err) });
             }
         }
     }
