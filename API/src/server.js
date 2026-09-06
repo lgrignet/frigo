@@ -6,6 +6,7 @@ import rateLimit from 'express-rate-limit';
 import { pool, query, withTransaction } from './db.js';
 import { hashPassword, verifyPassword, generateSaltHex } from './hash.js';
 import { sendVerificationEmail } from './mailer.js';
+import { router as recipesRouter } from './recipes.js';
 
 const PORT = Number(process.env.PORT) || 3001;
 const HOST = process.env.HOST || '127.0.0.1';
@@ -32,6 +33,9 @@ const accountLimiter = rateLimit({
     message: { error: 'Trop de requêtes, réessayez plus tard.' },
 });
 app.use('/account', accountLimiter);
+
+// --- Recettes générées par IA (Gemini ou autre provider, voir src/ai/) ---
+app.use('/recipes', recipesRouter);
 
 // --- Helpers ---
 function newDeviceToken() {
