@@ -115,12 +115,35 @@ class AuthRepository @Inject constructor(
         val remote = try {
             accountApi.login(normalized, password, guid = localUser?.syncChannelGuid, deviceName = deviceName())
         } catch (e: AccountApiException) {
-            if (e.httpStatus == 401) return false
+            if (e.httpStatus == 401) {
+                // Le serveur ne connaît pas ce compte : cas d'un compte créé localement
+                // avant l'existence du service et jamais migré (ex. session locale perdue
+                // avant que migrateIfNeeded() n'ait eu l'occasion de tourner au démarrage).
+                // On vérifie le mot de passe contre le hash local puis on migre à la volée
+                // plutôt que de renvoyer un échec trompeur ("mot de passe incorrect").
+                return tryMigrateThenLogin(localUser, password)
+            }
             throw e
         }
 
         persistRemoteSession(normalized, password, remote)
         return true
+    }
+
+    private suspend fun tryMigrateThenLogin(localUser: UserEntity?, password: String): Boolean {
+        if (localUser == null || !localUser.deviceToken.isNullOrBlank()) return false
+        if (cryptoManager.hashPassword(password, localUser.salt) != localUser.passwordHash) return false
+
+        return try {
+            val remote = migrateLocalUser(localUser)
+            sessionManager.setSession(localUser.id, localUser.email, localUser.syncChannelGuid, localUser.firstName, localUser.lastName)
+            sessionManager.setDeviceToken(remote.token)
+            sessionManager.setEmailVerified(remote.emailVerifie)
+            true
+        } catch (e: Exception) {
+            Log.w("AuthRepository", "Migration à la volée depuis l'écran de connexion impossible", e)
+            false
+        }
     }
 
     /**
@@ -206,24 +229,7 @@ class AuthRepository @Inject constructor(
         if (!user.deviceToken.isNullOrBlank()) return
 
         try {
-            val remote = accountApi.migrate(
-                email = user.email,
-                nom = user.lastName,
-                prenom = user.firstName,
-                passwordHash = user.passwordHash,
-                passwordSalt = user.salt,
-                recoveryCodeHash = user.recoveryHash.ifBlank { null },
-                recoveryCodeSalt = user.recoverySalt.ifBlank { null },
-                guid = user.syncChannelGuid,
-                deviceName = deviceName()
-            )
-            userDao.updateUser(
-                user.copy(
-                    compteId = remote.compteId,
-                    deviceToken = remote.token,
-                    emailVerifie = remote.emailVerifie
-                )
-            )
+            val remote = migrateLocalUser(user)
             sessionManager.setDeviceToken(remote.token)
             sessionManager.setEmailVerified(remote.emailVerifie)
         } catch (e: AccountApiException) {
@@ -231,6 +237,29 @@ class AuthRepository @Inject constructor(
         } catch (e: Exception) {
             Log.w("AuthRepository", "Migration vers api.noshi.be impossible (réseau ?)", e)
         }
+    }
+
+    /** Migre le compte local [user] (hash/sel déjà calculés) vers api.noshi.be et met à jour sa copie locale. */
+    private suspend fun migrateLocalUser(user: UserEntity): AccountAuthResponse {
+        val remote = accountApi.migrate(
+            email = user.email,
+            nom = user.lastName,
+            prenom = user.firstName,
+            passwordHash = user.passwordHash,
+            passwordSalt = user.salt,
+            recoveryCodeHash = user.recoveryHash.ifBlank { null },
+            recoveryCodeSalt = user.recoverySalt.ifBlank { null },
+            guid = user.syncChannelGuid,
+            deviceName = deviceName()
+        )
+        userDao.updateUser(
+            user.copy(
+                compteId = remote.compteId,
+                deviceToken = remote.token,
+                emailVerifie = remote.emailVerifie
+            )
+        )
+        return remote
     }
 
     /** Vérifie l'email du compte connecté avec le code à 6 chiffres reçu (§4.6 du cahier des charges). */
