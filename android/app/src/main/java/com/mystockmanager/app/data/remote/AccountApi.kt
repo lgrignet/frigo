@@ -3,6 +3,7 @@ package com.mystockmanager.app.data.remote
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.okhttp.OkHttp
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.header
 import io.ktor.client.request.post
@@ -107,6 +108,11 @@ class AccountApi @Inject constructor() {
     private val client = HttpClient(OkHttp) {
         install(ContentNegotiation) {
             json(Json { ignoreUnknownKeys = true })
+        }
+        // Sans ça, l'engine OkHttp retombe sur son défaut (readTimeout ~10s) — voir
+        // le même correctif sur RecipeApi.kt pour le détail du problème rencontré.
+        install(HttpTimeout) {
+            requestTimeoutMillis = 20_000
         }
     }
 
