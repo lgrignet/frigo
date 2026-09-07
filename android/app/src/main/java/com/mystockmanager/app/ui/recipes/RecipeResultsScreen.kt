@@ -76,45 +76,51 @@ fun RecipeResultsScreen(
                     )
                 }
                 is RecipeResultsUiState.Success -> {
-                    if (state.recipes.isEmpty()) {
-                        Text(
-                            text = stringResource(R.string.msg_no_recipes_found),
-                            modifier = Modifier.align(Alignment.Center).padding(24.dp),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    } else {
-                        Column(modifier = Modifier.fillMaxSize()) {
-                            if (state.degraded) {
-                                Surface(
-                                    color = MaterialTheme.colorScheme.errorContainer,
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    Column(modifier = Modifier.padding(12.dp)) {
-                                        Text(
-                                            text = stringResource(
-                                                if (state.degradedReason == "quota_exceeded") R.string.msg_recipes_quota_exceeded
-                                                else R.string.msg_recipes_degraded
-                                            ),
-                                            color = MaterialTheme.colorScheme.onErrorContainer,
-                                            fontSize = 12.sp
-                                        )
-                                        if (state.degradedReason == "quota_exceeded") {
-                                            Button(
-                                                onClick = {
-                                                    (context as? Activity)?.let { activity ->
-                                                        rewardedAdManager.show(activity) {
-                                                            viewModel.claimAdBonusAndRetry()
-                                                        }
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        if (state.degraded) {
+                            Surface(
+                                color = MaterialTheme.colorScheme.errorContainer,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Column(modifier = Modifier.padding(12.dp)) {
+                                    Text(
+                                        text = stringResource(
+                                            if (state.degradedReason == "quota_exceeded") R.string.msg_recipes_quota_exceeded
+                                            else R.string.msg_recipes_degraded
+                                        ),
+                                        color = MaterialTheme.colorScheme.onErrorContainer,
+                                        fontSize = 12.sp
+                                    )
+                                    if (state.degradedReason == "quota_exceeded") {
+                                        Button(
+                                            onClick = {
+                                                (context as? Activity)?.let { activity ->
+                                                    rewardedAdManager.show(activity) {
+                                                        viewModel.claimAdBonusAndRetry()
                                                     }
-                                                },
-                                                modifier = Modifier.padding(top = 8.dp)
-                                            ) {
-                                                Text(stringResource(R.string.btn_watch_ad_for_recipe))
-                                            }
+                                                }
+                                            },
+                                            modifier = Modifier.padding(top = 8.dp)
+                                        ) {
+                                            Text(stringResource(R.string.btn_watch_ad_for_recipe))
                                         }
                                     }
                                 }
                             }
+                        }
+                        if (state.recipes.isEmpty()) {
+                            // Le bandeau ci-dessus explique déjà pourquoi si state.degraded == true —
+                            // pas besoin d'un second message générique dans ce cas.
+                            if (!state.degraded) {
+                                Box(modifier = Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
+                                    Text(
+                                        text = stringResource(R.string.msg_no_recipes_found),
+                                        modifier = Modifier.padding(24.dp),
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        } else {
                             LazyColumn(
                                 contentPadding = PaddingValues(16.dp),
                                 verticalArrangement = Arrangement.spacedBy(12.dp)
