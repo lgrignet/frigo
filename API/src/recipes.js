@@ -9,7 +9,10 @@ const SUPPORTED_LANGUAGES = ['fr', 'en', 'es', 'de', 'nl'];
 const COOLDOWN_PROPOSED_HOURS = Number(process.env.RECIPE_COOLDOWN_PROPOSED_HOURS) || 24;
 const COOLDOWN_CHOSEN_DAYS = Number(process.env.RECIPE_COOLDOWN_CHOSEN_DAYS) || 30;
 const QUOTA_PER_FOYER_PER_DAY = Number(process.env.RECIPE_QUOTA_PER_FOYER_PER_DAY) || 20;
-const AD_BONUS = Number(process.env.RECIPE_AD_BONUS) || 1;
+// Une pub doit débloquer une recherche complète (5 recettes, le count par défaut
+// utilisé par l'app), pas juste 1 recette isolée — le quota est compté en recettes
+// générées, pas en recherches, voir quotaRemaining() plus bas.
+const AD_BONUS = Number(process.env.RECIPE_AD_BONUS) || 5;
 
 // --- Rate limiting générique par IP (anti-abus), cohérent avec /account/* ---
 const recipesLimiter = rateLimit({
@@ -224,13 +227,14 @@ router.post('/search', requireDevice, h(async (req, res) => {
             degraded = true;
             degradedReason = 'quota_exceeded';
         } else {
+            const requestedCount = Math.min(remaining, remainingQuota);
             try {
                 const generated = await aiGenerateRecipes({
                     ingredients: ingredients.map(String),
                     priorityIngredients,
                     cuisineTypes: cuisineTypesCapped,
                     language,
-                    count: Math.min(remaining, remainingQuota),
+                    count: requestedCount,
                     excludeTitles: recipes.map((r) => r.title),
                 });
 
@@ -241,6 +245,15 @@ router.post('/search', requireDevice, h(async (req, res) => {
                 recipes = recipes.concat(saved);
 
                 await logAiCall({ guid: req.guid, cuisineTypes: cuisineTypesCapped, language, generatedCount: saved.length, success: true });
+
+                // Le quota a limité le nombre de recettes demandées à l'IA (moins que
+                // ce qu'il aurait fallu pour compléter wantedCount) : la recherche a
+                // "réussi" mais est incomplète pour cette raison, il faut le signaler
+                // au client au même titre qu'un quota totalement épuisé.
+                if (requestedCount < remaining) {
+                    degraded = true;
+                    degradedReason = 'quota_exceeded';
+                }
             } catch (err) {
                 console.error('[recipes/search] échec appel IA', err);
                 degraded = true;
