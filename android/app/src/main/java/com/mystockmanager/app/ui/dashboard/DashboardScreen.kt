@@ -25,22 +25,30 @@ import coil.compose.AsyncImage
 import com.mystockmanager.app.R
 import com.mystockmanager.app.core.UnitTranslator
 import com.mystockmanager.app.data.local.entities.ItemEntity
+import com.mystockmanager.app.ui.components.RecipesIconButton
 
 @Composable
 fun DashboardScreen(
     onSearchRecipe: (String) -> Unit = {},
+    onOpenRecipes: () -> Unit = {},
     viewModel: DashboardViewModel = hiltViewModel()
 ) {
     val items by viewModel.expiringItems.collectAsState()
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        Text(
-            text = stringResource(R.string.tab_expiring),
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Black,
-            color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = stringResource(R.string.tab_expiring),
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Black,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            RecipesIconButton(onClick = onOpenRecipes)
+        }
 
         if (items.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

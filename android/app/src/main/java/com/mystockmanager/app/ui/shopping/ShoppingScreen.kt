@@ -33,11 +33,13 @@ import com.mystockmanager.app.data.local.entities.DomicileEntity
 import com.mystockmanager.app.data.local.entities.ShoppingEntity
 import com.mystockmanager.app.data.local.entities.StorageEntity
 import com.mystockmanager.app.data.local.entities.UnitEntity
+import com.mystockmanager.app.ui.components.RecipesIconButton
 import com.mystockmanager.app.ui.theme.Accent
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ShoppingScreen(
+    onOpenRecipes: () -> Unit = {},
     viewModel: ShoppingViewModel = hiltViewModel()
 ) {
     val items by viewModel.shoppingItems.collectAsState()
@@ -70,7 +72,7 @@ fun ShoppingScreen(
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             
-            Row {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = { viewModel.toggleAggregation() }) {
                     Icon(
                         if (isAggregated) Icons.Default.Groups else Icons.Default.Person,
@@ -78,12 +80,13 @@ fun ShoppingScreen(
                         tint = MaterialTheme.colorScheme.primary
                     )
                 }
-                IconButton(onClick = { 
+                IconButton(onClick = {
                     editingItem = null
-                    showAddDialog = true 
+                    showAddDialog = true
             }) {
                 Icon(Icons.Default.Add, contentDescription = stringResource(R.string.btn_add), tint = MaterialTheme.colorScheme.primary)
             }
+                RecipesIconButton(onClick = onOpenRecipes)
             }
         }
 

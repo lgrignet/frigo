@@ -51,7 +51,7 @@
 
     <!-- Filters -->
     <string name="filter_all_domiciles">Alle Domicilies</string>
-    <string name="filter_all_storages">Alle Opslagen</string>
+    <string name="filter_all_storages">Alle</string>
 
     <string name="msg_no_storage_defined">Geen opslag gedefinieerd. Maak er een aan in het tabblad Locaties.</string>
     <string name="title_new_product">Nieuw product</string>

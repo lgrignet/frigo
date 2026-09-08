@@ -63,7 +63,7 @@
 
     <!-- Filters -->
     <string name="filter_all_domiciles">All Domiciles</string>
-    <string name="filter_all_storages">All Storages</string>
+    <string name="filter_all_storages">All</string>
 
     <!-- Titles -->
     <string name="title_new_product">New product</string>

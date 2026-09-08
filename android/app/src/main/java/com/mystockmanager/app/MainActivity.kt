@@ -186,19 +186,9 @@ fun MainScreen(onLogout: () -> Unit) {
     )
 
     Scaffold(
-        topBar = {
-            // Barre minimale, sans titre (chaque écran garde le sien) — juste l'accès
-            // global aux recettes déjà choisies, visible depuis n'importe quel onglet.
-            TopAppBar(
-                title = {},
-                actions = {
-                    IconButton(onClick = { navController.navigate(Screen.MyRecipes.route) }) {
-                        Text("📖", fontSize = 20.sp)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
-            )
-        },
+        // Plus de barre supérieure : chaque écran garde son titre tout en haut. Le bouton
+        // d'accès aux recettes est superposé dans le contenu, au même niveau que le titre
+        // de l'onglet (voir plus bas).
         bottomBar = {
             Column {
                 NavigationBar(
@@ -252,6 +242,9 @@ fun MainScreen(onLogout: () -> Unit) {
             }
         }
     ) { innerPadding ->
+        // Callback commun : ouvre l'écran « Mes recettes ». Chaque onglet affiche
+        // lui-même le bouton 📖 sur la ligne de son titre.
+        val openRecipes = { navController.navigate(Screen.MyRecipes.route) }
         NavHost(
             navController = navController,
             startDestination = Screen.Expiring.route,
@@ -261,7 +254,8 @@ fun MainScreen(onLogout: () -> Unit) {
                 DashboardScreen(
                     onSearchRecipe = { itemId ->
                         navController.navigate(Screen.CuisineTypePicker.createRoute(listOf(itemId)))
-                    }
+                    },
+                    onOpenRecipes = openRecipes
                 )
             }
             composable(Screen.AllItems.route) {
@@ -271,17 +265,18 @@ fun MainScreen(onLogout: () -> Unit) {
                     },
                     onSearchRecipes = { itemIds ->
                         navController.navigate(Screen.CuisineTypePicker.createRoute(itemIds))
-                    }
+                    },
+                    onOpenRecipes = openRecipes
                 )
             }
-            composable(Screen.Shopping.route) { 
-                ShoppingScreen() 
+            composable(Screen.Shopping.route) {
+                ShoppingScreen(onOpenRecipes = openRecipes)
             }
-            composable(Screen.Storages.route) { 
-                StoragesScreen() 
+            composable(Screen.Storages.route) {
+                StoragesScreen(onOpenRecipes = openRecipes)
             }
             composable(Screen.Prefs.route) {
-                PrefsScreen(onLogout = onLogout)
+                PrefsScreen(onLogout = onLogout, onOpenRecipes = openRecipes)
             }
             composable(
                 route = Screen.ItemForm.route,

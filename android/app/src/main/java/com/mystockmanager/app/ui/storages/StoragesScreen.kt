@@ -36,9 +36,11 @@ import com.mystockmanager.app.data.local.entities.DomicileEntity
 import com.mystockmanager.app.data.local.entities.ShopEntity
 import com.mystockmanager.app.data.local.entities.StorageEntity
 import com.mystockmanager.app.data.local.entities.UnitEntity
+import com.mystockmanager.app.ui.components.RecipesIconButton
 
 @Composable
 fun StoragesScreen(
+    onOpenRecipes: () -> Unit = {},
     viewModel: StoragesViewModel = hiltViewModel()
 ) {
     val domiciles by viewModel.domiciles.collectAsState()
@@ -71,7 +73,10 @@ fun StoragesScreen(
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        containerColor = Color.Transparent
+        containerColor = Color.Transparent,
+        // Scaffold imbriqué : ne pas réappliquer les marges des barres système, déjà
+        // prises en charge par le Scaffold principal (sinon le titre descend trop bas).
+        contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { padding ->
         Column(
             modifier = Modifier
@@ -79,13 +84,19 @@ fun StoragesScreen(
                 .padding(padding)
                 .padding(horizontal = 16.dp)
         ) {
-            Text(
-                text = stringResource(R.string.manage_places_title),
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Black,
-                color = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier.padding(vertical = 16.dp)
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(R.string.manage_places_title),
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Black,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                RecipesIconButton(onClick = onOpenRecipes)
+            }
 
             ScrollableTabRow(
                 selectedTabIndex = selectedTab,

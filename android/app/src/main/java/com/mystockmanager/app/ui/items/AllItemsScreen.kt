@@ -30,6 +30,7 @@ import com.mystockmanager.app.R
 import com.mystockmanager.app.core.UnitTranslator
 import com.mystockmanager.app.data.local.entities.ItemEntity
 import com.mystockmanager.app.data.local.entities.StorageEntity
+import com.mystockmanager.app.ui.components.RecipesIconButton
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
@@ -39,6 +40,7 @@ import java.time.temporal.ChronoUnit
 fun AllItemsScreen(
     onEditItem: (String) -> Unit,
     onSearchRecipes: (List<String>) -> Unit,
+    onOpenRecipes: () -> Unit = {},
     viewModel: AllItemsViewModel = hiltViewModel()
 ) {
     val items by viewModel.items.collectAsState()
@@ -90,9 +92,14 @@ fun AllItemsScreen(
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        containerColor = Color.Transparent
+        containerColor = Color.Transparent,
+        // Ce Scaffold imbriqué (juste pour le snackbar) ne doit pas réappliquer les
+        // marges des barres système : celles-ci sont déjà gérées par le Scaffold
+        // principal. Sans ça, le titre « Produits » descend d'une hauteur de barre
+        // d'état par rapport aux onglets « Péremption » / « Achats ».
+        contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { padding ->
-        Column(modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp)) {
+        Column(modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp, vertical = 16.dp)) {
             if (selectedItemIds.isNotEmpty()) {
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
@@ -130,14 +137,17 @@ fun AllItemsScreen(
                         fontWeight = FontWeight.Black,
                         color = MaterialTheme.colorScheme.onBackground
                     )
-                    if (recentExpiryClears.isNotEmpty()) {
-                        IconButton(onClick = { showHistoryDialog = true }) {
-                            Icon(
-                                Icons.Default.History,
-                                contentDescription = stringResource(R.string.cd_expiry_history),
-                                tint = MaterialTheme.colorScheme.primary
-                            )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        if (recentExpiryClears.isNotEmpty()) {
+                            IconButton(onClick = { showHistoryDialog = true }) {
+                                Icon(
+                                    Icons.Default.History,
+                                    contentDescription = stringResource(R.string.cd_expiry_history),
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
                         }
+                        RecipesIconButton(onClick = onOpenRecipes)
                     }
                 }
             }
@@ -205,9 +215,11 @@ fun AllItemsScreen(
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { viewModel.updateSearchQuery(it) },
-                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
-                placeholder = { Text(stringResource(R.string.msg_search_placeholder), color = MaterialTheme.colorScheme.onSurfaceVariant) },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
+                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).padding(bottom = 6.dp),
+                placeholder = { Text(stringResource(R.string.msg_search_placeholder), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp) },
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp)) },
+                singleLine = true,
+                textStyle = MaterialTheme.typography.bodyMedium.copy(fontSize = 13.sp),
                 shape = CircleShape,
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedContainerColor = MaterialTheme.colorScheme.surface,
@@ -219,7 +231,7 @@ fun AllItemsScreen(
 
             // Filters (Dropdowns)
             Row(
-                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 // Domicile Dropdown
@@ -235,10 +247,11 @@ fun AllItemsScreen(
                         value = currentDomName,
                         onValueChange = {},
                         readOnly = true,
-                        label = { Text(stringResource(R.string.label_domicile), fontSize = 11.sp) },
+                        singleLine = true,
+                        placeholder = { Text(stringResource(R.string.label_domicile), fontSize = 12.sp) },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = domExpanded) },
                         colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
-                        modifier = Modifier.menuAnchor().fillMaxWidth(),
+                        modifier = Modifier.menuAnchor().fillMaxWidth().heightIn(min = 44.dp),
                         shape = RoundedCornerShape(12.dp),
                         textStyle = MaterialTheme.typography.bodyMedium.copy(fontSize = 13.sp)
                     )
@@ -279,10 +292,11 @@ fun AllItemsScreen(
                         value = currentStorName,
                         onValueChange = {},
                         readOnly = true,
-                        label = { Text(stringResource(R.string.label_storage), fontSize = 11.sp) },
+                        singleLine = true,
+                        placeholder = { Text(stringResource(R.string.label_storage), fontSize = 12.sp) },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = storExpanded) },
                         colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
-                        modifier = Modifier.menuAnchor().fillMaxWidth(),
+                        modifier = Modifier.menuAnchor().fillMaxWidth().heightIn(min = 44.dp),
                         shape = RoundedCornerShape(12.dp),
                         textStyle = MaterialTheme.typography.bodyMedium.copy(fontSize = 13.sp)
                     )
@@ -320,7 +334,7 @@ fun AllItemsScreen(
                 }
             } else {
                 LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
                     contentPadding = PaddingValues(bottom = 80.dp)
                 ) {
                     items(items, key = { it.id }) { item ->
@@ -408,8 +422,8 @@ fun ItemRow(
                  else AssistChipDefaults.assistChipBorder(enabled = true, borderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
     ) {
         Row(
-            modifier = Modifier.padding(12.dp),
-            verticalAlignment = Alignment.Top
+            modifier = Modifier.padding(8.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             if (selectionMode) {
                 Checkbox(
@@ -419,7 +433,7 @@ fun ItemRow(
                 )
             }
             // Photo or initials
-            Box(modifier = Modifier.size(60.dp)) {
+            Box(modifier = Modifier.size(44.dp)) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     shape = RoundedCornerShape(12.dp),
@@ -434,7 +448,7 @@ fun ItemRow(
                         )
                     } else {
                         Box(contentAlignment = Alignment.Center) {
-                            Text("📦", fontSize = 28.sp)
+                            Text("📦", fontSize = 20.sp)
                         }
                     }
                 }
@@ -458,24 +472,24 @@ fun ItemRow(
                 }
             }
 
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(10.dp))
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = item.name,
                     fontWeight = FontWeight.Bold,
                     color = if (canEdit) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                    fontSize = 17.sp,
-                    maxLines = 2,
+                    fontSize = 15.sp,
+                    maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     text = "${item.quantity} ${UnitTranslator.translateLabel(item.unit)}${if (storageName != null) " • $storageName" else ""}",
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontSize = 13.sp,
+                    fontSize = 12.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(bottom = 8.dp)
+                    modifier = Modifier.padding(bottom = 4.dp)
                 )
 
                 if (canEdit) {
@@ -492,48 +506,48 @@ fun ItemRow(
                                 shape = RoundedCornerShape(8.dp)
                             ).padding(horizontal = 4.dp)
                         ) {
-                            IconButton(onClick = { onAdjustQuantity(-1.0) }, modifier = Modifier.size(36.dp)) {
+                            IconButton(onClick = { onAdjustQuantity(-1.0) }, modifier = Modifier.size(32.dp)) {
                                 Icon(
-                                    Icons.Default.Remove, 
-                                    contentDescription = stringResource(R.string.btn_minus), 
+                                    Icons.Default.Remove,
+                                    contentDescription = stringResource(R.string.btn_minus),
                                     tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(20.dp)
+                                    modifier = Modifier.size(18.dp)
                                 )
                             }
-                            
-                            IconButton(onClick = { onAdjustQuantity(1.0) }, modifier = Modifier.size(36.dp)) {
+
+                            IconButton(onClick = { onAdjustQuantity(1.0) }, modifier = Modifier.size(32.dp)) {
                                 Icon(
-                                    Icons.Default.Add, 
-                                    contentDescription = stringResource(R.string.btn_plus), 
+                                    Icons.Default.Add,
+                                    contentDescription = stringResource(R.string.btn_plus),
                                     tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(20.dp)
+                                    modifier = Modifier.size(18.dp)
                                 )
                             }
                         }
 
                         IconButton(
                             onClick = onAddToShopping,
-                            modifier = Modifier.size(36.dp).background(
+                            modifier = Modifier.size(32.dp).background(
                                 color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
                                 shape = CircleShape
                             )
                         ) {
                             Icon(
-                                Icons.Default.AddShoppingCart, 
-                                contentDescription = stringResource(R.string.btn_add_to_shopping), 
-                                tint = MaterialTheme.colorScheme.onSecondaryContainer, 
-                                modifier = Modifier.size(20.dp)
+                                Icons.Default.AddShoppingCart,
+                                contentDescription = stringResource(R.string.btn_add_to_shopping),
+                                tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                modifier = Modifier.size(18.dp)
                             )
                         }
 
                         Spacer(modifier = Modifier.weight(1f))
 
-                        IconButton(onClick = onDelete, modifier = Modifier.size(36.dp)) {
+                        IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
                             Icon(
-                                Icons.Default.Delete, 
-                                contentDescription = stringResource(R.string.btn_delete), 
+                                Icons.Default.Delete,
+                                contentDescription = stringResource(R.string.btn_delete),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                                modifier = Modifier.size(20.dp)
+                                modifier = Modifier.size(18.dp)
                             )
                         }
                     }

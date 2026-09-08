@@ -231,7 +231,7 @@
     <string name="title_edit_domicile">Editar domicilio</string>
     <string name="setting_active_domicile">Domicilio activo</string>
     <string name="filter_all_domiciles">Todos los domicilios</string>
-    <string name="filter_all_storages">Todos los almacenamientos</string>
+    <string name="filter_all_storages">Todos</string>
 
     <!-- ===== i18n pass: datos seed (nombres por defecto creados para una cuenta nueva) ===== -->
     <string name="seed_storage_fridge">Nevera</string>

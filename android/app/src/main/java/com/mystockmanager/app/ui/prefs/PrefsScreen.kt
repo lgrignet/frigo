@@ -27,11 +27,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.mystockmanager.app.R
 import com.mystockmanager.app.core.QRCodeGenerator
 import com.mystockmanager.app.ui.components.QRScanner
+import com.mystockmanager.app.ui.components.RecipesIconButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PrefsScreen(
     onLogout: () -> Unit,
+    onOpenRecipes: () -> Unit = {},
     viewModel: PrefsViewModel = hiltViewModel()
 ) {
     val prefs by viewModel.prefs.collectAsState()
@@ -125,13 +127,19 @@ fun PrefsScreen(
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        Text(
-            text = stringResource(R.string.tab_settings),
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Black,
-            color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier.padding(vertical = 16.dp)
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = stringResource(R.string.tab_settings),
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Black,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            RecipesIconButton(onClick = onOpenRecipes)
+        }
 
         // Profile Section
         PrefsSection(title = stringResource(R.string.prefs_section_profile)) {
