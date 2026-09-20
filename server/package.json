@@ -1,0 +1,13 @@
+{
+  "name": "mystockmanager-sync-server",
+  "version": "1.0.0",
+  "description": "JSON Relay Server with Persistence for MyStockManager",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}

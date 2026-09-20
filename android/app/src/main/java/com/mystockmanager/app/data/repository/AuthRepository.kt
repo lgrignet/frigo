@@ -1,0 +1,335 @@
+package com.mystockmanager.app.data.repository
+
+import android.content.Context
+import android.os.Build
+import android.util.Log
+import com.mystockmanager.app.R
+import com.mystockmanager.app.core.CryptoManager
+import com.mystockmanager.app.core.SessionManager
+import com.mystockmanager.app.data.local.dao.ShopDao
+import com.mystockmanager.app.data.local.dao.StorageDao
+import com.mystockmanager.app.data.local.dao.UserDao
+import com.mystockmanager.app.data.local.entities.ShopEntity
+import com.mystockmanager.app.data.local.entities.StorageEntity
+import com.mystockmanager.app.data.local.entities.UserEntity
+import com.mystockmanager.app.data.remote.AccountApi
+import com.mystockmanager.app.data.remote.AccountApiException
+import com.mystockmanager.app.data.remote.AccountAuthResponse
+import dagger.hilt.android.qualifiers.ApplicationContext
+import java.time.Instant
+import java.util.UUID
+import javax.inject.Inject
+import javax.inject.Singleton
+
+@Singleton
+class AuthRepository @Inject constructor(
+    @ApplicationContext private val context: Context,
+    private val userDao: UserDao,
+    private val storageDao: StorageDao,
+    private val shopDao: ShopDao,
+    private val cryptoManager: CryptoManager,
+    private val sessionManager: SessionManager,
+    private val accountApi: AccountApi
+) {
+    private fun deviceName(): String = "${Build.MANUFACTURER} ${Build.MODEL}".trim()
+
+    /**
+     * Inscription — le compte est créé côté serveur (api.noshi.be) d'abord, c'est
+     * lui qui fait foi. Une copie locale est conservée pour l'usage hors-ligne.
+     */
+    suspend fun register(email: String, password: String, firstName: String, lastName: String): String {
+        val normalized = email.trim().lowercase()
+        if (userDao.getUserByEmail(normalized) != null) throw Exception("EMAIL_EXISTS")
+
+        val salt = cryptoManager.generateSalt()
+        val passwordHash = cryptoManager.hashPassword(password, salt)
+
+        val recoveryCode = cryptoManager.generateRecoveryCode()
+        val recoverySalt = cryptoManager.generateSalt()
+        val recoveryHash = cryptoManager.hashPassword(recoveryCode.replace("-", ""), recoverySalt)
+
+        val syncGuid = UUID.randomUUID().toString()
+
+        val remote = try {
+            accountApi.register(normalized, password, nom = lastName, prenom = firstName, guid = syncGuid, deviceName = deviceName())
+        } catch (e: AccountApiException) {
+            if (e.httpStatus == 409) throw Exception("EMAIL_EXISTS")
+            throw e
+        }
+
+        val user = UserEntity(
+            email = normalized,
+            firstName = firstName,
+            lastName = lastName,
+            passwordHash = passwordHash,
+            salt = salt,
+            recoveryHash = recoveryHash,
+            recoverySalt = recoverySalt,
+            syncChannelGuid = remote.guid ?: syncGuid,
+            createdAt = Instant.now().toString(),
+            compteId = remote.compteId,
+            deviceToken = remote.token,
+            emailVerifie = remote.emailVerifie
+        )
+
+        val userId = userDao.insertUser(user)
+
+        // Comptes par défaut (uniquement pour une inscription réelle, pas pour un
+        // appareil qui rejoint un compte existant via login — voir login()).
+        createDefaultStorages(userId.toString())
+        createDefaultShops(userId.toString())
+
+        sessionManager.setSession(userId, normalized, user.syncChannelGuid, firstName, lastName)
+        sessionManager.setDeviceToken(remote.token)
+        sessionManager.setEmailVerified(remote.emailVerifie)
+
+        return recoveryCode
+    }
+
+    private suspend fun createDefaultStorages(userId: String) {
+        val now = Instant.now().toString()
+        val defaults = listOf(
+            StorageEntity(UUID.randomUUID().toString(), userId, null, context.getString(R.string.seed_storage_fridge), "🧊", "cold", true, now),
+            StorageEntity(UUID.randomUUID().toString(), userId, null, context.getString(R.string.seed_storage_freezer), "❄️", "frozen", false, now),
+            StorageEntity(UUID.randomUUID().toString(), userId, null, context.getString(R.string.seed_storage_cupboard), "🚪", "dry", false, now)
+        )
+        defaults.forEach { storageDao.insertStorage(it) }
+    }
+
+    private suspend fun createDefaultShops(userId: String) {
+        val defaults = listOf("Carrefour", "Colruyt", "Lidl")
+        defaults.forEach { name ->
+            shopDao.insertShop(ShopEntity(UUID.randomUUID().toString(), userId, name, Instant.now().toString(), Instant.now().toString()))
+        }
+    }
+
+    /**
+     * Connexion — vérifiée côté serveur. Si aucun compte local ne correspond à cet
+     * email, c'est un nouvel appareil qui rejoint un compte existant : on adopte le
+     * foyer (guid) renvoyé par le serveur plutôt que d'en créer un nouveau.
+     */
+    suspend fun login(email: String, password: String): Boolean {
+        val normalized = email.trim().lowercase()
+        val localUser = userDao.getUserByEmail(normalized)
+
+        val remote = try {
+            accountApi.login(normalized, password, guid = localUser?.syncChannelGuid, deviceName = deviceName())
+        } catch (e: AccountApiException) {
+            if (e.httpStatus == 401) {
+                // Le serveur ne connaît pas ce compte : cas d'un compte créé localement
+                // avant l'existence du service et jamais migré (ex. session locale perdue
+                // avant que migrateIfNeeded() n'ait eu l'occasion de tourner au démarrage).
+                // On vérifie le mot de passe contre le hash local puis on migre à la volée
+                // plutôt que de renvoyer un échec trompeur ("mot de passe incorrect").
+                return tryMigrateThenLogin(localUser, password)
+            }
+            throw e
+        }
+
+        persistRemoteSession(normalized, password, remote)
+        return true
+    }
+
+    private suspend fun tryMigrateThenLogin(localUser: UserEntity?, password: String): Boolean {
+        if (localUser == null || !localUser.deviceToken.isNullOrBlank()) return false
+        if (cryptoManager.hashPassword(password, localUser.salt) != localUser.passwordHash) return false
+
+        return try {
+            val remote = migrateLocalUser(localUser)
+            sessionManager.setSession(localUser.id, localUser.email, localUser.syncChannelGuid, localUser.firstName, localUser.lastName)
+            sessionManager.setDeviceToken(remote.token)
+            sessionManager.setEmailVerified(remote.emailVerifie)
+            true
+        } catch (e: Exception) {
+            Log.w("AuthRepository", "Migration à la volée depuis l'écran de connexion impossible", e)
+            false
+        }
+    }
+
+    /**
+     * Réinitialise le mot de passe via le code de récupération à 20 caractères
+     * affiché à l'inscription (§4.5 du cahier des charges — pas d'email, le code
+     * EST le facteur de récupération). Un succès reconnecte directement l'appareil,
+     * exactement comme /account/login.
+     */
+    suspend fun recoverPassword(email: String, recoveryCode: String, newPassword: String): Boolean {
+        val normalized = email.trim().lowercase()
+        val localUser = userDao.getUserByEmail(normalized)
+        val cleanedCode = recoveryCode.replace("-", "").trim().uppercase()
+
+        val remote = try {
+            accountApi.recoverPassword(normalized, cleanedCode, newPassword, guid = localUser?.syncChannelGuid, deviceName = deviceName())
+        } catch (e: AccountApiException) {
+            if (e.httpStatus == 401) return false
+            throw e
+        }
+
+        persistRemoteSession(normalized, newPassword, remote)
+        return true
+    }
+
+    /**
+     * Met à jour (ou crée) la copie locale de l'utilisateur à partir d'une réponse
+     * serveur (login/recover), et recalcule le hash local avec le mot de passe
+     * courant — nécessaire après une récupération, sans effet sinon (même hash).
+     */
+    private suspend fun persistRemoteSession(normalizedEmail: String, password: String, remote: AccountAuthResponse) {
+        val localUser = userDao.getUserByEmail(normalizedEmail)
+
+        val user = if (localUser != null) {
+            localUser.copy(
+                passwordHash = cryptoManager.hashPassword(password, localUser.salt),
+                compteId = remote.compteId,
+                deviceToken = remote.token,
+                emailVerifie = remote.emailVerifie,
+                syncChannelGuid = remote.guid ?: localUser.syncChannelGuid
+            )
+        } else {
+            // Le serveur ne renvoie ni prénom ni nom : l'utilisateur les complètera
+            // dans Préférences > Profil. Le stock/liste arrivera via la sync (guid).
+            val newSalt = cryptoManager.generateSalt()
+            UserEntity(
+                email = normalizedEmail,
+                passwordHash = cryptoManager.hashPassword(password, newSalt),
+                salt = newSalt,
+                recoveryHash = "",
+                recoverySalt = "",
+                syncChannelGuid = remote.guid ?: UUID.randomUUID().toString(),
+                createdAt = Instant.now().toString(),
+                compteId = remote.compteId,
+                deviceToken = remote.token,
+                emailVerifie = remote.emailVerifie
+            )
+        }
+
+        val userId = if (localUser != null) {
+            userDao.updateUser(user)
+            user.id
+        } else {
+            userDao.insertUser(user)
+        }
+
+        sessionManager.setSession(userId, user.email, user.syncChannelGuid, user.firstName, user.lastName)
+        sessionManager.setDeviceToken(remote.token)
+        sessionManager.setEmailVerified(remote.emailVerifie)
+    }
+
+    /**
+     * Migre vers api.noshi.be un compte créé localement avant l'existence du
+     * service de comptes (hash/sel déjà calculés, transmis tels quels — pas besoin
+     * du mot de passe en clair). Appelée au démarrage pour les sessions existantes
+     * qui n'ont pas encore de device_token. Non bloquante : une erreur réseau ou un
+     * 409 (déjà migré depuis un autre appareil) sont simplement journalisés, la
+     * migration sera retentée au prochain démarrage ou via une connexion explicite.
+     */
+    suspend fun migrateIfNeeded() {
+        val userId = sessionManager.getUserId()
+        if (userId == -1L) return
+        val user = userDao.getUserById(userId) ?: return
+        if (!user.deviceToken.isNullOrBlank()) return
+
+        try {
+            val remote = migrateLocalUser(user)
+            sessionManager.setDeviceToken(remote.token)
+            sessionManager.setEmailVerified(remote.emailVerifie)
+        } catch (e: AccountApiException) {
+            Log.w("AuthRepository", "Migration vers api.noshi.be différée (${e.httpStatus}) : ${e.message}")
+        } catch (e: Exception) {
+            Log.w("AuthRepository", "Migration vers api.noshi.be impossible (réseau ?)", e)
+        }
+    }
+
+    /** Migre le compte local [user] (hash/sel déjà calculés) vers api.noshi.be et met à jour sa copie locale. */
+    private suspend fun migrateLocalUser(user: UserEntity): AccountAuthResponse {
+        val remote = accountApi.migrate(
+            email = user.email,
+            nom = user.lastName,
+            prenom = user.firstName,
+            passwordHash = user.passwordHash,
+            passwordSalt = user.salt,
+            recoveryCodeHash = user.recoveryHash.ifBlank { null },
+            recoveryCodeSalt = user.recoverySalt.ifBlank { null },
+            guid = user.syncChannelGuid,
+            deviceName = deviceName()
+        )
+        userDao.updateUser(
+            user.copy(
+                compteId = remote.compteId,
+                deviceToken = remote.token,
+                emailVerifie = remote.emailVerifie
+            )
+        )
+        return remote
+    }
+
+    /** Vérifie l'email du compte connecté avec le code à 6 chiffres reçu (§4.6 du cahier des charges). */
+    suspend fun verifyEmail(code: String): Boolean {
+        val email = sessionManager.getEmail() ?: return false
+        return try {
+            accountApi.verifyEmail(email, code.trim())
+            sessionManager.setEmailVerified(true)
+            userDao.getUserById(sessionManager.getUserId())?.let { userDao.updateUser(it.copy(emailVerifie = true)) }
+            true
+        } catch (e: AccountApiException) {
+            if (e.httpStatus == 401) false else throw e
+        }
+    }
+
+    /**
+     * Change le foyer (guid) rattaché au compte côté serveur. Purement l'appel
+     * réseau + mise à jour locale du champ ; la purge des données de l'ancien
+     * foyer et le redémarrage de la sync sont orchestrés par l'appelant
+     * (PrefsViewModel.updateSyncGuid), car ils touchent d'autres repositories.
+     */
+    suspend fun changeHousehold(newGuid: String): Boolean {
+        val token = sessionManager.getDeviceToken() ?: return false
+        return try {
+            val remote = accountApi.changeHousehold(token, newGuid)
+            userDao.getUserById(sessionManager.getUserId())?.let { userDao.updateUser(it.copy(syncChannelGuid = remote.guid)) }
+            true
+        } catch (e: AccountApiException) {
+            false
+        }
+    }
+
+    /** Redemande l'envoi d'un code de vérification (best-effort, ne fait jamais échouer l'appelant). */
+    suspend fun resendVerificationCode() {
+        val email = sessionManager.getEmail() ?: return
+        try {
+            accountApi.resendVerificationCode(email)
+        } catch (e: Exception) {
+            Log.w("AuthRepository", "Renvoi du code de vérification impossible (réseau ?)", e)
+        }
+    }
+
+    /** Révoque le device_token côté serveur (best-effort) puis efface la session locale. */
+    suspend fun logout() {
+        val token = sessionManager.getDeviceToken()
+        if (token != null) {
+            try {
+                accountApi.logout(token)
+            } catch (e: Exception) {
+                Log.w("AuthRepository", "Révocation du device_token impossible (réseau ?)", e)
+            }
+        }
+        sessionManager.clearSession()
+    }
+
+    fun isLoggedIn(): Boolean = sessionManager.isLoggedIn()
+
+    suspend fun updateProfile(firstName: String, lastName: String) {
+        val userId = sessionManager.getUserId()
+        val user = userDao.getUserById(userId)
+        if (user != null) {
+            val updatedUser = user.copy(firstName = firstName, lastName = lastName)
+            userDao.updateUser(updatedUser)
+            sessionManager.setSession(
+                userId = updatedUser.id,
+                email = updatedUser.email,
+                syncChannelGuid = updatedUser.syncChannelGuid,
+                firstName = updatedUser.firstName,
+                lastName = updatedUser.lastName
+            )
+        }
+    }
+}

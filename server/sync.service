@@ -1,0 +1,18 @@
+[Unit]
+Description=MyStockManager Sync Server
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/node /home/debian/sync-server/server.js
+WorkingDirectory=/home/debian/sync-server
+Restart=always
+User=debian
+Group=debian
+Environment=NODE_ENV=production
+Environment=ACCOUNT_SERVICE_URL=http://127.0.0.1:3001
+# INTERNAL_SHARED_SECRET doit avoir EXACTEMENT la même valeur que sur le service
+# de comptes (api.noshi.be) — à définir sur le serveur, jamais commis ici.
+Environment=INTERNAL_SHARED_SECRET=
+
+[Install]
+WantedBy=multi-user.target
