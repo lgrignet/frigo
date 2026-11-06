@@ -18,7 +18,7 @@ class ShoppingRepository @Inject constructor(
     private val itemDao: ItemDao,
     private val syncManager: SyncManager
 ) {
-    fun getShoppingList(userId: String): Flow<List<ShoppingEntity>> = shoppingDao.getShoppingList()
+    fun getShoppingList(userId: String = ""): Flow<List<ShoppingEntity>> = shoppingDao.getShoppingList()
 
     suspend fun addShoppingItem(item: ShoppingEntity) {
         shoppingDao.insertShoppingItem(item)

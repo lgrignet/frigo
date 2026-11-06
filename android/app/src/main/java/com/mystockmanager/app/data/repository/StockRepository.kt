@@ -19,13 +19,13 @@ class StockRepository @Inject constructor(
     private val expiryHistoryDao: ExpiryHistoryDao,
     private val syncManager: SyncManager
 ) {
-    fun getItems(userId: String): Flow<List<ItemEntity>> = itemDao.getAllItems()
+    fun getItems(userId: String = ""): Flow<List<ItemEntity>> = itemDao.getAllItems()
     
-    fun getStorages(userId: String): Flow<List<StorageEntity>> = storageDao.getAllStorages()
+    fun getStorages(userId: String = ""): Flow<List<StorageEntity>> = storageDao.getAllStorages()
 
-    fun getShops(userId: String): Flow<List<ShopEntity>> = shopDao.getAllShops()
+    fun getShops(userId: String = ""): Flow<List<ShopEntity>> = shopDao.getAllShops()
 
-    fun getUnits(userId: String): Flow<List<UnitEntity>> = unitDao.getAllUnits()
+    fun getUnits(userId: String = ""): Flow<List<UnitEntity>> = unitDao.getAllUnits()
 
     fun getDomiciles(): Flow<List<DomicileEntity>> = domicileDao.getAllDomiciles()
 
