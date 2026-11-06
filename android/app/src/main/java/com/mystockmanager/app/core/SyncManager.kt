@@ -145,7 +145,6 @@ class SyncManager @Inject constructor(
     }
 
     private suspend fun handleSyncCatalog(catalogData: String) {
-        val userId = sessionManager.getUserId().toString()
         val pairs = catalogData.split(",").filter { it.contains(":") }
         val validIdsByType = pairs.map { it.split(":") }.groupBy({ it[0] }, { it[1] })
 
@@ -154,17 +153,17 @@ class SyncManager @Inject constructor(
         withContext(Dispatchers.IO) {
             // Items
             val validItems = validIdsByType["item"] ?: emptyList()
-            db.itemDao().getAllItems(userId).first().forEach { local ->
+            db.itemDao().getAllItems().first().forEach { local ->
                 if (!validItems.contains(local.id)) db.itemDao().deleteItem(local)
             }
             // Storages
             val validStorages = validIdsByType["storage"] ?: emptyList()
-            db.storageDao().getAllStorages(userId).first().forEach { local ->
+            db.storageDao().getAllStorages().first().forEach { local ->
                 if (!validStorages.contains(local.id)) db.storageDao().deleteStorage(local)
             }
             // Shops
             val validShops = validIdsByType["shop"] ?: emptyList()
-            db.shopDao().getAllShops(userId).first().forEach { local ->
+            db.shopDao().getAllShops().first().forEach { local ->
                 if (!validShops.contains(local.id)) db.shopDao().deleteShop(local)
             }
             // Domiciles
@@ -174,12 +173,12 @@ class SyncManager @Inject constructor(
             }
             // Units
             val validUnits = validIdsByType["unit"] ?: emptyList()
-            db.unitDao().getAllUnits(userId).first().forEach { local ->
+            db.unitDao().getAllUnits().first().forEach { local ->
                 if (!validUnits.contains(local.id)) db.unitDao().deleteUnit(local)
             }
             // Shopping
             val validShopping = validIdsByType["shopping"] ?: emptyList()
-            db.shoppingDao().getShoppingList(userId).first().forEach { local ->
+            db.shoppingDao().getShoppingList().first().forEach { local ->
                 if (!validShopping.contains(local.id)) db.shoppingDao().deleteShoppingItem(local)
             }
         }

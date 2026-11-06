@@ -18,6 +18,6 @@ interface DomicileDao {
     @Query("SELECT * FROM domiciles WHERE id = :id LIMIT 1")
     suspend fun getDomicileById(id: String): DomicileEntity?
 
-    @Query("DELETE FROM domiciles WHERE userId = :userId")
-    suspend fun deleteAllForUser(userId: String)
+    @Query("DELETE FROM domiciles")
+    suspend fun deleteAll()
 }

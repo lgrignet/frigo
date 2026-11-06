@@ -19,13 +19,13 @@ class StockRepository @Inject constructor(
     private val expiryHistoryDao: ExpiryHistoryDao,
     private val syncManager: SyncManager
 ) {
-    fun getItems(userId: String): Flow<List<ItemEntity>> = itemDao.getAllItems(userId)
+    fun getItems(userId: String): Flow<List<ItemEntity>> = itemDao.getAllItems()
     
-    fun getStorages(userId: String): Flow<List<StorageEntity>> = storageDao.getAllStorages(userId)
+    fun getStorages(userId: String): Flow<List<StorageEntity>> = storageDao.getAllStorages()
 
-    fun getShops(userId: String): Flow<List<ShopEntity>> = shopDao.getAllShops(userId)
+    fun getShops(userId: String): Flow<List<ShopEntity>> = shopDao.getAllShops()
 
-    fun getUnits(userId: String): Flow<List<UnitEntity>> = unitDao.getAllUnits(userId)
+    fun getUnits(userId: String): Flow<List<UnitEntity>> = unitDao.getAllUnits()
 
     fun getDomiciles(): Flow<List<DomicileEntity>> = domicileDao.getAllDomiciles()
 
@@ -100,7 +100,7 @@ class StockRepository @Inject constructor(
     }
 
     suspend fun cleanupUnits(userId: String, label: String, fixedId: String) {
-        unitDao.cleanupOldUnits(userId, label, fixedId)
+        unitDao.cleanupOldUnits(label, fixedId)
     }
 
     suspend fun addDomicile(domicile: DomicileEntity) {
@@ -120,11 +120,11 @@ class StockRepository @Inject constructor(
      * normal. Purement locale, ne déclenche aucun message de sync (l'ancien salon
      * n'a pas à savoir que cet appareil part).
      */
-    suspend fun wipeHouseholdData(userId: String) {
-        itemDao.deleteAllForUser(userId)
-        storageDao.deleteAllForUser(userId)
-        shopDao.deleteAllForUser(userId)
-        unitDao.deleteAllForUser(userId)
-        domicileDao.deleteAllForUser(userId)
+    suspend fun wipeHouseholdData() {
+        itemDao.deleteAll()
+        storageDao.deleteAll()
+        shopDao.deleteAll()
+        unitDao.deleteAll()
+        domicileDao.deleteAll()
     }
 }

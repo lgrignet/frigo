@@ -18,7 +18,7 @@ class ShoppingRepository @Inject constructor(
     private val itemDao: ItemDao,
     private val syncManager: SyncManager
 ) {
-    fun getShoppingList(userId: String): Flow<List<ShoppingEntity>> = shoppingDao.getShoppingList(userId)
+    fun getShoppingList(userId: String): Flow<List<ShoppingEntity>> = shoppingDao.getShoppingList()
 
     suspend fun addShoppingItem(item: ShoppingEntity) {
         shoppingDao.insertShoppingItem(item)
@@ -50,7 +50,7 @@ class ShoppingRepository @Inject constructor(
 
         if (shoppingItem.itemId != null) {
             // Update existing item
-            val existingItem = itemDao.getAllItems(userId).first().find { it.id == shoppingItem.itemId }
+            val existingItem = itemDao.getAllItems().first().find { it.id == shoppingItem.itemId }
             if (existingItem != null) {
                 val updatedItem = existingItem.copy(
                     quantity = existingItem.quantity + qty,
@@ -86,8 +86,8 @@ class ShoppingRepository @Inject constructor(
     }
 
     suspend fun syncAutoRestock(userId: String) {
-        val lowStockItems = itemDao.getLowStockItems(userId).first()
-        val existingAutoEntries = shoppingDao.getAutoRestockItems(userId)
+        val lowStockItems = itemDao.getLowStockItems().first()
+        val existingAutoEntries = shoppingDao.getAutoRestockItems()
         
         val lowStockIds = lowStockItems.map { it.id }.toSet()
 
@@ -121,7 +121,7 @@ class ShoppingRepository @Inject constructor(
     }
 
     /** Purge la liste de courses locale — pendant d'un changement de foyer, voir StockRepository.wipeHouseholdData. */
-    suspend fun wipeHouseholdData(userId: String) {
-        shoppingDao.deleteAllForUser(userId)
+    suspend fun wipeHouseholdData() {
+        shoppingDao.deleteAll()
     }
 }

@@ -53,7 +53,7 @@ class ShoppingViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
     val shoppingItems: StateFlow<List<ShoppingEntity>> = combine(
-        shoppingRepository.getShoppingList(userId),
+        shoppingRepository.getShoppingList(),
         _filterShopId,
         isAggregated
     ) { items, filterId, aggregated ->
@@ -115,7 +115,7 @@ class ShoppingViewModel @Inject constructor(
     }
 
     private suspend fun getItemsForAggregated(aggItem: ShoppingEntity): List<ShoppingEntity> {
-        val allItems = shoppingRepository.getShoppingList(userId).first()
+        val allItems = shoppingRepository.getShoppingList().first()
         return allItems.filter { 
             it.name.lowercase().trim() == aggItem.name.lowercase().trim() && 
             it.unit.lowercase().trim() == aggItem.unit.lowercase().trim() &&
