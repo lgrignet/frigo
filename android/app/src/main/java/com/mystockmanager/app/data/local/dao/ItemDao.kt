@@ -6,8 +6,8 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ItemDao {
-    @Query("SELECT * FROM items WHERE userId = :userId")
-    fun getAllItems(userId: String): Flow<List<ItemEntity>>
+    @Query("SELECT * FROM items")
+    fun getAllItems(): Flow<List<ItemEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertItem(item: ItemEntity)
@@ -18,9 +18,9 @@ interface ItemDao {
     @Query("SELECT * FROM items WHERE id = :id")
     suspend fun getItemById(id: String): ItemEntity?
 
-    @Query("SELECT * FROM items WHERE userId = :userId AND restockThreshold > 0 AND quantity <= restockThreshold")
-    fun getLowStockItems(userId: String): Flow<List<ItemEntity>>
+    @Query("SELECT * FROM items WHERE restockThreshold > 0 AND quantity <= restockThreshold")
+    fun getLowStockItems(): Flow<List<ItemEntity>>
 
-    @Query("DELETE FROM items WHERE userId = :userId")
-    suspend fun deleteAllForUser(userId: String)
+    @Query("DELETE FROM items")
+    suspend fun deleteAll()
 }

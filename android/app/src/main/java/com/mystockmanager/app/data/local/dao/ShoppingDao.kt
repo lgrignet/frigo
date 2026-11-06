@@ -6,8 +6,8 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ShoppingDao {
-    @Query("SELECT * FROM shopping_list WHERE userId = :userId")
-    fun getShoppingList(userId: String): Flow<List<ShoppingEntity>>
+    @Query("SELECT * FROM shopping_list")
+    fun getShoppingList(): Flow<List<ShoppingEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertShoppingItem(item: ShoppingEntity)
@@ -21,12 +21,12 @@ interface ShoppingDao {
     @Query("SELECT * FROM shopping_list WHERE id = :id LIMIT 1")
     suspend fun getShoppingItemById(id: String): ShoppingEntity?
 
-    @Query("SELECT * FROM shopping_list WHERE userId = :userId AND source = 'auto'")
-    suspend fun getAutoRestockItems(userId: String): List<ShoppingEntity>
+    @Query("SELECT * FROM shopping_list WHERE source = 'auto'")
+    suspend fun getAutoRestockItems(): List<ShoppingEntity>
 
-    @Query("SELECT * FROM shopping_list WHERE userId = :userId AND itemId = :itemId AND source = 'auto' LIMIT 1")
-    suspend fun getAutoEntryForItem(userId: String, itemId: String): ShoppingEntity?
+    @Query("SELECT * FROM shopping_list WHERE itemId = :itemId AND source = 'auto' LIMIT 1")
+    suspend fun getAutoEntryForItem(itemId: String): ShoppingEntity?
 
-    @Query("DELETE FROM shopping_list WHERE userId = :userId")
-    suspend fun deleteAllForUser(userId: String)
+    @Query("DELETE FROM shopping_list")
+    suspend fun deleteAll()
 }

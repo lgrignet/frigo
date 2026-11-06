@@ -6,8 +6,12 @@ import android.util.Log
 import com.mystockmanager.app.R
 import com.mystockmanager.app.core.CryptoManager
 import com.mystockmanager.app.core.SessionManager
+import com.mystockmanager.app.data.local.dao.DomicileDao
+import com.mystockmanager.app.data.local.dao.ItemDao
 import com.mystockmanager.app.data.local.dao.ShopDao
+import com.mystockmanager.app.data.local.dao.ShoppingDao
 import com.mystockmanager.app.data.local.dao.StorageDao
+import com.mystockmanager.app.data.local.dao.UnitDao
 import com.mystockmanager.app.data.local.dao.UserDao
 import com.mystockmanager.app.data.local.entities.ShopEntity
 import com.mystockmanager.app.data.local.entities.StorageEntity
@@ -27,6 +31,10 @@ class AuthRepository @Inject constructor(
     private val userDao: UserDao,
     private val storageDao: StorageDao,
     private val shopDao: ShopDao,
+    private val itemDao: ItemDao,
+    private val unitDao: UnitDao,
+    private val domicileDao: DomicileDao,
+    private val shoppingDao: ShoppingDao,
     private val cryptoManager: CryptoManager,
     private val sessionManager: SessionManager,
     private val accountApi: AccountApi
@@ -312,6 +320,15 @@ class AuthRepository @Inject constructor(
                 Log.w("AuthRepository", "Révocation du device_token impossible (réseau ?)", e)
             }
         }
+        // Un seul compte par appareil, le serveur de synchronisation fait foi : on vide
+        // le contenu du foyer en local (sans message de sync) pour que la prochaine
+        // connexion le reconstruise depuis le serveur, sans restes d'un autre compte.
+        itemDao.deleteAll()
+        storageDao.deleteAll()
+        shopDao.deleteAll()
+        unitDao.deleteAll()
+        domicileDao.deleteAll()
+        shoppingDao.deleteAll()
         sessionManager.clearSession()
     }
 

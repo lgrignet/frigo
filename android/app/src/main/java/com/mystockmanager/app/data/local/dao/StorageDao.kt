@@ -6,8 +6,8 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface StorageDao {
-    @Query("SELECT * FROM storages WHERE userId = :userId")
-    fun getAllStorages(userId: String): Flow<List<StorageEntity>>
+    @Query("SELECT * FROM storages")
+    fun getAllStorages(): Flow<List<StorageEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertStorage(storage: StorageEntity)
@@ -18,6 +18,6 @@ interface StorageDao {
     @Query("SELECT * FROM storages WHERE id = :id")
     suspend fun getStorageById(id: String): StorageEntity?
 
-    @Query("DELETE FROM storages WHERE userId = :userId")
-    suspend fun deleteAllForUser(userId: String)
+    @Query("DELETE FROM storages")
+    suspend fun deleteAll()
 }

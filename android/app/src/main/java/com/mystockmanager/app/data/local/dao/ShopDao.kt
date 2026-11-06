@@ -6,8 +6,8 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ShopDao {
-    @Query("SELECT * FROM shops WHERE userId = :userId")
-    fun getAllShops(userId: String): Flow<List<ShopEntity>>
+    @Query("SELECT * FROM shops")
+    fun getAllShops(): Flow<List<ShopEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertShop(shop: ShopEntity)
@@ -18,6 +18,6 @@ interface ShopDao {
     @Query("SELECT * FROM shops WHERE id = :id")
     suspend fun getShopById(id: String): ShopEntity?
 
-    @Query("DELETE FROM shops WHERE userId = :userId")
-    suspend fun deleteAllForUser(userId: String)
+    @Query("DELETE FROM shops")
+    suspend fun deleteAll()
 }

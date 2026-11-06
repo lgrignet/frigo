@@ -55,8 +55,8 @@ class PrefsViewModel @Inject constructor(
             val ok = authRepository.changeHousehold(newGuid)
             if (ok) {
                 syncManager.stopSync()
-                stockRepository.wipeHouseholdData(userId)
-                shoppingRepository.wipeHouseholdData(userId)
+                stockRepository.wipeHouseholdData()
+                shoppingRepository.wipeHouseholdData()
                 prefsRepository.clearHouseholdReferences(userId)
                 sessionManager.setSyncGuid(newGuid)
                 syncGuid.value = newGuid
